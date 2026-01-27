@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mm-ready"
+version = "0.1.0"
+description = "Database scanner for Spock 5 multi-master replication readiness"
+license = {file = "LICENSE.md"}
+requires-python = ">=3.10"
+dependencies = [
+    "psycopg2-binary>=2.9",
+]
+
+[project.scripts]
+mm-ready = "mm_ready.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["mm_ready*"]

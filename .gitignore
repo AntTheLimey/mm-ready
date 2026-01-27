@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+
+# Reports (generated output)
+reports/
+
+# Internal development notes
+PLAN.md
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/
+
+# IDE
+.vscode/
+.idea/
