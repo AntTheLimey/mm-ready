@@ -10,6 +10,9 @@ build/
 # Reports (generated output)
 reports/
 
+# Temporary files (customer schema dumps, etc.)
+tmp/
+
 # Internal development notes
 PLAN.md
 

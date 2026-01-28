@@ -367,7 +367,10 @@ def render(report: ScanReport) -> str:
     # Header
     main.append('<h1>MM-Ready: Spock 5 Readiness Report</h1>')
     main.append(f'<p><strong>Database:</strong> {_esc(report.database)}<br>')
-    main.append(f'<strong>Host:</strong> {_esc(report.host)}:{report.port}<br>')
+    if report.scan_mode == "analyze":
+        main.append(f'<strong>Source File:</strong> {_esc(report.host)}<br>')
+    else:
+        main.append(f'<strong>Host:</strong> {_esc(report.host)}:{report.port}<br>')
     main.append(f'<strong>PostgreSQL:</strong> {_esc(report.pg_version)}<br>')
     main.append(f'<strong>Scan Time:</strong> {report.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")}<br>')
     main.append(f'<strong>Mode:</strong> {_esc(report.scan_mode)}<br>')
