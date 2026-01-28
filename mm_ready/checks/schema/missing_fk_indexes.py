@@ -45,7 +45,7 @@ class MissingFkIndexesCheck(BaseCheck):
             fqn = f"{schema_name}.{table_name}"
             col_list = ", ".join(fk_cols)
             findings.append(Finding(
-                severity=Severity.WARNING,
+                severity=Severity.CONSIDER,
                 check_name=self.name,
                 category=self.category,
                 title=f"No index on FK columns '{fqn}' ({col_list})",

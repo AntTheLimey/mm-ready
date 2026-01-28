@@ -32,6 +32,13 @@ class TestBuildParser:
             args = parser.parse_args([cmd] if cmd == "list-checks" else [cmd, "--host", "x"])
             assert args.command == cmd
 
+    def test_analyze_subcommand(self):
+        parser = build_parser()
+        args = parser.parse_args(["analyze", "--file", "test.sql"])
+        assert args.command == "analyze"
+        assert args.file == "test.sql"
+        assert args.format == "html"  # default
+
     def test_port_default(self):
         parser = build_parser()
         args = parser.parse_args(["scan", "--host", "x"])
@@ -49,7 +56,7 @@ class TestDefaultToScan:
         parser = build_parser()
         # Simulate what main() does
         raw_args = ["--host", "example.com"]
-        known_commands = {"scan", "audit", "monitor", "list-checks"}
+        known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
         if raw_args and raw_args[0] not in known_commands and raw_args[0] not in ("--version", "--help", "-h"):
             raw_args = ["scan"] + list(raw_args)
         args = parser.parse_args(raw_args)
@@ -64,7 +71,7 @@ class TestDefaultToScan:
     def test_help_not_prepended(self):
         """--help should not get 'scan' prepended."""
         raw_args = ["--help"]
-        known_commands = {"scan", "audit", "monitor", "list-checks"}
+        known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
         should_prepend = (
             raw_args
             and raw_args[0] not in known_commands
@@ -74,7 +81,7 @@ class TestDefaultToScan:
 
     def test_version_not_prepended(self):
         raw_args = ["--version"]
-        known_commands = {"scan", "audit", "monitor", "list-checks"}
+        known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
         should_prepend = (
             raw_args
             and raw_args[0] not in known_commands

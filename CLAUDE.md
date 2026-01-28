@@ -13,11 +13,15 @@ any connectable PostgreSQL instance.
   ~/PROJECTS/spock/ is the authoritative reference. Spock documentation is
   frequently wrong or out of date. Always verify claims against the C source.
 
-- **Scan mode vs Audit mode.** The tool has two operational modes:
+- **Operational modes.** The tool has three main modes:
   - `scan` (default) — pre-Spock readiness assessment of a vanilla PostgreSQL
     database that does NOT have Spock installed. This is the primary use case.
   - `audit` — post-Spock health check of a database that already has Spock
     installed and running.
+  - `analyze` — offline analysis of a `pg_dump --schema-only` SQL file without
+    a database connection. Useful for Customer Success when customers send
+    schema dumps. Runs 19 of the 56 checks (those that can work from schema
+    structure alone); the remaining 37 are marked as skipped.
 
   Checks are tagged with `mode = "scan"`, `mode = "audit"`, or `mode = "both"`.
   Scan-mode checks must never assume Spock is installed. Audit-mode checks may
@@ -31,8 +35,10 @@ any connectable PostgreSQL instance.
 
 ```
 mm_ready/
-  cli.py             # Argument parsing, subcommands (scan, audit, monitor, list-checks)
+  cli.py             # Argument parsing, subcommands (scan, audit, monitor, analyze, list-checks)
   scanner.py         # Orchestrator: discovers checks, runs them, builds ScanReport
+  analyzer.py        # Offline analysis: runs static checks against ParsedSchema
+  schema_parser.py   # Parses pg_dump --schema-only SQL into in-memory model
   registry.py        # Auto-discovers BaseCheck subclasses from checks/ directory
   connection.py      # psycopg2 connection from CLI args or DSN
   models.py          # Severity, Finding, CheckResult, ScanReport dataclasses
@@ -131,6 +137,27 @@ mm-ready scan --host localhost --port 5499 --dbname mmready \
 - `tests/test_workload.sql` — idempotent workload that populates
   pg_stat_statements and exercises the mmr_ tables. The database is unchanged
   after each run (inserts are deleted, updates are reverted).
+
+## Offline Analysis (analyze mode)
+
+The `analyze` subcommand parses a pg_dump SQL file and runs schema-structural
+checks without a database connection:
+
+```bash
+mm-ready analyze --file customer_schema.sql --format html -v
+```
+
+The schema parser (`schema_parser.py`) extracts:
+- Tables (columns, constraints, UNLOGGED, INHERITS, PARTITION BY)
+- Constraints (PK, UNIQUE, FK with CASCADE options, EXCLUDE, DEFERRABLE)
+- Indexes (unique, method, columns)
+- Sequences (data type, ownership)
+- Extensions, ENUM types, Rules
+
+The analyzer (`analyzer.py`) runs 19 static checks that can operate on parsed
+schema structure. Checks requiring live database access (GUCs, pg_stat, Spock
+catalogs, etc.) are marked as skipped with reason "Requires live database
+connection".
 
 ## Code Style
 

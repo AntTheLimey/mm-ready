@@ -64,6 +64,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mon_parser.add_argument("--verbose", "-v", action="store_true", help="Print progress")
 
+    # -- analyze --
+    analyze_parser = subparsers.add_parser(
+        "analyze", help="Offline schema dump analysis (no database connection required)"
+    )
+    analyze_parser.add_argument(
+        "--file", required=True, help="Path to pg_dump --schema-only SQL file"
+    )
+    _add_output_args(analyze_parser)
+    analyze_parser.add_argument(
+        "--categories",
+        help="Comma-separated list of check categories to run (default: all)",
+    )
+    analyze_parser.add_argument("--verbose", "-v", action="store_true", help="Print progress")
+
     # -- list-checks --
     list_parser = subparsers.add_parser("list-checks", help="List all available checks")
     list_parser.add_argument(
@@ -107,7 +121,7 @@ def main(argv: list[str] | None = None):
 
     # Default to "scan" when no subcommand is given but arguments are present
     raw_args = argv if argv is not None else sys.argv[1:]
-    known_commands = {"scan", "audit", "monitor", "list-checks"}
+    known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
     if raw_args and raw_args[0] not in known_commands and raw_args[0] not in ("--version", "--help", "-h"):
         raw_args = ["scan"] + list(raw_args)
     elif not raw_args:
@@ -126,8 +140,32 @@ def main(argv: list[str] | None = None):
         _cmd_scan(args)
     elif args.command == "audit":
         _cmd_audit(args)
+    elif args.command == "analyze":
+        _cmd_analyze(args)
     elif args.command == "monitor":
         _cmd_monitor(args)
+
+
+def _cmd_analyze(args):
+    from mm_ready.analyzer import run_analyze
+    from mm_ready.schema_parser import parse_dump
+
+    if not os.path.isfile(args.file):
+        print(f"Error: file not found: {args.file}", file=sys.stderr)
+        sys.exit(1)
+
+    schema = parse_dump(args.file)
+    categories = args.categories.split(",") if args.categories else None
+
+    report = run_analyze(
+        schema,
+        file_path=args.file,
+        categories=categories,
+        verbose=args.verbose,
+    )
+
+    output = _render_report(report, args.format)
+    _write_output(output, args, mode="analyze", dbname=report.database)
 
 
 def _cmd_list_checks(args):
