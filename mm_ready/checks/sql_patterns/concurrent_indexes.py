@@ -15,7 +15,7 @@ class ConcurrentIndexesCheck(BaseCheck):
                 cur.execute("""
                     SELECT query, calls
                     FROM pg_stat_statements
-                    WHERE query ~* E'CREATE\\s+INDEX\\s+CONCURRENTLY'
+                    WHERE query ~* 'CREATE\\s+INDEX\\s+CONCURRENTLY'
                     ORDER BY calls DESC;
                 """)
                 rows = cur.fetchall()

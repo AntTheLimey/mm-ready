@@ -3,7 +3,7 @@
 These tests require the mmready-test Docker container to be running:
 
     docker run -d --name mmready-test \
-      -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=northwind \
+      -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=mmready \
       -p 5499:5432 \
       ghcr.io/pgedge/pgedge-postgres:18.1-spock5.0.4-standard-1
 
@@ -17,7 +17,7 @@ import pytest
 # Try to connect; skip entire module if unavailable
 try:
     from mm_ready.connection import connect
-    _conn = connect(host="localhost", port=5499, dbname="northwind",
+    _conn = connect(host="localhost", port=5499, dbname="mmready",
                     user="postgres", password="postgres", dsn=None)
     _conn.close()
     _db_available = True
@@ -31,7 +31,7 @@ pytestmark = pytest.mark.skipif(not _db_available, reason="Test database not ava
 def db_conn():
     """Module-scoped database connection."""
     from mm_ready.connection import connect
-    conn = connect(host="localhost", port=5499, dbname="northwind",
+    conn = connect(host="localhost", port=5499, dbname="mmready",
                    user="postgres", password="postgres", dsn=None)
     yield conn
     conn.close()
@@ -41,7 +41,7 @@ def db_conn():
 def scan_report(db_conn):
     """Run a full scan and return the report."""
     from mm_ready.scanner import run_scan
-    return run_scan(db_conn, host="localhost", port=5499, dbname="northwind")
+    return run_scan(db_conn, host="localhost", port=5499, dbname="mmready")
 
 
 class TestFullScan:

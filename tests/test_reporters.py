@@ -58,7 +58,7 @@ class TestJSONReporter:
 
     def test_meta_fields(self, sample_report):
         data = json.loads(render_json(sample_report))
-        assert data["meta"]["database"] == "northwind"
+        assert data["meta"]["database"] == "testdb"
         assert data["meta"]["pg_version"] == "PostgreSQL 17.0"
 
 
@@ -67,7 +67,7 @@ class TestJSONReporter:
 class TestMarkdownReporter:
     def test_contains_header(self, sample_report):
         output = render_markdown(sample_report)
-        assert "# mm-ready" in output or "# MM-Ready" in output.upper() or "northwind" in output
+        assert "# mm-ready" in output or "# MM-Ready" in output.upper() or "testdb" in output
 
     def test_contains_severity_sections(self, sample_report):
         output = render_markdown(sample_report)

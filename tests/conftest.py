@@ -43,7 +43,7 @@ def empty_report() -> ScanReport:
 def sample_report() -> ScanReport:
     """ScanReport with a mix of severities, errors, and skipped checks."""
     report = ScanReport(
-        database="northwind",
+        database="testdb",
         host="localhost",
         port=5432,
         timestamp=datetime(2026, 1, 27, 12, 0, 0, tzinfo=timezone.utc),

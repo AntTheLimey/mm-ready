@@ -15,7 +15,7 @@ class TempTableQueriesCheck(BaseCheck):
                 cur.execute("""
                     SELECT query, calls
                     FROM pg_stat_statements
-                    WHERE query ~* E'CREATE\\s+(TEMP|TEMPORARY)\\s+TABLE'
+                    WHERE query ~* 'CREATE\\s+(TEMP|TEMPORARY)\\s+TABLE'
                     ORDER BY calls DESC;
                 """)
                 rows = cur.fetchall()

@@ -97,11 +97,13 @@ class MyCheck(BaseCheck):
 
 ## Testing
 
-A Docker-based test environment is available:
+A Docker-based test environment is available. The test schema is fully
+self-contained — no external database dumps are needed.
+
 ```bash
-# Start pgEdge Postgres with Northwind DB
+# Start pgEdge Postgres
 docker run -d --name mmready-test \
-  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=northwind \
+  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=mmready \
   -p 5499:5432 \
   ghcr.io/pgedge/pgedge-postgres:18.1-spock5.0.4-standard-1
 
@@ -111,22 +113,24 @@ docker exec mmready-test psql -U postgres \
   -c "ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';"
 docker restart mmready-test
 
-# Load Northwind schema and test workload
-curl -sL https://raw.githubusercontent.com/pthom/northwind_psql/master/northwind.sql -o /tmp/northwind.sql
-docker cp /tmp/northwind.sql mmready-test:/tmp/northwind.sql
-docker exec mmready-test psql -U postgres -d northwind -f /tmp/northwind.sql
-docker exec mmready-test psql -U postgres -d northwind \
+# Load test schema, enable pg_stat_statements, then run workload
+docker exec mmready-test psql -U postgres -d mmready \
   -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
-docker cp tests/northwind_workload.sql mmready-test:/tmp/workload.sql
-docker exec mmready-test psql -U postgres -d northwind -f /tmp/workload.sql
+docker cp tests/test_schema_setup.sql mmready-test:/tmp/schema.sql
+docker exec mmready-test psql -U postgres -d mmready -f /tmp/schema.sql
+docker cp tests/test_workload.sql mmready-test:/tmp/workload.sql
+docker exec mmready-test psql -U postgres -d mmready -f /tmp/workload.sql
 
 # Run scan
-mm-ready scan --host localhost --port 5499 --dbname northwind \
+mm-ready scan --host localhost --port 5499 --dbname mmready \
   --user postgres --password postgres --format html --output report.html
 ```
 
-The workload file `tests/northwind_workload.sql` is idempotent — the DB is
-unchanged after each run (inserts are deleted, updates are reverted).
+- `tests/test_schema_setup.sql` — idempotent setup of the `mmr_` prefixed
+  schema, including tables that trigger every scan-mode check.
+- `tests/test_workload.sql` — idempotent workload that populates
+  pg_stat_statements and exercises the mmr_ tables. The database is unchanged
+  after each run (inserts are deleted, updates are reverted).
 
 ## Code Style
 

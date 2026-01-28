@@ -34,7 +34,7 @@ class NotifyListenCheck(BaseCheck):
             WHERE n.nspname NOT IN ('pg_catalog', 'information_schema', 'spock', 'pg_toast')
               AND (
                   prosrc ~* 'pg_notify' OR
-                  prosrc ~* E'\\bNOTIFY\\b'
+                  prosrc ~* '\\bNOTIFY\\b'
               )
             ORDER BY n.nspname, p.proname;
         """
@@ -71,7 +71,7 @@ class NotifyListenCheck(BaseCheck):
                 cur.execute("""
                     SELECT query, calls
                     FROM pg_stat_statements
-                    WHERE query ~* E'\\bNOTIFY\\b'
+                    WHERE query ~* '\\bNOTIFY\\b'
                        OR query ~* 'pg_notify'
                     ORDER BY calls DESC;
                 """)
