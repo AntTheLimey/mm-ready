@@ -36,7 +36,7 @@ class TestJSONReporter:
         assert s["warnings"] == 1
         assert s["consider"] == 1
         assert s["info"] == 1
-        assert s["total_checks"] == 7
+        assert s["total_checks"] == 6  # 7 total minus 1 skipped
 
     def test_results_count(self, sample_report):
         data = json.loads(render_json(sample_report))

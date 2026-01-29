@@ -87,7 +87,11 @@ class TestScanReportCounts:
         assert sample_report.info_count == 1
 
     def test_checks_total(self, sample_report):
-        assert sample_report.checks_total == 7
+        # 7 total results minus 1 skipped = 6 that actually ran
+        assert sample_report.checks_total == 6
+
+    def test_checks_skipped(self, sample_report):
+        assert sample_report.checks_skipped == 1
 
     def test_checks_passed(self, sample_report):
         # Only exclusion_constraints has no findings, no error, not skipped

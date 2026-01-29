@@ -81,4 +81,10 @@ class ScanReport:
 
     @property
     def checks_total(self) -> int:
-        return len(self.results)
+        """Returns the number of checks that actually ran (excludes skipped)."""
+        return sum(1 for r in self.results if not r.skipped)
+
+    @property
+    def checks_skipped(self) -> int:
+        """Returns the number of skipped checks."""
+        return sum(1 for r in self.results if r.skipped)
