@@ -197,19 +197,32 @@ def _cmd_audit(args):
 
 
 def _run_mode(args, mode: str):
+    import psycopg2
     from mm_ready.connection import connect
     from mm_ready.scanner import run_scan
 
     categories = args.categories.split(",") if args.categories else None
 
-    conn = connect(
-        host=args.host,
-        port=args.port,
-        dbname=args.dbname,
-        user=args.user,
-        password=args.password,
-        dsn=args.dsn,
-    )
+    try:
+        conn = connect(
+            host=args.host,
+            port=args.port,
+            dbname=args.dbname,
+            user=args.user,
+            password=args.password,
+            dsn=args.dsn,
+        )
+    except psycopg2.OperationalError as e:
+        error_msg = str(e).strip()
+        print(f"Error: Could not connect to database.", file=sys.stderr)
+        print(f"       {error_msg}", file=sys.stderr)
+        if "no password supplied" in error_msg:
+            print("\nHint: Use --password to provide a password, or set PGPASSWORD environment variable.", file=sys.stderr)
+        elif "does not exist" in error_msg:
+            print("\nHint: Check that the database name is correct.", file=sys.stderr)
+        elif "Connection refused" in error_msg or "could not connect" in error_msg.lower():
+            print(f"\nHint: Check that PostgreSQL is running on {args.host or 'localhost'}:{args.port or 5432}.", file=sys.stderr)
+        sys.exit(1)
 
     try:
         report = run_scan(
@@ -229,17 +242,30 @@ def _run_mode(args, mode: str):
 
 
 def _cmd_monitor(args):
+    import psycopg2
     from mm_ready.connection import connect
     from mm_ready.monitor.observer import run_monitor
 
-    conn = connect(
-        host=args.host,
-        port=args.port,
-        dbname=args.dbname,
-        user=args.user,
-        password=args.password,
-        dsn=args.dsn,
-    )
+    try:
+        conn = connect(
+            host=args.host,
+            port=args.port,
+            dbname=args.dbname,
+            user=args.user,
+            password=args.password,
+            dsn=args.dsn,
+        )
+    except psycopg2.OperationalError as e:
+        error_msg = str(e).strip()
+        print(f"Error: Could not connect to database.", file=sys.stderr)
+        print(f"       {error_msg}", file=sys.stderr)
+        if "no password supplied" in error_msg:
+            print("\nHint: Use --password to provide a password, or set PGPASSWORD environment variable.", file=sys.stderr)
+        elif "does not exist" in error_msg:
+            print("\nHint: Check that the database name is correct.", file=sys.stderr)
+        elif "Connection refused" in error_msg or "could not connect" in error_msg.lower():
+            print(f"\nHint: Check that PostgreSQL is running on {args.host or 'localhost'}:{args.port or 5432}.", file=sys.stderr)
+        sys.exit(1)
 
     try:
         report = run_monitor(
