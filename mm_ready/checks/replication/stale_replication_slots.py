@@ -41,34 +41,36 @@ class StaleReplicationSlotsCheck(BaseCheck):
             else:
                 severity = Severity.CONSIDER
 
-            findings.append(Finding(
-                severity=severity,
-                check_name=self.name,
-                category=self.category,
-                title=f"Inactive replication slot '{slot_name}' retaining {wal_mb:.0f} MB of WAL",
-                detail=(
-                    f"Replication slot '{slot_name}' ({slot_type}) is inactive "
-                    f"and preventing WAL cleanup. restart_lsn={restart_lsn}, "
-                    f"confirmed_flush_lsn={flush_lsn}. "
-                    f"Retained WAL: {wal_mb:.1f} MB.\n\n"
-                    "Inactive slots retain WAL segments indefinitely, which can "
-                    "fill the disk. This typically indicates a subscriber that is "
-                    "down, unreachable, or has been removed without cleaning up "
-                    "its slot."
-                ),
-                object_name=slot_name,
-                remediation=(
-                    f"If the subscriber is permanently gone, drop the slot:\n"
-                    f"  SELECT pg_drop_replication_slot('{slot_name}');\n"
-                    "If the subscriber is temporarily down, restart it to resume "
-                    "consuming WAL. Monitor disk space in the meantime."
-                ),
-                metadata={
-                    "slot_type": slot_type,
-                    "wal_retained_mb": round(wal_mb, 1),
-                    "restart_lsn": str(restart_lsn),
-                    "confirmed_flush_lsn": str(flush_lsn),
-                },
-            ))
+            findings.append(
+                Finding(
+                    severity=severity,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Inactive replication slot '{slot_name}' retaining {wal_mb:.0f} MB of WAL",
+                    detail=(
+                        f"Replication slot '{slot_name}' ({slot_type}) is inactive "
+                        f"and preventing WAL cleanup. restart_lsn={restart_lsn}, "
+                        f"confirmed_flush_lsn={flush_lsn}. "
+                        f"Retained WAL: {wal_mb:.1f} MB.\n\n"
+                        "Inactive slots retain WAL segments indefinitely, which can "
+                        "fill the disk. This typically indicates a subscriber that is "
+                        "down, unreachable, or has been removed without cleaning up "
+                        "its slot."
+                    ),
+                    object_name=slot_name,
+                    remediation=(
+                        f"If the subscriber is permanently gone, drop the slot:\n"
+                        f"  SELECT pg_drop_replication_slot('{slot_name}');\n"
+                        "If the subscriber is temporarily down, restart it to resume "
+                        "consuming WAL. Monitor disk space in the meantime."
+                    ),
+                    metadata={
+                        "slot_type": slot_type,
+                        "wal_retained_mb": round(wal_mb, 1),
+                        "restart_lsn": str(restart_lsn),
+                        "confirmed_flush_lsn": str(flush_lsn),
+                    },
+                )
+            )
 
         return findings

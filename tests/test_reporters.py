@@ -5,17 +5,15 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
-import pytest
-
-from mm_ready.models import CheckResult, Finding, ScanReport, Severity
-from mm_ready.reporters.json_reporter import render as render_json
-from mm_ready.reporters.markdown_reporter import render as render_markdown
-from mm_ready.reporters.html_reporter import render as render_html
-
 from conftest import make_finding
 
+from mm_ready.models import CheckResult, ScanReport, Severity
+from mm_ready.reporters.html_reporter import render as render_html
+from mm_ready.reporters.json_reporter import render as render_json
+from mm_ready.reporters.markdown_reporter import render as render_markdown
 
 # -- JSON Reporter ------------------------------------------------------------
+
 
 class TestJSONReporter:
     def test_valid_json(self, sample_report):
@@ -64,6 +62,7 @@ class TestJSONReporter:
 
 # -- Markdown Reporter --------------------------------------------------------
 
+
 class TestMarkdownReporter:
     def test_contains_header(self, sample_report):
         output = render_markdown(sample_report)
@@ -82,6 +81,7 @@ class TestMarkdownReporter:
 
 # -- HTML Reporter ------------------------------------------------------------
 
+
 class TestHTMLReporter:
     def test_valid_html_structure(self, sample_report):
         output = render_html(sample_report)
@@ -97,7 +97,10 @@ class TestHTMLReporter:
 
     def test_contains_finding_content(self, sample_report):
         output = render_html(sample_report)
-        assert "wal_level is not &#x27;logical&#x27;" in output or "wal_level is not 'logical'" in output
+        assert (
+            "wal_level is not &#x27;logical&#x27;" in output
+            or "wal_level is not 'logical'" in output
+        )
 
     def test_todo_section_present(self, sample_report):
         output = render_html(sample_report)
@@ -111,32 +114,43 @@ class TestHTMLReporter:
 
 # -- Verdict Logic (tested via reporters) -------------------------------------
 
+
 def _make_report_with_severities(*severities: Severity) -> ScanReport:
     """Build a minimal report with findings of the given severities."""
     report = ScanReport(
-        database="testdb", host="localhost", port=5432,
+        database="testdb",
+        host="localhost",
+        port=5432,
         timestamp=datetime(2026, 1, 27, tzinfo=timezone.utc),
         pg_version="PostgreSQL 17.0",
     )
     for i, sev in enumerate(severities):
-        report.results.append(CheckResult(
-            check_name=f"check_{i}",
-            category="schema",
-            description=f"Check {i}",
-            findings=[make_finding(severity=sev, check_name=f"check_{i}")],
-        ))
+        report.results.append(
+            CheckResult(
+                check_name=f"check_{i}",
+                category="schema",
+                description=f"Check {i}",
+                findings=[make_finding(severity=sev, check_name=f"check_{i}")],
+            )
+        )
     return report
 
 
 class TestVerdictLogic:
     def test_ready_no_findings(self):
         report = ScanReport(
-            database="db", host="h", port=5432,
+            database="db",
+            host="h",
+            port=5432,
             timestamp=datetime(2026, 1, 27, tzinfo=timezone.utc),
         )
-        report.results.append(CheckResult(
-            check_name="x", category="c", description="d",
-        ))
+        report.results.append(
+            CheckResult(
+                check_name="x",
+                category="c",
+                description="d",
+            )
+        )
         md = render_markdown(report)
         assert "READY" in md
         # Should not say NOT READY or CONDITIONALLY

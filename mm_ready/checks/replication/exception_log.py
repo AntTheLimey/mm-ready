@@ -27,18 +27,20 @@ class ExceptionLogCheck(BaseCheck):
             has_table = False
 
         if not has_table:
-            return [Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title="No spock.exception_log table found",
-                detail=(
-                    "The spock.exception_log table does not exist. This is "
-                    "normal if Spock is not installed or exception logging is "
-                    "not configured."
-                ),
-                object_name="spock.exception_log",
-            )]
+            return [
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title="No spock.exception_log table found",
+                    detail=(
+                        "The spock.exception_log table does not exist. This is "
+                        "normal if Spock is not installed or exception logging is "
+                        "not configured."
+                    ),
+                    object_name="spock.exception_log",
+                )
+            ]
 
         # Get exception summary
         query = """
@@ -58,65 +60,73 @@ class ExceptionLogCheck(BaseCheck):
                 cur.execute(query)
                 rows = cur.fetchall()
         except Exception as e:
-            return [Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title="Could not query spock.exception_log",
-                detail=f"Error querying exception log: {e}",
-                object_name="spock.exception_log",
-            )]
+            return [
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title="Could not query spock.exception_log",
+                    detail=f"Error querying exception log: {e}",
+                    object_name="spock.exception_log",
+                )
+            ]
 
         if not rows:
-            return [Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title="No replication exceptions found",
-                detail="The spock.exception_log table contains no records.",
-                object_name="spock.exception_log",
-            )]
+            return [
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title="No replication exceptions found",
+                    detail="The spock.exception_log table contains no records.",
+                    object_name="spock.exception_log",
+                )
+            ]
 
         findings = []
         total_errors = sum(r[3] for r in rows)
 
-        findings.append(Finding(
-            severity=Severity.CRITICAL if total_errors > 0 else Severity.INFO,
-            check_name=self.name,
-            category=self.category,
-            title=f"{total_errors:,} total replication exception(s) recorded",
-            detail=(
-                f"The exception log shows {total_errors:,} total apply errors. "
-                "These represent rows that could not be applied on this node. "
-                "Each exception means data divergence between nodes."
-            ),
-            object_name="spock.exception_log",
-            metadata={"total_errors": total_errors},
-        ))
-
-        for origin, table_name, error_msg, count, last_error in rows:
-            findings.append(Finding(
-                severity=Severity.CRITICAL,
+        findings.append(
+            Finding(
+                severity=Severity.CRITICAL if total_errors > 0 else Severity.INFO,
                 check_name=self.name,
                 category=self.category,
-                title=f"{count:,} exception(s) on '{table_name}' from origin {origin}",
+                title=f"{total_errors:,} total replication exception(s) recorded",
                 detail=(
-                    f"Table '{table_name}' has {count:,} apply exception(s) "
-                    f"from origin {origin}. Error: {error_msg[:300]}. "
-                    f"Last occurrence: {last_error}."
+                    f"The exception log shows {total_errors:,} total apply errors. "
+                    "These represent rows that could not be applied on this node. "
+                    "Each exception means data divergence between nodes."
                 ),
-                object_name=table_name,
-                remediation=(
-                    "Review the exception_log_detail table for full row data. "
-                    "Resolve the underlying issue and re-apply or manually fix "
-                    "the affected rows."
-                ),
-                metadata={
-                    "origin": str(origin),
-                    "error": error_msg[:500],
-                    "count": count,
-                    "last_error": str(last_error),
-                },
-            ))
+                object_name="spock.exception_log",
+                metadata={"total_errors": total_errors},
+            )
+        )
+
+        for origin, table_name, error_msg, count, last_error in rows:
+            findings.append(
+                Finding(
+                    severity=Severity.CRITICAL,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"{count:,} exception(s) on '{table_name}' from origin {origin}",
+                    detail=(
+                        f"Table '{table_name}' has {count:,} apply exception(s) "
+                        f"from origin {origin}. Error: {error_msg[:300]}. "
+                        f"Last occurrence: {last_error}."
+                    ),
+                    object_name=table_name,
+                    remediation=(
+                        "Review the exception_log_detail table for full row data. "
+                        "Resolve the underlying issue and re-apply or manually fix "
+                        "the affected rows."
+                    ),
+                    metadata={
+                        "origin": str(origin),
+                        "error": error_msg[:500],
+                        "count": count,
+                        "last_error": str(last_error),
+                    },
+                )
+            )
 
         return findings

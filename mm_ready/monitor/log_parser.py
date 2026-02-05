@@ -27,14 +27,16 @@ class LogAnalysis:
 
     @property
     def has_findings(self) -> bool:
-        return any([
-            self.ddl_statements,
-            self.truncate_cascade,
-            self.create_temp_table,
-            self.advisory_locks,
-            self.concurrent_indexes,
-            self.other_notable,
-        ])
+        return any(
+            [
+                self.ddl_statements,
+                self.truncate_cascade,
+                self.create_temp_table,
+                self.advisory_locks,
+                self.concurrent_indexes,
+                self.other_notable,
+            ]
+        )
 
 
 # Patterns for PostgreSQL log formats
@@ -71,7 +73,7 @@ def parse_log_file(log_path: str) -> LogAnalysis:
     current_ts = ""
     current_line = 0
 
-    with open(path, "r", errors="replace") as f:
+    with open(path, errors="replace") as f:
         for line_num, line in enumerate(f, 1):
             line = line.rstrip()
 

@@ -25,22 +25,24 @@ class MultipleDatabasesCheck(BaseCheck):
 
         findings = []
         if len(db_names) > 1:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Instance has {len(db_names)} user database(s): {', '.join(db_names)}",
-                detail=(
-                    f"Found {len(db_names)} non-template databases (excluding 'postgres'): "
-                    f"{', '.join(db_names)}. pgEdge Spock officially supports one database "
-                    "per PostgreSQL instance. Multiple databases may require separate "
-                    "instances for multi-master replication."
-                ),
-                object_name="(instance)",
-                remediation=(
-                    "Plan to separate databases into individual PostgreSQL instances, "
-                    "one per database, for Spock multi-master replication."
-                ),
-                metadata={"databases": db_names},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Instance has {len(db_names)} user database(s): {', '.join(db_names)}",
+                    detail=(
+                        f"Found {len(db_names)} non-template databases (excluding 'postgres'): "
+                        f"{', '.join(db_names)}. pgEdge Spock officially supports one database "
+                        "per PostgreSQL instance. Multiple databases may require separate "
+                        "instances for multi-master replication."
+                    ),
+                    object_name="(instance)",
+                    remediation=(
+                        "Plan to separate databases into individual PostgreSQL instances, "
+                        "one per database, for Spock multi-master replication."
+                    ),
+                    metadata={"databases": db_names},
+                )
+            )
         return findings

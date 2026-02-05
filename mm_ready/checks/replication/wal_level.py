@@ -16,24 +16,26 @@ class WalLevelCheck(BaseCheck):
 
         findings = []
         if wal_level != "logical":
-            findings.append(Finding(
-                severity=Severity.CRITICAL,
-                check_name=self.name,
-                category=self.category,
-                title=f"wal_level is '{wal_level}' — must be 'logical'",
-                detail=(
-                    f"Current wal_level is '{wal_level}'. Spock requires "
-                    "wal_level = 'logical' to enable logical decoding of the "
-                    "write-ahead log. This is a PostgreSQL server setting that "
-                    "should be configured before installing Spock."
-                ),
-                object_name="wal_level",
-                remediation=(
-                    "Configure before installing Spock:\n"
-                    "  ALTER SYSTEM SET wal_level = 'logical';\n"
-                    "Then restart PostgreSQL. No Spock installation is needed "
-                    "for this change — it is a standard PostgreSQL setting."
-                ),
-                metadata={"current_value": wal_level},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CRITICAL,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"wal_level is '{wal_level}' — must be 'logical'",
+                    detail=(
+                        f"Current wal_level is '{wal_level}'. Spock requires "
+                        "wal_level = 'logical' to enable logical decoding of the "
+                        "write-ahead log. This is a PostgreSQL server setting that "
+                        "should be configured before installing Spock."
+                    ),
+                    object_name="wal_level",
+                    remediation=(
+                        "Configure before installing Spock:\n"
+                        "  ALTER SYSTEM SET wal_level = 'logical';\n"
+                        "Then restart PostgreSQL. No Spock installation is needed "
+                        "for this change — it is a standard PostgreSQL setting."
+                    ),
+                    metadata={"current_value": wal_level},
+                )
+            )
         return findings

@@ -23,34 +23,38 @@ class PgVersionCheck(BaseCheck):
 
         findings = []
         if major not in self.SUPPORTED_MAJORS:
-            findings.append(Finding(
-                severity=Severity.CRITICAL,
-                check_name=self.name,
-                category=self.category,
-                title=f"PostgreSQL {major} is not supported by Spock 5",
-                detail=(
-                    f"Server is running PostgreSQL {major} ({version_str}). "
-                    f"Spock 5 supports PostgreSQL versions: "
-                    f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}. "
-                    "A PostgreSQL upgrade is required before Spock can be installed."
-                ),
-                object_name="pg_version",
-                remediation=(
-                    f"Upgrade PostgreSQL to version "
-                    f"{max(self.SUPPORTED_MAJORS)} (recommended) or any of: "
-                    f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}."
-                ),
-                metadata={"major": major, "version_num": version_num},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CRITICAL,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"PostgreSQL {major} is not supported by Spock 5",
+                    detail=(
+                        f"Server is running PostgreSQL {major} ({version_str}). "
+                        f"Spock 5 supports PostgreSQL versions: "
+                        f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}. "
+                        "A PostgreSQL upgrade is required before Spock can be installed."
+                    ),
+                    object_name="pg_version",
+                    remediation=(
+                        f"Upgrade PostgreSQL to version "
+                        f"{max(self.SUPPORTED_MAJORS)} (recommended) or any of: "
+                        f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}."
+                    ),
+                    metadata={"major": major, "version_num": version_num},
+                )
+            )
         else:
-            findings.append(Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title=f"PostgreSQL {major} is supported by Spock 5",
-                detail=f"Server is running {version_str}, which is compatible with Spock 5.",
-                object_name="pg_version",
-                metadata={"major": major, "version_num": version_num},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"PostgreSQL {major} is supported by Spock 5",
+                    detail=f"Server is running {version_str}, which is compatible with Spock 5.",
+                    object_name="pg_version",
+                    metadata={"major": major, "version_num": version_num},
+                )
+            )
 
         return findings

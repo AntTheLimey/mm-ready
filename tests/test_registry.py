@@ -22,7 +22,9 @@ class TestDiscoverChecks:
     def test_no_duplicate_names(self):
         checks = discover_checks()
         names = [c.name for c in checks]
-        assert len(names) == len(set(names)), f"Duplicate names: {[n for n in names if names.count(n) > 1]}"
+        assert len(names) == len(set(names)), (
+            f"Duplicate names: {[n for n in names if names.count(n) > 1]}"
+        )
 
     def test_sorted_by_category_then_name(self):
         checks = discover_checks()

@@ -37,29 +37,31 @@ class PartitionedTablesCheck(BaseCheck):
         for schema_name, table_name, strategy, part_count in rows:
             fqn = f"{schema_name}.{table_name}"
             strat_label = strategy_labels.get(strategy, strategy)
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Partitioned table '{fqn}' ({strat_label}, {part_count} partitions)",
-                detail=(
-                    f"Table '{fqn}' uses {strat_label} partitioning with {part_count} "
-                    "partition(s). Spock 5 supports partition replication, but the partition "
-                    "structure must be identical on all nodes. Adding/removing partitions "
-                    "must be coordinated across the cluster."
-                ),
-                object_name=fqn,
-                remediation=(
-                    "Ensure partition definitions are identical across all nodes. "
-                    "Plan partition maintenance (add/drop) as a coordinated cluster "
-                    "operation.\n\n"
-                    "Important: detaching a partition (ALTER TABLE ... DETACH PARTITION) "
-                    "does NOT automatically remove it from the replication set. The "
-                    "Spock AutoDDL code handles AT_AttachPartition but not "
-                    "AT_DetachPartition. After detaching, manually remove the "
-                    "orphaned table if replication is no longer needed:\n"
-                    "  SELECT spock.repset_remove_table('default', 'schema.partition_name');"
-                ),
-                metadata={"strategy": strat_label, "partition_count": part_count},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Partitioned table '{fqn}' ({strat_label}, {part_count} partitions)",
+                    detail=(
+                        f"Table '{fqn}' uses {strat_label} partitioning with {part_count} "
+                        "partition(s). Spock 5 supports partition replication, but the partition "
+                        "structure must be identical on all nodes. Adding/removing partitions "
+                        "must be coordinated across the cluster."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        "Ensure partition definitions are identical across all nodes. "
+                        "Plan partition maintenance (add/drop) as a coordinated cluster "
+                        "operation.\n\n"
+                        "Important: detaching a partition (ALTER TABLE ... DETACH PARTITION) "
+                        "does NOT automatically remove it from the replication set. The "
+                        "Spock AutoDDL code handles AT_AttachPartition but not "
+                        "AT_DetachPartition. After detaching, manually remove the "
+                        "orphaned table if replication is no longer needed:\n"
+                        "  SELECT spock.repset_remove_table('default', 'schema.partition_name');"
+                    ),
+                    metadata={"strategy": strat_label, "partition_count": part_count},
+                )
+            )
         return findings

@@ -31,33 +31,35 @@ class RowLevelSecurityCheck(BaseCheck):
             rows = cur.fetchall()
 
         findings = []
-        for schema_name, table_name, rls_enabled, rls_forced, policy_count in rows:
+        for schema_name, table_name, _rls_enabled, rls_forced, policy_count in rows:
             fqn = f"{schema_name}.{table_name}"
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Row-level security on '{fqn}' ({policy_count} policies)",
-                detail=(
-                    f"Table '{fqn}' has RLS enabled"
-                    f"{' (FORCE)' if rls_forced else ''} with {policy_count} "
-                    "policy(ies). The Spock apply worker runs as superuser, which "
-                    "bypasses RLS policies by default. This means all replicated "
-                    "rows will be applied regardless of RLS policies on the "
-                    "subscriber. If RLS is used to partition data visibility per "
-                    "node, this will not work as expected."
-                ),
-                object_name=fqn,
-                remediation=(
-                    "If RLS is used for tenant isolation or data filtering, ensure "
-                    "that the replication design accounts for the apply worker "
-                    "bypassing RLS. Consider using replication sets to control which "
-                    "data is replicated to which nodes instead."
-                ),
-                metadata={
-                    "rls_forced": rls_forced,
-                    "policy_count": policy_count,
-                },
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Row-level security on '{fqn}' ({policy_count} policies)",
+                    detail=(
+                        f"Table '{fqn}' has RLS enabled"
+                        f"{' (FORCE)' if rls_forced else ''} with {policy_count} "
+                        "policy(ies). The Spock apply worker runs as superuser, which "
+                        "bypasses RLS policies by default. This means all replicated "
+                        "rows will be applied regardless of RLS policies on the "
+                        "subscriber. If RLS is used to partition data visibility per "
+                        "node, this will not work as expected."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        "If RLS is used for tenant isolation or data filtering, ensure "
+                        "that the replication design accounts for the apply worker "
+                        "bypassing RLS. Consider using replication sets to control which "
+                        "data is replicated to which nodes instead."
+                    ),
+                    metadata={
+                        "rls_forced": rls_forced,
+                        "policy_count": policy_count,
+                    },
+                )
+            )
 
         return findings

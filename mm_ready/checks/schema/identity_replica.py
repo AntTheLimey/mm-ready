@@ -45,52 +45,56 @@ class UpdateDeleteNoPkCheck(BaseCheck):
                 # CRITICAL: this table has UPDATE/DELETE activity but no PK.
                 # Spock's output plugin silently drops UPDATE/DELETE for
                 # tables in the default_insert_only replication set.
-                findings.append(Finding(
-                    severity=Severity.CRITICAL,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"Table '{fqn}' has UPDATE/DELETE activity but no primary key",
-                    detail=(
-                        f"Table '{fqn}' has no primary key and shows "
-                        f"{updates:,} UPDATE(s) and {deletes:,} DELETE(s) "
-                        f"(plus {inserts:,} INSERT(s)) since the last stats reset. "
-                        "Spock places tables without primary keys into the "
-                        "'default_insert_only' replication set, where UPDATE and "
-                        "DELETE operations are silently filtered out by the output "
-                        "plugin (spock_output_plugin.c). This means changes would "
-                        "be LOST on subscriber nodes."
-                    ),
-                    object_name=fqn,
-                    remediation=(
-                        f"Add a primary key to '{fqn}' so it can be placed in the "
-                        "'default' replication set and replicate all DML operations. "
-                        "Note: REPLICA IDENTITY FULL is NOT a substitute — Spock's "
-                        "get_replication_identity() returns InvalidOid for FULL "
-                        "without a PK."
-                    ),
-                    metadata={
-                        "updates": updates,
-                        "deletes": deletes,
-                        "inserts": inserts,
-                    },
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.CRITICAL,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"Table '{fqn}' has UPDATE/DELETE activity but no primary key",
+                        detail=(
+                            f"Table '{fqn}' has no primary key and shows "
+                            f"{updates:,} UPDATE(s) and {deletes:,} DELETE(s) "
+                            f"(plus {inserts:,} INSERT(s)) since the last stats reset. "
+                            "Spock places tables without primary keys into the "
+                            "'default_insert_only' replication set, where UPDATE and "
+                            "DELETE operations are silently filtered out by the output "
+                            "plugin (spock_output_plugin.c). This means changes would "
+                            "be LOST on subscriber nodes."
+                        ),
+                        object_name=fqn,
+                        remediation=(
+                            f"Add a primary key to '{fqn}' so it can be placed in the "
+                            "'default' replication set and replicate all DML operations. "
+                            "Note: REPLICA IDENTITY FULL is NOT a substitute — Spock's "
+                            "get_replication_identity() returns InvalidOid for FULL "
+                            "without a PK."
+                        ),
+                        metadata={
+                            "updates": updates,
+                            "deletes": deletes,
+                            "inserts": inserts,
+                        },
+                    )
+                )
             elif inserts > 0:
                 # INFO: insert-only table without PK — fine for default_insert_only.
-                findings.append(Finding(
-                    severity=Severity.INFO,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"Table '{fqn}' is insert-only with no PK (OK for replication)",
-                    detail=(
-                        f"Table '{fqn}' has no primary key but only shows INSERT "
-                        f"activity ({inserts:,} inserts, 0 updates, 0 deletes). "
-                        "This table will be placed in the 'default_insert_only' "
-                        "replication set, which correctly replicates INSERT and "
-                        "TRUNCATE operations."
-                    ),
-                    object_name=fqn,
-                    metadata={"inserts": inserts},
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.INFO,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"Table '{fqn}' is insert-only with no PK (OK for replication)",
+                        detail=(
+                            f"Table '{fqn}' has no primary key but only shows INSERT "
+                            f"activity ({inserts:,} inserts, 0 updates, 0 deletes). "
+                            "This table will be placed in the 'default_insert_only' "
+                            "replication set, which correctly replicates INSERT and "
+                            "TRUNCATE operations."
+                        ),
+                        object_name=fqn,
+                        metadata={"inserts": inserts},
+                    )
+                )
             # Tables with zero activity are skipped — no findings needed.
 
         return findings

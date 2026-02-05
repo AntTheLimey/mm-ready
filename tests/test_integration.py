@@ -17,22 +17,38 @@ import pytest
 # Try to connect; skip entire module if unavailable
 try:
     from mm_ready.connection import connect
-    _conn = connect(host="localhost", port=5499, dbname="mmready",
-                    user="postgres", password="postgres", dsn=None)
+
+    _conn = connect(
+        host="localhost",
+        port=5499,
+        dbname="mmready",
+        user="postgres",
+        password="postgres",
+        dsn=None,
+    )
     _conn.close()
     _db_available = True
 except Exception:
     _db_available = False
 
-pytestmark = pytest.mark.skipif(not _db_available, reason="Test database not available on localhost:5499")
+pytestmark = pytest.mark.skipif(
+    not _db_available, reason="Test database not available on localhost:5499"
+)
 
 
 @pytest.fixture(scope="module")
 def db_conn():
     """Module-scoped database connection."""
     from mm_ready.connection import connect
-    conn = connect(host="localhost", port=5499, dbname="mmready",
-                   user="postgres", password="postgres", dsn=None)
+
+    conn = connect(
+        host="localhost",
+        port=5499,
+        dbname="mmready",
+        user="postgres",
+        password="postgres",
+        dsn=None,
+    )
     yield conn
     conn.close()
 
@@ -41,6 +57,7 @@ def db_conn():
 def scan_report(db_conn):
     """Run a full scan and return the report."""
     from mm_ready.scanner import run_scan
+
     return run_scan(db_conn, host="localhost", port=5499, dbname="mmready")
 
 
@@ -64,19 +81,23 @@ class TestFullScan:
 
 class TestReporterOutput:
     def test_json_renders(self, scan_report):
-        from mm_ready.reporters.json_reporter import render
         import json
+
+        from mm_ready.reporters.json_reporter import render
+
         output = render(scan_report)
         data = json.loads(output)
         assert data["summary"]["total_checks"] == 48
 
     def test_markdown_renders(self, scan_report):
         from mm_ready.reporters.markdown_reporter import render
+
         output = render(scan_report)
         assert len(output) > 100
 
     def test_html_renders(self, scan_report):
         from mm_ready.reporters.html_reporter import render
+
         output = render(scan_report)
         assert "<!DOCTYPE html>" in output or "<!doctype html>" in output.lower()
         assert len(output) > 1000

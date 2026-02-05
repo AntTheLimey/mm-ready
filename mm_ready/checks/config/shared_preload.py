@@ -15,24 +15,26 @@ class SharedPreloadCheck(BaseCheck):
             cur.execute("SHOW shared_preload_libraries;")
             libs = cur.fetchone()[0]
 
-        lib_list = [l.strip() for l in libs.split(",") if l.strip()] if libs else []
+        lib_list = [lib.strip() for lib in libs.split(",") if lib.strip()] if libs else []
 
         findings = []
         if "spock" not in lib_list:
-            findings.append(Finding(
-                severity=Severity.CRITICAL,
-                check_name=self.name,
-                category=self.category,
-                title="'spock' not in shared_preload_libraries",
-                detail=(
-                    f"shared_preload_libraries = '{libs}'. The 'spock' library must be "
-                    "included for Spock to function. This requires a server restart."
-                ),
-                object_name="shared_preload_libraries",
-                remediation=(
-                    "Add 'spock' to shared_preload_libraries in postgresql.conf and restart. "
-                    "Example: shared_preload_libraries = 'spock'"
-                ),
-                metadata={"current_libs": lib_list},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CRITICAL,
+                    check_name=self.name,
+                    category=self.category,
+                    title="'spock' not in shared_preload_libraries",
+                    detail=(
+                        f"shared_preload_libraries = '{libs}'. The 'spock' library must be "
+                        "included for Spock to function. This requires a server restart."
+                    ),
+                    object_name="shared_preload_libraries",
+                    remediation=(
+                        "Add 'spock' to shared_preload_libraries in postgresql.conf and restart. "
+                        "Example: shared_preload_libraries = 'spock'"
+                    ),
+                    metadata={"current_libs": lib_list},
+                )
+            )
         return findings

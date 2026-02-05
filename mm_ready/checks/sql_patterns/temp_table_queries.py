@@ -24,18 +24,20 @@ class TempTableQueriesCheck(BaseCheck):
 
         findings = []
         if rows:
-            findings.append(Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title=f"CREATE TEMP TABLE detected ({len(rows)} pattern(s))",
-                detail=(
-                    "Temporary tables are session-local and not replicated. This is "
-                    "usually expected behavior, but flagged for awareness.\n\n"
-                    "Patterns:\n" +
-                    "\n".join(f"  [{r[1]} calls] {r[0][:150]}" for r in rows[:10])
-                ),
-                object_name="(queries)",
-                remediation="",
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"CREATE TEMP TABLE detected ({len(rows)} pattern(s))",
+                    detail=(
+                        "Temporary tables are session-local and not replicated. This is "
+                        "usually expected behavior, but flagged for awareness.\n\n"
+                        "Patterns:\n"
+                        + "\n".join(f"  [{r[1]} calls] {r[0][:150]}" for r in rows[:10])
+                    ),
+                    object_name="(queries)",
+                    remediation="",
+                )
+            )
         return findings

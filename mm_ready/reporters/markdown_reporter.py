@@ -10,7 +10,7 @@ def render(report: ScanReport) -> str:
     lines = []
 
     # Header
-    lines.append(f"# MM-Ready: Spock 5 Readiness Report")
+    lines.append("# MM-Ready: Spock 5 Readiness Report")
     lines.append("")
     lines.append(f"**Database:** {report.database}  ")
     lines.append(f"**Host:** {report.host}:{report.port}  ")
@@ -24,8 +24,8 @@ def render(report: ScanReport) -> str:
     lines.append("")
     total = report.checks_total
     passed = report.checks_passed
-    lines.append(f"| Metric | Count |")
-    lines.append(f"|--------|-------|")
+    lines.append("| Metric | Count |")
+    lines.append("|--------|-------|")
     lines.append(f"| Checks Run | {total} |")
     lines.append(f"| Checks Passed | {passed} |")
     lines.append(f"| **CRITICAL** | **{report.critical_count}** |")
@@ -38,9 +38,13 @@ def render(report: ScanReport) -> str:
     if report.critical_count == 0 and report.warning_count == 0:
         lines.append("> **READY** — No critical or warning issues found.")
     elif report.critical_count == 0:
-        lines.append("> **CONDITIONALLY READY** — No critical issues, but warnings should be reviewed.")
+        lines.append(
+            "> **CONDITIONALLY READY** — No critical issues, but warnings should be reviewed."
+        )
     else:
-        lines.append(f"> **NOT READY** — {report.critical_count} critical issue(s) must be resolved.")
+        lines.append(
+            f"> **NOT READY** — {report.critical_count} critical issue(s) must be resolved."
+        )
     lines.append("")
 
     # Findings by severity

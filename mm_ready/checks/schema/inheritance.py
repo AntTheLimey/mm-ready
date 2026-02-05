@@ -34,23 +34,25 @@ class InheritanceCheck(BaseCheck):
         for parent_schema, parent_table, child_schema, child_table in rows:
             parent_fqn = f"{parent_schema}.{parent_table}"
             child_fqn = f"{child_schema}.{child_table}"
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Table inheritance: '{child_fqn}' inherits from '{parent_fqn}'",
-                detail=(
-                    f"Table '{child_fqn}' uses traditional table inheritance from "
-                    f"'{parent_fqn}'. Logical replication does not replicate through "
-                    "inheritance hierarchies — each table is replicated independently. "
-                    "Queries against the parent that include child data via inheritance "
-                    "may behave differently across nodes."
-                ),
-                object_name=child_fqn,
-                remediation=(
-                    "Consider migrating from table inheritance to declarative partitioning "
-                    "(if appropriate) or separate standalone tables."
-                ),
-                metadata={"parent": parent_fqn},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Table inheritance: '{child_fqn}' inherits from '{parent_fqn}'",
+                    detail=(
+                        f"Table '{child_fqn}' uses traditional table inheritance from "
+                        f"'{parent_fqn}'. Logical replication does not replicate through "
+                        "inheritance hierarchies — each table is replicated independently. "
+                        "Queries against the parent that include child data via inheritance "
+                        "may behave differently across nodes."
+                    ),
+                    object_name=child_fqn,
+                    remediation=(
+                        "Consider migrating from table inheritance to declarative partitioning "
+                        "(if appropriate) or separate standalone tables."
+                    ),
+                    metadata={"parent": parent_fqn},
+                )
+            )
         return findings

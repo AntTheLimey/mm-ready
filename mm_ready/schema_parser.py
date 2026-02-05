@@ -6,10 +6,10 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ColumnDef:
@@ -17,13 +17,14 @@ class ColumnDef:
     data_type: str
     not_null: bool = False
     default_expr: str | None = None
-    identity: str | None = None          # "ALWAYS" or "BY DEFAULT"
-    generated_expr: str | None = None    # GENERATED ALWAYS AS (...) STORED
+    identity: str | None = None  # "ALWAYS" or "BY DEFAULT"
+    generated_expr: str | None = None  # GENERATED ALWAYS AS (...) STORED
+
 
 @dataclass
 class ConstraintDef:
     name: str
-    constraint_type: str                 # PRIMARY KEY, UNIQUE, FOREIGN KEY, EXCLUDE, CHECK
+    constraint_type: str  # PRIMARY KEY, UNIQUE, FOREIGN KEY, EXCLUDE, CHECK
     table_schema: str
     table_name: str
     columns: list[str] = field(default_factory=list)
@@ -37,6 +38,7 @@ class ConstraintDef:
     deferrable: bool = False
     initially_deferred: bool = False
 
+
 @dataclass
 class IndexDef:
     name: str
@@ -45,6 +47,7 @@ class IndexDef:
     columns: list[str] = field(default_factory=list)
     is_unique: bool = False
     index_method: str = "btree"
+
 
 @dataclass
 class SequenceDef:
@@ -59,6 +62,7 @@ class SequenceDef:
     owned_by_table: str | None = None
     owned_by_column: str | None = None
 
+
 @dataclass
 class TableDef:
     schema_name: str
@@ -68,10 +72,12 @@ class TableDef:
     inherits: list[str] = field(default_factory=list)
     partition_by: str | None = None
 
+
 @dataclass
 class ExtensionDef:
     name: str
     schema_name: str = "public"
+
 
 @dataclass
 class EnumTypeDef:
@@ -79,18 +85,20 @@ class EnumTypeDef:
     type_name: str
     labels: list[str] = field(default_factory=list)
 
+
 @dataclass
 class RuleDef:
     schema_name: str
     table_name: str
     rule_name: str
-    event: str                           # INSERT, UPDATE, DELETE, SELECT
+    event: str  # INSERT, UPDATE, DELETE, SELECT
     is_instead: bool = False
 
 
 @dataclass
 class ParsedSchema:
     """Complete in-memory representation of a pg_dump schema."""
+
     pg_version: str = ""
     tables: list[TableDef] = field(default_factory=list)
     constraints: list[ConstraintDef] = field(default_factory=list)
@@ -109,21 +117,13 @@ class ParsedSchema:
     def get_constraints_for_table(
         self, schema: str, name: str, con_type: str | None = None
     ) -> list[ConstraintDef]:
-        result = [
-            c for c in self.constraints
-            if c.table_schema == schema and c.table_name == name
-        ]
+        result = [c for c in self.constraints if c.table_schema == schema and c.table_name == name]
         if con_type:
             result = [c for c in result if c.constraint_type == con_type]
         return result
 
-    def get_indexes_for_table(
-        self, schema: str, name: str
-    ) -> list[IndexDef]:
-        return [
-            i for i in self.indexes
-            if i.table_schema == schema and i.table_name == name
-        ]
+    def get_indexes_for_table(self, schema: str, name: str) -> list[IndexDef]:
+        return [i for i in self.indexes if i.table_schema == schema and i.table_name == name]
 
 
 # ---------------------------------------------------------------------------
@@ -203,13 +203,18 @@ RE_FK_REFERENCES = re.compile(
     re.IGNORECASE,
 )
 
-RE_FK_ON_DELETE = re.compile(r"ON\s+DELETE\s+(CASCADE|SET\s+NULL|SET\s+DEFAULT|RESTRICT|NO\s+ACTION)", re.IGNORECASE)
-RE_FK_ON_UPDATE = re.compile(r"ON\s+UPDATE\s+(CASCADE|SET\s+NULL|SET\s+DEFAULT|RESTRICT|NO\s+ACTION)", re.IGNORECASE)
+RE_FK_ON_DELETE = re.compile(
+    r"ON\s+DELETE\s+(CASCADE|SET\s+NULL|SET\s+DEFAULT|RESTRICT|NO\s+ACTION)", re.IGNORECASE
+)
+RE_FK_ON_UPDATE = re.compile(
+    r"ON\s+UPDATE\s+(CASCADE|SET\s+NULL|SET\s+DEFAULT|RESTRICT|NO\s+ACTION)", re.IGNORECASE
+)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _unquote(name: str) -> str:
     """Strip double-quote wrappers from identifiers."""
@@ -256,15 +261,11 @@ def _extract_paren_content(text: str) -> str:
 # Column parser (within CREATE TABLE body)
 # ---------------------------------------------------------------------------
 
-_RE_COLUMN_LINE = re.compile(
-    r"^\s*([\w\"]+)\s+(.+)$"
-)
+_RE_COLUMN_LINE = re.compile(r"^\s*([\w\"]+)\s+(.+)$")
 
 _RE_NOT_NULL = re.compile(r"\bNOT\s+NULL\b", re.IGNORECASE)
 _RE_DEFAULT = re.compile(r"\bDEFAULT\s+(.+?)(?:\s+NOT\s+NULL|\s+NULL|\s*,?\s*$)", re.IGNORECASE)
-_RE_GENERATED = re.compile(
-    r"\bGENERATED\s+ALWAYS\s+AS\s*\((.+?)\)\s+STORED", re.IGNORECASE
-)
+_RE_GENERATED = re.compile(r"\bGENERATED\s+ALWAYS\s+AS\s*\((.+?)\)\s+STORED", re.IGNORECASE)
 _RE_IDENTITY_INLINE = re.compile(
     r"\bGENERATED\s+(ALWAYS|BY\s+DEFAULT)\s+AS\s+IDENTITY", re.IGNORECASE
 )
@@ -335,6 +336,7 @@ def _parse_column(line: str) -> ColumnDef | None:
 # Main parser
 # ---------------------------------------------------------------------------
 
+
 def parse_dump(file_path: str) -> ParsedSchema:
     """Parse a pg_dump --schema-only SQL file into a ParsedSchema."""
     schema = ParsedSchema()
@@ -351,9 +353,7 @@ def parse_dump(file_path: str) -> ParsedSchema:
     return schema
 
 
-def _split_statements(
-    text: str, schema: ParsedSchema, search_path: str
-) -> list[tuple[str, str]]:
+def _split_statements(text: str, schema: ParsedSchema, search_path: str) -> list[tuple[str, str]]:
     """Split SQL text into (statement, search_path_at_time) tuples.
 
     Also extracts pg_version from header comments and tracks search_path.
@@ -397,7 +397,7 @@ def _split_statements(
             if dq_m:
                 tag = dq_m.group(1)
                 # Check if it opens and closes on the same line
-                rest_after = stripped[dq_m.end():]
+                rest_after = stripped[dq_m.end() :]
                 if tag in rest_after:
                     pass  # self-closing on same line
                 else:
@@ -442,15 +442,9 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
     if m:
         s, n = _split_qualified(m.group(1), search_path)
         if s not in _EXCLUDED_SCHEMAS:
-            content = _extract_paren_content(stmt[m.start():])
-            labels = [
-                lbl.strip().strip("'")
-                for lbl in content.split(",")
-                if lbl.strip()
-            ]
-            schema.enum_types.append(EnumTypeDef(
-                schema_name=s, type_name=n, labels=labels
-            ))
+            content = _extract_paren_content(stmt[m.start() :])
+            labels = [lbl.strip().strip("'") for lbl in content.split(",") if lbl.strip()]
+            schema.enum_types.append(EnumTypeDef(schema_name=s, type_name=n, labels=labels))
         return
 
     # CREATE SEQUENCE
@@ -475,7 +469,9 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
             max_m = re.search(r"\bMAXVALUE\s+(\d+)", stmt, re.IGNORECASE)
             if max_m:
                 seq.max_value = int(max_m.group(1))
-            if re.search(r"\bCYCLE\b", stmt, re.IGNORECASE) and not re.search(r"\bNO\s+CYCLE\b", stmt, re.IGNORECASE):
+            if re.search(r"\bCYCLE\b", stmt, re.IGNORECASE) and not re.search(
+                r"\bNO\s+CYCLE\b", stmt, re.IGNORECASE
+            ):
                 seq.cycle = True
             schema.sequences.append(seq)
         return
@@ -501,7 +497,11 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
             tbl.inherits = [p.strip() for p in inh_m.group(1).split(",")]
 
         # Check for PARTITION BY
-        part_m = re.search(r"\)\s*(?:INHERITS\s*\([^)]*\)\s*)?PARTITION\s+BY\s+(.+?)(?:\s*;|$)", stmt, re.IGNORECASE)
+        part_m = re.search(
+            r"\)\s*(?:INHERITS\s*\([^)]*\)\s*)?PARTITION\s+BY\s+(.+?)(?:\s*;|$)",
+            stmt,
+            re.IGNORECASE,
+        )
         if part_m:
             tbl.partition_by = part_m.group(1).strip().rstrip(";").strip()
 
@@ -525,7 +525,7 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
         )
 
         # Extract columns from parentheses after constraint type keyword
-        after_type = stmt[m.end():]
+        after_type = stmt[m.end() :]
         col_content = _extract_paren_content(after_type)
         if col_content and con_type != "EXCLUDE":
             con.columns = _parse_column_list(col_content)
@@ -546,9 +546,10 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
                 con.on_update = upd_m.group(1).upper().replace("  ", " ")
 
         # Deferrable
-        if re.search(r"\bDEFERRABLE\b", stmt, re.IGNORECASE):
-            if not re.search(r"\bNOT\s+DEFERRABLE\b", stmt, re.IGNORECASE):
-                con.deferrable = True
+        if re.search(r"\bDEFERRABLE\b", stmt, re.IGNORECASE) and not re.search(
+            r"\bNOT\s+DEFERRABLE\b", stmt, re.IGNORECASE
+        ):
+            con.deferrable = True
         if re.search(r"\bINITIALLY\s+DEFERRED\b", stmt, re.IGNORECASE):
             con.initially_deferred = True
 
@@ -577,7 +578,7 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
             idx.index_method = method_m.group(1).lower()
 
         # Extract columns
-        after_table = stmt[m.end():]
+        after_table = stmt[m.end() :]
         col_content = _extract_paren_content(after_table)
         if col_content:
             idx.columns = _parse_column_list(col_content)
@@ -636,10 +637,15 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
         s, n = _split_qualified(m.group(3), search_path)
         is_instead = bool(m.group(4))
         if s not in _EXCLUDED_SCHEMAS:
-            schema.rules.append(RuleDef(
-                schema_name=s, table_name=n, rule_name=rule_name,
-                event=event, is_instead=is_instead,
-            ))
+            schema.rules.append(
+                RuleDef(
+                    schema_name=s,
+                    table_name=n,
+                    rule_name=rule_name,
+                    event=event,
+                    is_instead=is_instead,
+                )
+            )
         return
 
 
@@ -692,13 +698,12 @@ def _parse_inline_constraint(
     text: str, tbl: TableDef, search_path: str, schema: ParsedSchema
 ) -> None:
     """Parse inline table-level constraints within CREATE TABLE body."""
-    upper = text.upper().strip()
 
     # CONSTRAINT name TYPE (cols)
     con_name_m = re.match(r"CONSTRAINT\s+([\w\"]+)\s+", text, re.IGNORECASE)
     if con_name_m:
         con_name = _unquote(con_name_m.group(1))
-        rest = text[con_name_m.end():]
+        rest = text[con_name_m.end() :]
     else:
         con_name = ""
         rest = text
@@ -707,13 +712,15 @@ def _parse_inline_constraint(
 
     if rest_upper.startswith("PRIMARY KEY"):
         col_content = _extract_paren_content(rest)
-        schema.constraints.append(ConstraintDef(
-            name=con_name,
-            constraint_type="PRIMARY KEY",
-            table_schema=tbl.schema_name,
-            table_name=tbl.table_name,
-            columns=_parse_column_list(col_content) if col_content else [],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name=con_name,
+                constraint_type="PRIMARY KEY",
+                table_schema=tbl.schema_name,
+                table_name=tbl.table_name,
+                columns=_parse_column_list(col_content) if col_content else [],
+            )
+        )
     elif rest_upper.startswith("UNIQUE"):
         col_content = _extract_paren_content(rest)
         con = ConstraintDef(
@@ -723,7 +730,9 @@ def _parse_inline_constraint(
             table_name=tbl.table_name,
             columns=_parse_column_list(col_content) if col_content else [],
         )
-        if re.search(r"\bDEFERRABLE\b", rest, re.IGNORECASE) and not re.search(r"\bNOT\s+DEFERRABLE\b", rest, re.IGNORECASE):
+        if re.search(r"\bDEFERRABLE\b", rest, re.IGNORECASE) and not re.search(
+            r"\bNOT\s+DEFERRABLE\b", rest, re.IGNORECASE
+        ):
             con.deferrable = True
         schema.constraints.append(con)
     elif rest_upper.startswith("FOREIGN KEY"):

@@ -69,19 +69,21 @@ class MyCustomCheck(BaseCheck):
 
             # Example: report a finding per table.
             # Replace this logic with your actual detection.
-            findings.append(Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title=f"Found table: {fqn}",
-                detail=(
-                    f"The table '{fqn}' was found. Replace this with a "
-                    "meaningful explanation of why this matters for Spock "
-                    "multi-master replication."
-                ),
-                object_name=fqn,
-                remediation="Describe the concrete steps to resolve this issue.",
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Found table: {fqn}",
+                    detail=(
+                        f"The table '{fqn}' was found. Replace this with a "
+                        "meaningful explanation of why this matters for Spock "
+                        "multi-master replication."
+                    ),
+                    object_name=fqn,
+                    remediation="Describe the concrete steps to resolve this issue.",
+                )
+            )
 
         # 3. Return findings (empty list = check passed) -----------------------
         return findings

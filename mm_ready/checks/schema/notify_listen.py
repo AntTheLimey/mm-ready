@@ -12,15 +12,7 @@ class NotifyListenCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         findings = []
 
-        # Check for active listeners
-        query_listeners = """
-            SELECT
-                pid,
-                channel
-            FROM pg_listening_channels() AS channel
-            CROSS JOIN (SELECT pg_backend_pid() AS pid) p
-        """
-        # Actually, pg_listening_channels() only shows channels of the current session.
+        # pg_listening_channels() only shows channels of the current session.
         # Instead, check for NOTIFY in functions and pg_stat_statements.
 
         # Check functions that use pg_notify or NOTIFY
@@ -42,28 +34,30 @@ class NotifyListenCheck(BaseCheck):
             cur.execute(query_funcs)
             func_rows = cur.fetchall()
 
-        for schema_name, func_name, func_def in func_rows:
+        for schema_name, func_name, _func_def in func_rows:
             fqn = f"{schema_name}.{func_name}"
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Function '{fqn}' uses NOTIFY/pg_notify",
-                detail=(
-                    f"Function '{fqn}' contains NOTIFY or pg_notify() calls. "
-                    "LISTEN/NOTIFY is a PostgreSQL inter-process communication "
-                    "mechanism that is NOT replicated by logical replication. "
-                    "If application components rely on notifications triggered by "
-                    "data changes, those notifications will only fire on the node "
-                    "where the change originates — not on subscriber nodes."
-                ),
-                object_name=fqn,
-                remediation=(
-                    "If notifications are used as part of the application architecture, "
-                    "ensure that listeners connect to all nodes, or implement an "
-                    "application-level notification mechanism that works across nodes."
-                ),
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Function '{fqn}' uses NOTIFY/pg_notify",
+                    detail=(
+                        f"Function '{fqn}' contains NOTIFY or pg_notify() calls. "
+                        "LISTEN/NOTIFY is a PostgreSQL inter-process communication "
+                        "mechanism that is NOT replicated by logical replication. "
+                        "If application components rely on notifications triggered by "
+                        "data changes, those notifications will only fire on the node "
+                        "where the change originates — not on subscriber nodes."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        "If notifications are used as part of the application architecture, "
+                        "ensure that listeners connect to all nodes, or implement an "
+                        "application-level notification mechanism that works across nodes."
+                    ),
+                )
+            )
 
         # Check pg_stat_statements for NOTIFY usage
         try:
@@ -78,19 +72,21 @@ class NotifyListenCheck(BaseCheck):
                 stmt_rows = cur.fetchall()
 
             for query_text, calls in stmt_rows:
-                findings.append(Finding(
-                    severity=Severity.CONSIDER,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"NOTIFY pattern in queries ({calls} call(s))",
-                    detail=(
-                        f"Query executed {calls} time(s): {query_text[:200]}...\n\n"
-                        "NOTIFY calls are not replicated by Spock. Subscribers will "
-                        "not receive these notifications."
-                    ),
-                    object_name="(query)",
-                    metadata={"calls": calls},
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.CONSIDER,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"NOTIFY pattern in queries ({calls} call(s))",
+                        detail=(
+                            f"Query executed {calls} time(s): {query_text[:200]}...\n\n"
+                            "NOTIFY calls are not replicated by Spock. Subscribers will "
+                            "not receive these notifications."
+                        ),
+                        object_name="(query)",
+                        metadata={"calls": calls},
+                    )
+                )
         except Exception:
             pass  # pg_stat_statements not available
 

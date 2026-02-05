@@ -86,23 +86,27 @@ class TriggerFunctionsCheck(BaseCheck):
                 severity = Severity.INFO
                 concern = f"Trigger enabled mode: {enabled_label}."
 
-            findings.append(Finding(
-                severity=severity,
-                check_name=self.name,
-                category=self.category,
-                title=f"Trigger '{trig_name}' on '{fqn}' ({timing} {event}, {enabled_label})",
-                detail=f"Trigger '{trig_name}' calls {func_name}. {concern}",
-                object_name=f"{fqn}.{trig_name}",
-                remediation=(
-                    "For most triggers, ORIGIN mode (default 'O') is correct — it only "
-                    "fires on the node where the write originates. Use ENABLE REPLICA or "
-                    "ENABLE ALWAYS only when the trigger must also fire during replication apply."
-                ) if severity != Severity.INFO else "",
-                metadata={
-                    "timing": timing,
-                    "event": event,
-                    "function": func_name,
-                    "enabled": enabled,
-                },
-            ))
+            findings.append(
+                Finding(
+                    severity=severity,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Trigger '{trig_name}' on '{fqn}' ({timing} {event}, {enabled_label})",
+                    detail=f"Trigger '{trig_name}' calls {func_name}. {concern}",
+                    object_name=f"{fqn}.{trig_name}",
+                    remediation=(
+                        "For most triggers, ORIGIN mode (default 'O') is correct — it only "
+                        "fires on the node where the write originates. Use ENABLE REPLICA or "
+                        "ENABLE ALWAYS only when the trigger must also fire during replication apply."
+                    )
+                    if severity != Severity.INFO
+                    else "",
+                    metadata={
+                        "timing": timing,
+                        "event": event,
+                        "function": func_name,
+                        "enabled": enabled,
+                    },
+                )
+            )
         return findings

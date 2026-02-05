@@ -24,22 +24,24 @@ class AdvisoryLocksCheck(BaseCheck):
 
         findings = []
         for query_text, calls in rows:
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Advisory lock usage detected ({calls} call(s))",
-                detail=(
-                    f"Query: {query_text[:200]}\n\n"
-                    "Advisory locks are node-local in PostgreSQL. They are not replicated "
-                    "and provide no cross-node coordination. If your application uses advisory "
-                    "locks for mutual exclusion, this will not work across a multi-master cluster."
-                ),
-                object_name="(query)",
-                remediation=(
-                    "If advisory locks are used for application-level coordination, "
-                    "implement a distributed locking mechanism instead."
-                ),
-                metadata={"calls": calls},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Advisory lock usage detected ({calls} call(s))",
+                    detail=(
+                        f"Query: {query_text[:200]}\n\n"
+                        "Advisory locks are node-local in PostgreSQL. They are not replicated "
+                        "and provide no cross-node coordination. If your application uses advisory "
+                        "locks for mutual exclusion, this will not work across a multi-master cluster."
+                    ),
+                    object_name="(query)",
+                    remediation=(
+                        "If advisory locks are used for application-level coordination, "
+                        "implement a distributed locking mechanism instead."
+                    ),
+                    metadata={"calls": calls},
+                )
+            )
         return findings

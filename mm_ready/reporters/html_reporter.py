@@ -6,7 +6,6 @@ import html
 
 from mm_ready.models import ScanReport, Severity
 
-
 _CSS = """
 /* ── Reset & base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -314,9 +313,9 @@ def render(report: ScanReport) -> str:
     sidebar_lines = []
     sidebar_lines.append('<div class="sidebar">')
     sidebar_lines.append('<div class="sidebar-header">')
-    sidebar_lines.append('<strong>MM-Ready Report</strong><br>')
-    sidebar_lines.append(f'{_esc(report.database)}')
-    sidebar_lines.append('</div>')
+    sidebar_lines.append("<strong>MM-Ready Report</strong><br>")
+    sidebar_lines.append(f"{_esc(report.database)}")
+    sidebar_lines.append("</div>")
     sidebar_lines.append('<nav class="sidebar-nav">')
 
     collapsed_severities = {Severity.CONSIDER, Severity.INFO}
@@ -329,11 +328,11 @@ def render(report: ScanReport) -> str:
         arrow_cls = "arrow" if severity in collapsed_severities else "arrow open"
 
         sidebar_lines.append('<div class="tree-section">')
-        sidebar_lines.append(f'<div class="tree-toggle">')
+        sidebar_lines.append('<div class="tree-toggle">')
         sidebar_lines.append(f'<span class="{arrow_cls}">&#9654;</span>')
-        sidebar_lines.append(f'{sev_label}')
+        sidebar_lines.append(f"{sev_label}")
         sidebar_lines.append(f'<span class="tree-badge {tree_badge}">{sev_count}</span>')
-        sidebar_lines.append('</div>')
+        sidebar_lines.append("</div>")
         sidebar_lines.append(f'<div class="tree-children {collapsed}" style="max-height:500px">')
         for cat, findings in cat_map.items():
             anchor = f"sev-{sev_slug}-{_slug(cat)}"
@@ -341,8 +340,8 @@ def render(report: ScanReport) -> str:
                 f'<a class="tree-child" href="#{anchor}">'
                 f'{_esc(cat)}<span class="tree-child-count">({len(findings)})</span></a>'
             )
-        sidebar_lines.append('</div>')
-        sidebar_lines.append('</div>')
+        sidebar_lines.append("</div>")
+        sidebar_lines.append("</div>")
 
     if errors:
         sidebar_lines.append(
@@ -356,47 +355,65 @@ def render(report: ScanReport) -> str:
             f'<span class="tree-badge tree-badge-warning">{len(todo_items)}</span></a>'
         )
 
-    sidebar_lines.append('</nav>')
+    sidebar_lines.append("</nav>")
     sidebar_lines.append('<div class="sidebar-footer">mm-ready v0.1.0</div>')
-    sidebar_lines.append('</div>')
+    sidebar_lines.append("</div>")
 
     # ── Build main content ──
     main = []
     main.append('<div class="main">')
 
     # Header
-    main.append('<h1>MM-Ready: Spock 5 Readiness Report</h1>')
-    main.append(f'<p><strong>Database:</strong> {_esc(report.database)}<br>')
+    main.append("<h1>MM-Ready: Spock 5 Readiness Report</h1>")
+    main.append(f"<p><strong>Database:</strong> {_esc(report.database)}<br>")
     if report.scan_mode == "analyze":
-        main.append(f'<strong>Source File:</strong> {_esc(report.host)}<br>')
+        main.append(f"<strong>Source File:</strong> {_esc(report.host)}<br>")
     else:
-        main.append(f'<strong>Host:</strong> {_esc(report.host)}:{report.port}<br>')
-    main.append(f'<strong>PostgreSQL:</strong> {_esc(report.pg_version)}<br>')
-    main.append(f'<strong>Scan Time:</strong> {report.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")}<br>')
-    main.append(f'<strong>Mode:</strong> {_esc(report.scan_mode)}<br>')
-    main.append(f'<strong>Target:</strong> Spock {report.spock_target}</p>')
+        main.append(f"<strong>Host:</strong> {_esc(report.host)}:{report.port}<br>")
+    main.append(f"<strong>PostgreSQL:</strong> {_esc(report.pg_version)}<br>")
+    main.append(
+        f"<strong>Scan Time:</strong> {report.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}<br>"
+    )
+    main.append(f"<strong>Mode:</strong> {_esc(report.scan_mode)}<br>")
+    main.append(f"<strong>Target:</strong> Spock {report.spock_target}</p>")
 
     # Summary cards
     main.append('<div class="summary-box">')
-    main.append(f'<div class="summary-card"><div class="number">{report.checks_total}</div>Checks Run</div>')
-    main.append(f'<div class="summary-card passed"><div class="number">{report.checks_passed}</div>Passed</div>')
-    main.append(f'<div class="summary-card critical"><div class="number">{report.critical_count}</div>Critical</div>')
-    main.append(f'<div class="summary-card warning"><div class="number">{report.warning_count}</div>Warnings</div>')
-    main.append(f'<div class="summary-card consider"><div class="number">{report.consider_count}</div>Consider</div>')
-    main.append(f'<div class="summary-card info"><div class="number">{report.info_count}</div>Info</div>')
-    main.append('</div>')
+    main.append(
+        f'<div class="summary-card"><div class="number">{report.checks_total}</div>Checks Run</div>'
+    )
+    main.append(
+        f'<div class="summary-card passed"><div class="number">{report.checks_passed}</div>Passed</div>'
+    )
+    main.append(
+        f'<div class="summary-card critical"><div class="number">{report.critical_count}</div>Critical</div>'
+    )
+    main.append(
+        f'<div class="summary-card warning"><div class="number">{report.warning_count}</div>Warnings</div>'
+    )
+    main.append(
+        f'<div class="summary-card consider"><div class="number">{report.consider_count}</div>Consider</div>'
+    )
+    main.append(
+        f'<div class="summary-card info"><div class="number">{report.info_count}</div>Info</div>'
+    )
+    main.append("</div>")
 
     # Verdict
     if report.critical_count == 0 and report.warning_count == 0:
         main.append('<blockquote style="border-left-color: #16a34a; background: #f0fdf4;">')
-        main.append('<strong>READY</strong> — No critical or warning issues found.')
+        main.append("<strong>READY</strong> — No critical or warning issues found.")
     elif report.critical_count == 0:
         main.append('<blockquote style="border-left-color: #d97706; background: #fffbeb;">')
-        main.append('<strong>CONDITIONALLY READY</strong> — No critical issues, but warnings should be reviewed.')
+        main.append(
+            "<strong>CONDITIONALLY READY</strong> — No critical issues, but warnings should be reviewed."
+        )
     else:
         main.append('<blockquote style="border-left-color: #dc2626; background: #fef2f2;">')
-        main.append(f'<strong>NOT READY</strong> — {report.critical_count} critical issue(s) must be resolved.')
-    main.append('</blockquote>')
+        main.append(
+            f"<strong>NOT READY</strong> — {report.critical_count} critical issue(s) must be resolved."
+        )
+    main.append("</blockquote>")
 
     # ── Findings by severity → category ──
     for severity, cat_map in sev_cat_map.items():
@@ -405,8 +422,10 @@ def render(report: ScanReport) -> str:
         sev_count = sum(len(fs) for fs in cat_map.values())
         badge_cls, _ = badge_map[severity]
 
-        main.append(f'<h2 id="sev-{sev_slug}">'
-                     f'<span class="badge {badge_cls}">{sev_label}</span> ({sev_count})</h2>')
+        main.append(
+            f'<h2 id="sev-{sev_slug}">'
+            f'<span class="badge {badge_cls}">{sev_label}</span> ({sev_count})</h2>'
+        )
 
         for cat, findings in cat_map.items():
             anchor = f"sev-{sev_slug}-{_slug(cat)}"
@@ -414,22 +433,28 @@ def render(report: ScanReport) -> str:
 
             for finding in findings:
                 main.append('<div class="finding-card">')
-                main.append(f'<h4>{_esc(finding.title)}</h4>')
+                main.append(f"<h4>{_esc(finding.title)}</h4>")
                 if finding.object_name:
-                    main.append(f'<p><strong>Object:</strong> <code>{_esc(finding.object_name)}</code></p>')
+                    main.append(
+                        f"<p><strong>Object:</strong> <code>{_esc(finding.object_name)}</code></p>"
+                    )
                 main.append(f'<p class="finding-detail">{_render_detail(finding.detail)}</p>')
                 if finding.remediation:
-                    main.append(f'<p><strong>Remediation:</strong></p>'
-                                f'<pre>{_esc(finding.remediation)}</pre>')
-                main.append('</div>')
+                    main.append(
+                        f"<p><strong>Remediation:</strong></p>"
+                        f"<pre>{_esc(finding.remediation)}</pre>"
+                    )
+                main.append("</div>")
 
     # ── Errors ──
     if errors:
         main.append('<h2 id="errors">Errors</h2>')
-        main.append('<ul>')
+        main.append("<ul>")
         for r in errors:
-            main.append(f'<li><strong>{_esc(r.category)}/{_esc(r.check_name)}</strong>: {_esc(r.error)}</li>')
-        main.append('</ul>')
+            main.append(
+                f"<li><strong>{_esc(r.category)}/{_esc(r.check_name)}</strong>: {_esc(r.error or '')}</li>"
+            )
+        main.append("</ul>")
 
     # ── To Do List ──
     if todo_items:
@@ -451,19 +476,21 @@ def render(report: ScanReport) -> str:
 
         parts = []
         if crit_todos:
-            parts.append(f'{len(crit_todos)} critical')
+            parts.append(f"{len(crit_todos)} critical")
         if warn_todos:
-            parts.append(f'{len(warn_todos)} warning{"s" if len(warn_todos) != 1 else ""}')
+            parts.append(f"{len(warn_todos)} warning{'s' if len(warn_todos) != 1 else ''}")
         if consider_todos:
-            parts.append(f'{len(consider_todos)} to consider')
+            parts.append(f"{len(consider_todos)} to consider")
 
         main.append(f'<div class="{css_class}">')
-        main.append(f'{len(todo_items)} item{"s" if len(todo_items) != 1 else ""} to address'
-                     f' ({", ".join(parts)})')
+        main.append(
+            f"{len(todo_items)} item{'s' if len(todo_items) != 1 else ''} to address"
+            f" ({', '.join(parts)})"
+        )
         main.append(f' &mdash; <span id="todo-counter">0 of {len(todo_items)} completed</span>')
-        main.append('</div>')
+        main.append("</div>")
 
-        for group_sev, group_items, group_label, group_cls in [
+        for _group_sev, group_items, group_label, group_cls in [
             (Severity.CRITICAL, crit_todos, "CRITICAL", "todo-group-critical"),
             (Severity.WARNING, warn_todos, "WARNING", "todo-group-warning"),
             (Severity.CONSIDER, consider_todos, "CONSIDER", "todo-group-consider"),
@@ -474,21 +501,23 @@ def render(report: ScanReport) -> str:
             for finding in group_items:
                 obj_html = ""
                 if finding.object_name:
-                    obj_html = f'<div class="todo-object"><code>{_esc(finding.object_name)}</code></div>'
+                    obj_html = (
+                        f'<div class="todo-object"><code>{_esc(finding.object_name)}</code></div>'
+                    )
                 main.append(
                     f'<div class="todo-item">'
                     f'<input type="checkbox">'
                     f'<div class="todo-content">'
                     f'<div class="todo-title">{_esc(finding.title)}</div>'
-                    f'{obj_html}'
+                    f"{obj_html}"
                     f'<div class="todo-remediation">{_esc(finding.remediation)}</div>'
-                    f'</div></div>'
+                    f"</div></div>"
                 )
 
     # ── Footer ──
-    main.append('<hr>')
-    main.append('<p><em>Generated by mm-ready v0.1.0</em></p>')
-    main.append('</div>')
+    main.append("<hr>")
+    main.append("<p><em>Generated by mm-ready v0.1.0</em></p>")
+    main.append("</div>")
 
     # ── Assemble document ──
     doc = []

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib
 import pkgutil
 from pathlib import Path
@@ -24,6 +25,7 @@ def discover_checks(
         List of instantiated check objects, sorted by category then name.
     """
     checks_package = importlib.import_module("mm_ready.checks")
+    assert checks_package.__file__ is not None
     checks_dir = Path(checks_package.__file__).parent
 
     _import_submodules("mm_ready.checks", checks_dir)
@@ -46,14 +48,12 @@ def discover_checks(
 
 def _import_submodules(package_name: str, package_dir: Path):
     """Recursively import all submodules under a package directory."""
-    for importer, modname, ispkg in pkgutil.walk_packages(
+    for _importer, modname, _ispkg in pkgutil.walk_packages(
         path=[str(package_dir)],
         prefix=package_name + ".",
     ):
-        try:
+        with contextlib.suppress(Exception):
             importlib.import_module(modname)
-        except Exception:
-            pass
 
 
 def _all_subclasses(cls):

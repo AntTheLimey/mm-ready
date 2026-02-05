@@ -35,28 +35,30 @@ class MultipleUniqueIndexesCheck(BaseCheck):
         for schema_name, table_name, idx_count, index_names in rows:
             fqn = f"{schema_name}.{table_name}"
             # Check which indexes are deferrable (Spock skips those)
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Table '{fqn}' has {idx_count} unique indexes",
-                detail=(
-                    f"Table '{fqn}' has {idx_count} unique indexes: "
-                    f"{', '.join(index_names)}. "
-                    "When check_all_uc_indexes is enabled in Spock, the apply worker "
-                    "iterates all unique indexes for conflict detection and uses the "
-                    "first match it finds (spock_apply_heap.c). With multiple unique "
-                    "constraints, conflicts may be detected on different indexes on "
-                    "different nodes, which could lead to unexpected resolution behaviour."
-                ),
-                object_name=fqn,
-                remediation=(
-                    "Review whether all unique indexes are necessary for replication "
-                    "conflict detection. Consider whether check_all_uc_indexes should "
-                    "be enabled, and ensure the application can tolerate conflict "
-                    "resolution on any of the unique constraints."
-                ),
-                metadata={"unique_index_count": idx_count, "indexes": index_names},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Table '{fqn}' has {idx_count} unique indexes",
+                    detail=(
+                        f"Table '{fqn}' has {idx_count} unique indexes: "
+                        f"{', '.join(index_names)}. "
+                        "When check_all_uc_indexes is enabled in Spock, the apply worker "
+                        "iterates all unique indexes for conflict detection and uses the "
+                        "first match it finds (spock_apply_heap.c). With multiple unique "
+                        "constraints, conflicts may be detected on different indexes on "
+                        "different nodes, which could lead to unexpected resolution behaviour."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        "Review whether all unique indexes are necessary for replication "
+                        "conflict detection. Consider whether check_all_uc_indexes should "
+                        "be enabled, and ensure the application can tolerate conflict "
+                        "resolution on any of the unique constraints."
+                    ),
+                    metadata={"unique_index_count": idx_count, "indexes": index_names},
+                )
+            )
 
         return findings

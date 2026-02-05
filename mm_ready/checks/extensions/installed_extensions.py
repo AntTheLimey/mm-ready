@@ -46,27 +46,33 @@ class InstalledExtensionsCheck(BaseCheck):
             ext_list.append(f"{extname} ({extversion})")
 
             if extname in self.KNOWN_ISSUES:
-                severity = Severity.WARNING if extname in ("timescaledb", "citus", "lo") else Severity.INFO
-                findings.append(Finding(
-                    severity=severity,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"Extension '{extname}' v{extversion}",
-                    detail=self.KNOWN_ISSUES[extname],
-                    object_name=extname,
-                    remediation=self.KNOWN_ISSUES[extname] if severity != Severity.INFO else "",
-                    metadata={"version": extversion, "schema": schema_name},
-                ))
+                severity = (
+                    Severity.WARNING if extname in ("timescaledb", "citus", "lo") else Severity.INFO
+                )
+                findings.append(
+                    Finding(
+                        severity=severity,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"Extension '{extname}' v{extversion}",
+                        detail=self.KNOWN_ISSUES[extname],
+                        object_name=extname,
+                        remediation=self.KNOWN_ISSUES[extname] if severity != Severity.INFO else "",
+                        metadata={"version": extversion, "schema": schema_name},
+                    )
+                )
 
         # Summary
-        findings.append(Finding(
-            severity=Severity.CONSIDER,
-            check_name=self.name,
-            category=self.category,
-            title=f"Installed extensions: {len(rows)}",
-            detail="Extensions: " + ", ".join(ext_list),
-            object_name="(extensions)",
-            remediation="Ensure all extensions are installed at identical versions on every node.",
-            metadata={"extensions": ext_list},
-        ))
+        findings.append(
+            Finding(
+                severity=Severity.CONSIDER,
+                check_name=self.name,
+                category=self.category,
+                title=f"Installed extensions: {len(rows)}",
+                detail="Extensions: " + ", ".join(ext_list),
+                object_name="(extensions)",
+                remediation="Ensure all extensions are installed at identical versions on every node.",
+                metadata={"extensions": ext_list},
+            )
+        )
         return findings

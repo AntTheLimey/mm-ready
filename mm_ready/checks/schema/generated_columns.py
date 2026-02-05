@@ -36,22 +36,24 @@ class GeneratedColumnsCheck(BaseCheck):
         for schema_name, table_name, col_name, gen_type, expression in rows:
             fqn = f"{schema_name}.{table_name}"
             gen_label = "STORED" if gen_type == "s" else "VIRTUAL"
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Generated column '{fqn}.{col_name}' ({gen_label})",
-                detail=(
-                    f"Column '{col_name}' on table '{fqn}' is a {gen_label} generated column "
-                    f"with expression: {expression}. Generated columns are recomputed on the "
-                    "subscriber side. If the expression depends on functions or data that "
-                    "differs across nodes, values may diverge."
-                ),
-                object_name=f"{fqn}.{col_name}",
-                remediation=(
-                    "Verify the generation expression produces identical results on all nodes. "
-                    "Avoid expressions that depend on volatile functions or node-local state."
-                ),
-                metadata={"gen_type": gen_label, "expression": expression},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Generated column '{fqn}.{col_name}' ({gen_label})",
+                    detail=(
+                        f"Column '{col_name}' on table '{fqn}' is a {gen_label} generated column "
+                        f"with expression: {expression}. Generated columns are recomputed on the "
+                        "subscriber side. If the expression depends on functions or data that "
+                        "differs across nodes, values may diverge."
+                    ),
+                    object_name=f"{fqn}.{col_name}",
+                    remediation=(
+                        "Verify the generation expression produces identical results on all nodes. "
+                        "Avoid expressions that depend on volatile functions or node-local state."
+                    ),
+                    metadata={"gen_type": gen_label, "expression": expression},
+                )
+            )
         return findings

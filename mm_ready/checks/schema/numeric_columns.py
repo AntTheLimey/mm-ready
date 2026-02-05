@@ -11,9 +11,22 @@ class NumericColumnsCheck(BaseCheck):
 
     # Column names that suggest accumulator/counter patterns
     SUSPECT_PATTERNS = [
-        "count", "total", "sum", "balance", "quantity", "qty",
-        "amount", "tally", "counter", "num_", "cnt", "running_",
-        "cumulative", "aggregate", "accrued", "inventory",
+        "count",
+        "total",
+        "sum",
+        "balance",
+        "quantity",
+        "qty",
+        "amount",
+        "tally",
+        "counter",
+        "num_",
+        "cnt",
+        "running_",
+        "cumulative",
+        "aggregate",
+        "accrued",
+        "inventory",
     ]
 
     def run(self, conn) -> list[Finding]:
@@ -52,47 +65,51 @@ class NumericColumnsCheck(BaseCheck):
 
             if not is_not_null:
                 # Delta-apply requires NOT NULL (spock_apply_heap.c:613-627)
-                findings.append(Finding(
-                    severity=Severity.WARNING,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"Delta-Apply candidate '{fqn}.{col_name}' allows NULL",
-                    detail=(
-                        f"Column '{col_name}' on table '{fqn}' is numeric ({data_type}) "
-                        "and its name suggests it may be an accumulator or counter. "
-                        "If configured for Delta-Apply in Spock, the column MUST have a "
-                        "NOT NULL constraint. The Spock apply worker "
-                        "(spock_apply_heap.c:613-627) checks this and will reject "
-                        "delta-apply on nullable columns."
-                    ),
-                    object_name=f"{fqn}.{col_name}",
-                    remediation=(
-                        f"If this column will use Delta-Apply, add a NOT NULL constraint:\n"
-                        f"  ALTER TABLE {fqn} ALTER COLUMN {col_name} SET NOT NULL;\n"
-                        "Ensure existing rows have no NULL values first."
-                    ),
-                    metadata={"column": col_name, "data_type": data_type, "nullable": True},
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.WARNING,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"Delta-Apply candidate '{fqn}.{col_name}' allows NULL",
+                        detail=(
+                            f"Column '{col_name}' on table '{fqn}' is numeric ({data_type}) "
+                            "and its name suggests it may be an accumulator or counter. "
+                            "If configured for Delta-Apply in Spock, the column MUST have a "
+                            "NOT NULL constraint. The Spock apply worker "
+                            "(spock_apply_heap.c:613-627) checks this and will reject "
+                            "delta-apply on nullable columns."
+                        ),
+                        object_name=f"{fqn}.{col_name}",
+                        remediation=(
+                            f"If this column will use Delta-Apply, add a NOT NULL constraint:\n"
+                            f"  ALTER TABLE {fqn} ALTER COLUMN {col_name} SET NOT NULL;\n"
+                            "Ensure existing rows have no NULL values first."
+                        ),
+                        metadata={"column": col_name, "data_type": data_type, "nullable": True},
+                    )
+                )
             else:
-                findings.append(Finding(
-                    severity=Severity.CONSIDER,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"Potential Delta-Apply column: '{fqn}.{col_name}' ({data_type})",
-                    detail=(
-                        f"Column '{col_name}' on table '{fqn}' is numeric ({data_type}) "
-                        "and its name suggests it may be an accumulator or counter. In "
-                        "multi-master replication, concurrent updates to such columns can "
-                        "cause conflicts. Delta-Apply can resolve this by applying the "
-                        "delta (change) rather than the absolute value. This column has a "
-                        "NOT NULL constraint, so it meets the Delta-Apply prerequisite."
-                    ),
-                    object_name=f"{fqn}.{col_name}",
-                    remediation=(
-                        "Investigate whether this column receives concurrent "
-                        "increment/decrement updates from multiple nodes. If so, "
-                        "configure it for Delta-Apply in Spock."
-                    ),
-                    metadata={"column": col_name, "data_type": data_type, "nullable": False},
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.CONSIDER,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"Potential Delta-Apply column: '{fqn}.{col_name}' ({data_type})",
+                        detail=(
+                            f"Column '{col_name}' on table '{fqn}' is numeric ({data_type}) "
+                            "and its name suggests it may be an accumulator or counter. In "
+                            "multi-master replication, concurrent updates to such columns can "
+                            "cause conflicts. Delta-Apply can resolve this by applying the "
+                            "delta (change) rather than the absolute value. This column has a "
+                            "NOT NULL constraint, so it meets the Delta-Apply prerequisite."
+                        ),
+                        object_name=f"{fqn}.{col_name}",
+                        remediation=(
+                            "Investigate whether this column receives concurrent "
+                            "increment/decrement updates from multiple nodes. If so, "
+                            "configure it for Delta-Apply in Spock."
+                        ),
+                        metadata={"column": col_name, "data_type": data_type, "nullable": False},
+                    )
+                )
         return findings

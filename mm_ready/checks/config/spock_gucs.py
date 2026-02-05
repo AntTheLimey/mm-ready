@@ -74,42 +74,48 @@ class SpockGucsCheck(BaseCheck):
                     cur.execute("SELECT current_setting(%s);", (guc["name"],))
                     value = cur.fetchone()[0]
             except Exception:
-                findings.append(Finding(
-                    severity=Severity.INFO,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"GUC '{guc['name']}' not available",
-                    detail=(
-                        f"Could not read '{guc['name']}'. Spock may not be "
-                        "loaded in shared_preload_libraries."
-                    ),
-                    object_name=guc["name"],
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.INFO,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"GUC '{guc['name']}' not available",
+                        detail=(
+                            f"Could not read '{guc['name']}'. Spock may not be "
+                            "loaded in shared_preload_libraries."
+                        ),
+                        object_name=guc["name"],
+                    )
+                )
                 continue
 
             if value != guc["recommended"]:
-                findings.append(Finding(
-                    severity=guc["severity"],
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"{guc['name']} = '{value}' (recommended: '{guc['recommended']}')",
-                    detail=f"{guc['detail']}\n\nCurrent value: '{value}'.",
-                    object_name=guc["name"],
-                    remediation=(
-                        f"Consider setting:\n"
-                        f"  ALTER SYSTEM SET {guc['name']} = '{guc['recommended']}';"
-                    ),
-                    metadata={"current": value, "recommended": guc["recommended"]},
-                ))
+                findings.append(
+                    Finding(
+                        severity=guc["severity"],
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"{guc['name']} = '{value}' (recommended: '{guc['recommended']}')",
+                        detail=f"{guc['detail']}\n\nCurrent value: '{value}'.",
+                        object_name=guc["name"],
+                        remediation=(
+                            f"Consider setting:\n"
+                            f"  ALTER SYSTEM SET {guc['name']} = '{guc['recommended']}';"
+                        ),
+                        metadata={"current": value, "recommended": guc["recommended"]},
+                    )
+                )
             else:
-                findings.append(Finding(
-                    severity=Severity.INFO,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"{guc['name']} = '{value}' (OK)",
-                    detail=guc["detail"],
-                    object_name=guc["name"],
-                    metadata={"current": value},
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.INFO,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"{guc['name']} = '{value}' (OK)",
+                        detail=guc["detail"],
+                        object_name=guc["name"],
+                        metadata={"current": value},
+                    )
+                )
 
         return findings

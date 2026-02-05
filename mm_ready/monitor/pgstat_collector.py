@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import time
 import sys
+import time
 from dataclasses import dataclass, field
 
 
@@ -19,6 +19,7 @@ class StatementSnapshot:
 @dataclass
 class StatsDelta:
     """Difference between two snapshots — represents activity during observation."""
+
     new_queries: list[StatementSnapshot] = field(default_factory=list)
     changed_queries: list[dict] = field(default_factory=list)  # {query, delta_calls, delta_time}
     duration_seconds: float = 0.0
@@ -60,7 +61,7 @@ def take_snapshot(conn) -> dict[str, StatementSnapshot]:
 def collect_over_duration(conn, duration: int, verbose: bool = False) -> StatsDelta:
     """Collect two snapshots separated by `duration` seconds and compute the delta."""
     if verbose:
-        print(f"  Taking initial pg_stat_statements snapshot...", file=sys.stderr)
+        print("  Taking initial pg_stat_statements snapshot...", file=sys.stderr)
 
     snap_before = take_snapshot(conn)
     before_time = time.time()
@@ -80,7 +81,7 @@ def collect_over_duration(conn, duration: int, verbose: bool = False) -> StatsDe
             print(f"    {remaining}s remaining...", file=sys.stderr)
 
     if verbose:
-        print(f"  Taking final pg_stat_statements snapshot...", file=sys.stderr)
+        print("  Taking final pg_stat_statements snapshot...", file=sys.stderr)
 
     snap_after = take_snapshot(conn)
     actual_duration = time.time() - before_time
@@ -96,12 +97,14 @@ def collect_over_duration(conn, duration: int, verbose: bool = False) -> StatsDe
             call_diff = after.calls - before.calls
             time_diff = after.total_exec_time - before.total_exec_time
             if call_diff > 0:
-                delta.changed_queries.append({
-                    "query": after.query,
-                    "delta_calls": call_diff,
-                    "delta_time": time_diff,
-                    "delta_rows": after.rows - before.rows,
-                })
+                delta.changed_queries.append(
+                    {
+                        "query": after.query,
+                        "delta_calls": call_diff,
+                        "delta_time": time_diff,
+                        "delta_rows": after.rows - before.rows,
+                    }
+                )
 
     # Sort by activity
     delta.changed_queries.sort(key=lambda x: x["delta_calls"], reverse=True)

@@ -27,18 +27,20 @@ class ConflictLogCheck(BaseCheck):
             has_table = False
 
         if not has_table:
-            return [Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title="No spock.conflict_history table found",
-                detail=(
-                    "The spock.conflict_history table does not exist. This is "
-                    "normal if Spock is not installed or conflict logging is not "
-                    "configured."
-                ),
-                object_name="spock.conflict_history",
-            )]
+            return [
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title="No spock.conflict_history table found",
+                    detail=(
+                        "The spock.conflict_history table does not exist. This is "
+                        "normal if Spock is not installed or conflict logging is not "
+                        "configured."
+                    ),
+                    object_name="spock.conflict_history",
+                )
+            ]
 
         # Get conflict summary
         query = """
@@ -58,58 +60,66 @@ class ConflictLogCheck(BaseCheck):
                 cur.execute(query)
                 rows = cur.fetchall()
         except Exception as e:
-            return [Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title="Could not query spock.conflict_history",
-                detail=f"Error querying conflict log: {e}",
-                object_name="spock.conflict_history",
-            )]
+            return [
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title="Could not query spock.conflict_history",
+                    detail=f"Error querying conflict log: {e}",
+                    object_name="spock.conflict_history",
+                )
+            ]
 
         if not rows:
-            return [Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title="No replication conflicts found",
-                detail="The spock.conflict_history table contains no records.",
-                object_name="spock.conflict_history",
-            )]
+            return [
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title="No replication conflicts found",
+                    detail="The spock.conflict_history table contains no records.",
+                    object_name="spock.conflict_history",
+                )
+            ]
 
         findings = []
         total_conflicts = sum(r[3] for r in rows)
 
-        findings.append(Finding(
-            severity=Severity.WARNING if total_conflicts > 0 else Severity.INFO,
-            check_name=self.name,
-            category=self.category,
-            title=f"{total_conflicts:,} total replication conflict(s) recorded",
-            detail=(
-                f"The conflict history shows {total_conflicts:,} total conflicts "
-                "across all tables. Review the per-table breakdown below."
-            ),
-            object_name="spock.conflict_history",
-            metadata={"total_conflicts": total_conflicts},
-        ))
-
-        for table_name, conflict_type, resolution, count, last_conflict in rows:
-            findings.append(Finding(
-                severity=Severity.WARNING,
+        findings.append(
+            Finding(
+                severity=Severity.WARNING if total_conflicts > 0 else Severity.INFO,
                 check_name=self.name,
                 category=self.category,
-                title=f"{count:,} '{conflict_type}' conflicts on '{table_name}'",
+                title=f"{total_conflicts:,} total replication conflict(s) recorded",
                 detail=(
-                    f"Table '{table_name}' has {count:,} '{conflict_type}' conflicts "
-                    f"resolved by '{resolution}'. Last conflict: {last_conflict}."
+                    f"The conflict history shows {total_conflicts:,} total conflicts "
+                    "across all tables. Review the per-table breakdown below."
                 ),
-                object_name=table_name,
-                metadata={
-                    "conflict_type": conflict_type,
-                    "resolution": resolution,
-                    "count": count,
-                    "last_conflict": str(last_conflict),
-                },
-            ))
+                object_name="spock.conflict_history",
+                metadata={"total_conflicts": total_conflicts},
+            )
+        )
+
+        for table_name, conflict_type, resolution, count, last_conflict in rows:
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"{count:,} '{conflict_type}' conflicts on '{table_name}'",
+                    detail=(
+                        f"Table '{table_name}' has {count:,} '{conflict_type}' conflicts "
+                        f"resolved by '{resolution}'. Last conflict: {last_conflict}."
+                    ),
+                    object_name=table_name,
+                    metadata={
+                        "conflict_type": conflict_type,
+                        "resolution": resolution,
+                        "count": count,
+                        "last_conflict": str(last_conflict),
+                    },
+                )
+            )
 
         return findings

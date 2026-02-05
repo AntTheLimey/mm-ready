@@ -113,7 +113,9 @@ def _add_output_args(parser: argparse.ArgumentParser):
         default="html",
         help="Report format (default: html)",
     )
-    grp.add_argument("--output", "-o", help="Output file path (default: ./reports/<dbname>_<timestamp>.<ext>)")
+    grp.add_argument(
+        "--output", "-o", help="Output file path (default: ./reports/<dbname>_<timestamp>.<ext>)"
+    )
 
 
 def main(argv: list[str] | None = None):
@@ -122,8 +124,12 @@ def main(argv: list[str] | None = None):
     # Default to "scan" when no subcommand is given but arguments are present
     raw_args = argv if argv is not None else sys.argv[1:]
     known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
-    if raw_args and raw_args[0] not in known_commands and raw_args[0] not in ("--version", "--help", "-h"):
-        raw_args = ["scan"] + list(raw_args)
+    if (
+        raw_args
+        and raw_args[0] not in known_commands
+        and raw_args[0] not in ("--version", "--help", "-h")
+    ):
+        raw_args = ["scan", *list(raw_args)]
     elif not raw_args:
         parser.print_help()
         sys.exit(1)
@@ -198,6 +204,7 @@ def _cmd_audit(args):
 
 def _run_mode(args, mode: str):
     import psycopg2
+
     from mm_ready.connection import connect
     from mm_ready.scanner import run_scan
 
@@ -214,14 +221,20 @@ def _run_mode(args, mode: str):
         )
     except psycopg2.OperationalError as e:
         error_msg = str(e).strip()
-        print(f"Error: Could not connect to database.", file=sys.stderr)
+        print("Error: Could not connect to database.", file=sys.stderr)
         print(f"       {error_msg}", file=sys.stderr)
         if "no password supplied" in error_msg:
-            print("\nHint: Use --password to provide a password, or set PGPASSWORD environment variable.", file=sys.stderr)
+            print(
+                "\nHint: Use --password to provide a password, or set PGPASSWORD environment variable.",
+                file=sys.stderr,
+            )
         elif "does not exist" in error_msg:
             print("\nHint: Check that the database name is correct.", file=sys.stderr)
         elif "Connection refused" in error_msg or "could not connect" in error_msg.lower():
-            print(f"\nHint: Check that PostgreSQL is running on {args.host or 'localhost'}:{args.port or 5432}.", file=sys.stderr)
+            print(
+                f"\nHint: Check that PostgreSQL is running on {args.host or 'localhost'}:{args.port or 5432}.",
+                file=sys.stderr,
+            )
         sys.exit(1)
 
     try:
@@ -243,6 +256,7 @@ def _run_mode(args, mode: str):
 
 def _cmd_monitor(args):
     import psycopg2
+
     from mm_ready.connection import connect
     from mm_ready.monitor.observer import run_monitor
 
@@ -257,14 +271,20 @@ def _cmd_monitor(args):
         )
     except psycopg2.OperationalError as e:
         error_msg = str(e).strip()
-        print(f"Error: Could not connect to database.", file=sys.stderr)
+        print("Error: Could not connect to database.", file=sys.stderr)
         print(f"       {error_msg}", file=sys.stderr)
         if "no password supplied" in error_msg:
-            print("\nHint: Use --password to provide a password, or set PGPASSWORD environment variable.", file=sys.stderr)
+            print(
+                "\nHint: Use --password to provide a password, or set PGPASSWORD environment variable.",
+                file=sys.stderr,
+            )
         elif "does not exist" in error_msg:
             print("\nHint: Check that the database name is correct.", file=sys.stderr)
         elif "Connection refused" in error_msg or "could not connect" in error_msg.lower():
-            print(f"\nHint: Check that PostgreSQL is running on {args.host or 'localhost'}:{args.port or 5432}.", file=sys.stderr)
+            print(
+                f"\nHint: Check that PostgreSQL is running on {args.host or 'localhost'}:{args.port or 5432}.",
+                file=sys.stderr,
+            )
         sys.exit(1)
 
     try:

@@ -30,17 +30,19 @@ class TempTablesCheck(BaseCheck):
         findings = []
         for schema_name, func_name in rows:
             fqn = f"{schema_name}.{func_name}"
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Function '{fqn}' creates temporary tables",
-                detail=(
-                    f"Function '{fqn}' contains CREATE TEMP/TEMPORARY TABLE statements. "
-                    "Temporary tables are session-local and are not replicated. This is "
-                    "usually fine, but be aware that temp table data will differ across nodes."
-                ),
-                object_name=fqn,
-                remediation="Review to confirm temp table usage is intentional and node-local.",
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Function '{fqn}' creates temporary tables",
+                    detail=(
+                        f"Function '{fqn}' contains CREATE TEMP/TEMPORARY TABLE statements. "
+                        "Temporary tables are session-local and are not replicated. This is "
+                        "usually fine, but be aware that temp table data will differ across nodes."
+                    ),
+                    object_name=fqn,
+                    remediation="Review to confirm temp table usage is intentional and node-local.",
+                )
+            )
         return findings

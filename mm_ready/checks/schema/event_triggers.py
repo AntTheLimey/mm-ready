@@ -81,15 +81,17 @@ class EventTriggersCheck(BaseCheck):
                 )
                 remediation = ""
 
-            findings.append(Finding(
-                severity=severity,
-                check_name=self.name,
-                category=self.category,
-                title=f"Event trigger '{trigger_name}' on {event} (enabled: {label})",
-                detail=detail,
-                object_name=trigger_name,
-                remediation=remediation,
-                metadata={"event": event, "enabled": enabled},
-            ))
+            findings.append(
+                Finding(
+                    severity=severity,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Event trigger '{trigger_name}' on {event} (enabled: {label})",
+                    detail=detail,
+                    object_name=trigger_name,
+                    remediation=remediation,
+                    metadata={"event": event, "enabled": enabled},
+                )
+            )
 
         return findings

@@ -38,31 +38,37 @@ class RulesCheck(BaseCheck):
 
             severity = Severity.WARNING if is_instead else Severity.CONSIDER
 
-            findings.append(Finding(
-                severity=severity,
-                check_name=self.name,
-                category=self.category,
-                title=f"{'INSTEAD ' if is_instead else ''}Rule '{rule_name}' on '{fqn}' ({event})",
-                detail=(
-                    f"Table '{fqn}' has {'an INSTEAD' if is_instead else 'a'} rule "
-                    f"'{rule_name}' on {event} events. "
-                    "Rules rewrite queries before execution, which means the WAL "
-                    "records the rewritten operations, not the original SQL. On the "
-                    "subscriber side, the Spock apply worker replays the row-level "
-                    "changes from WAL, and the subscriber's rules will also fire on "
-                    "the applied changes — potentially causing double-application or "
-                    "unexpected side effects."
-                    + (" INSTEAD rules are particularly dangerous as they completely "
-                       "replace the original operation." if is_instead else "")
-                ),
-                object_name=f"{fqn}.{rule_name}",
-                remediation=(
-                    "Consider converting rules to triggers (which can be controlled "
-                    "via session_replication_role), or disable rules on subscriber "
-                    "nodes. Review whether the rule's effect should apply on both "
-                    "provider and subscriber."
-                ),
-                metadata={"event": event, "is_instead": is_instead},
-            ))
+            findings.append(
+                Finding(
+                    severity=severity,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"{'INSTEAD ' if is_instead else ''}Rule '{rule_name}' on '{fqn}' ({event})",
+                    detail=(
+                        f"Table '{fqn}' has {'an INSTEAD' if is_instead else 'a'} rule "
+                        f"'{rule_name}' on {event} events. "
+                        "Rules rewrite queries before execution, which means the WAL "
+                        "records the rewritten operations, not the original SQL. On the "
+                        "subscriber side, the Spock apply worker replays the row-level "
+                        "changes from WAL, and the subscriber's rules will also fire on "
+                        "the applied changes — potentially causing double-application or "
+                        "unexpected side effects."
+                        + (
+                            " INSTEAD rules are particularly dangerous as they completely "
+                            "replace the original operation."
+                            if is_instead
+                            else ""
+                        )
+                    ),
+                    object_name=f"{fqn}.{rule_name}",
+                    remediation=(
+                        "Consider converting rules to triggers (which can be controlled "
+                        "via session_replication_role), or disable rules on subscriber "
+                        "nodes. Review whether the rule's effect should apply on both "
+                        "provider and subscriber."
+                    ),
+                    metadata={"event": event, "is_instead": is_instead},
+                )
+            )
 
         return findings

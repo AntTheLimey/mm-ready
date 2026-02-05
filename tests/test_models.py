@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from mm_ready.models import CheckResult, Finding, ScanReport, Severity
-
 from conftest import make_finding
 
+from mm_ready.models import CheckResult, Finding, ScanReport, Severity
 
 # -- Severity ordering -------------------------------------------------------
+
 
 class TestSeverityOrdering:
     def test_critical_less_than_warning(self):
@@ -33,11 +33,15 @@ class TestSeverityOrdering:
     def test_sorted_order(self):
         severities = [Severity.INFO, Severity.CRITICAL, Severity.CONSIDER, Severity.WARNING]
         assert sorted(severities) == [
-            Severity.CRITICAL, Severity.WARNING, Severity.CONSIDER, Severity.INFO
+            Severity.CRITICAL,
+            Severity.WARNING,
+            Severity.CONSIDER,
+            Severity.INFO,
         ]
 
 
 # -- Finding defaults ---------------------------------------------------------
+
 
 class TestFinding:
     def test_defaults(self):
@@ -61,6 +65,7 @@ class TestFinding:
 
 
 # -- ScanReport properties ----------------------------------------------------
+
 
 class TestScanReportEmpty:
     def test_empty_counts(self, empty_report):
@@ -102,22 +107,34 @@ class TestScanReportCounts:
 
     def test_checks_passed_excludes_errored(self):
         report = ScanReport(
-            database="db", host="h", port=5432,
+            database="db",
+            host="h",
+            port=5432,
             timestamp=datetime.now(timezone.utc),
         )
-        report.results.append(CheckResult(
-            check_name="x", category="c", description="d",
-            error="something failed",
-        ))
+        report.results.append(
+            CheckResult(
+                check_name="x",
+                category="c",
+                description="d",
+                error="something failed",
+            )
+        )
         assert report.checks_passed == 0
 
     def test_checks_passed_excludes_skipped(self):
         report = ScanReport(
-            database="db", host="h", port=5432,
+            database="db",
+            host="h",
+            port=5432,
             timestamp=datetime.now(timezone.utc),
         )
-        report.results.append(CheckResult(
-            check_name="x", category="c", description="d",
-            skipped=True,
-        ))
+        report.results.append(
+            CheckResult(
+                check_name="x",
+                category="c",
+                description="d",
+                skipped=True,
+            )
+        )
         assert report.checks_passed == 0

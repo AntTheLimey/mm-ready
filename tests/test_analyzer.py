@@ -2,8 +2,28 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
+from mm_ready.analyzer import (
+    check_column_defaults,
+    check_deferrable_constraints,
+    check_enum_types,
+    check_exclusion_constraints,
+    check_foreign_keys,
+    check_generated_columns,
+    check_inheritance,
+    check_installed_extensions,
+    check_large_objects,
+    check_missing_fk_indexes,
+    check_multiple_unique_indexes,
+    check_numeric_columns,
+    check_pg_version,
+    check_primary_keys,
+    check_rules,
+    check_sequence_audit,
+    check_sequence_data_types,
+    check_sequence_pks,
+    check_unlogged_tables,
+    run_analyze,
+)
 from mm_ready.models import Severity
 from mm_ready.schema_parser import (
     ColumnDef,
@@ -16,29 +36,6 @@ from mm_ready.schema_parser import (
     SequenceDef,
     TableDef,
 )
-from mm_ready.analyzer import (
-    check_primary_keys,
-    check_sequence_pks,
-    check_foreign_keys,
-    check_deferrable_constraints,
-    check_exclusion_constraints,
-    check_missing_fk_indexes,
-    check_unlogged_tables,
-    check_large_objects,
-    check_column_defaults,
-    check_numeric_columns,
-    check_multiple_unique_indexes,
-    check_enum_types,
-    check_generated_columns,
-    check_rules,
-    check_inheritance,
-    check_installed_extensions,
-    check_sequence_audit,
-    check_sequence_data_types,
-    check_pg_version,
-    run_analyze,
-)
-
 
 CN = "test_check"
 CAT = "schema"
@@ -47,6 +44,7 @@ CAT = "schema"
 # ---------------------------------------------------------------------------
 # check_primary_keys
 # ---------------------------------------------------------------------------
+
 
 class TestCheckPrimaryKeys:
     def test_table_without_pk(self):
@@ -60,19 +58,27 @@ class TestCheckPrimaryKeys:
     def test_table_with_pk(self):
         schema = ParsedSchema()
         schema.tables.append(TableDef(schema_name="public", table_name="users"))
-        schema.constraints.append(ConstraintDef(
-            name="users_pkey", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="users", columns=["id"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="users_pkey",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="users",
+                columns=["id"],
+            )
+        )
         findings = check_primary_keys(schema, CN, CAT)
         assert len(findings) == 0
 
     def test_partitioned_table_skipped(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="events",
-            partition_by="RANGE (created_at)",
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="events",
+                partition_by="RANGE (created_at)",
+            )
+        )
         findings = check_primary_keys(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -81,46 +87,76 @@ class TestCheckPrimaryKeys:
 # check_sequence_pks
 # ---------------------------------------------------------------------------
 
+
 class TestCheckSequencePks:
     def test_nextval_pk(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="users",
-            columns=[ColumnDef(name="id", data_type="integer",
-                               default_expr="nextval('users_id_seq'::regclass)")],
-        ))
-        schema.constraints.append(ConstraintDef(
-            name="users_pkey", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="users", columns=["id"],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="users",
+                columns=[
+                    ColumnDef(
+                        name="id",
+                        data_type="integer",
+                        default_expr="nextval('users_id_seq'::regclass)",
+                    )
+                ],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="users_pkey",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="users",
+                columns=["id"],
+            )
+        )
         findings = check_sequence_pks(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CRITICAL
 
     def test_identity_pk(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="items",
-            columns=[ColumnDef(name="id", data_type="integer", identity="BY DEFAULT")],
-        ))
-        schema.constraints.append(ConstraintDef(
-            name="items_pkey", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="items", columns=["id"],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="items",
+                columns=[ColumnDef(name="id", data_type="integer", identity="BY DEFAULT")],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="items_pkey",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="items",
+                columns=["id"],
+            )
+        )
         findings = check_sequence_pks(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CRITICAL
 
     def test_non_sequence_pk(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="lookups",
-            columns=[ColumnDef(name="code", data_type="text")],
-        ))
-        schema.constraints.append(ConstraintDef(
-            name="lookups_pkey", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="lookups", columns=["code"],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="lookups",
+                columns=[ColumnDef(name="code", data_type="text")],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="lookups_pkey",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="lookups",
+                columns=["code"],
+            )
+        )
         findings = check_sequence_pks(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -129,15 +165,23 @@ class TestCheckSequencePks:
 # check_foreign_keys
 # ---------------------------------------------------------------------------
 
+
 class TestCheckForeignKeys:
     def test_cascade_fk(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="fk1", constraint_type="FOREIGN KEY",
-            table_schema="public", table_name="orders", columns=["user_id"],
-            ref_schema="public", ref_table="users", ref_columns=["id"],
-            on_delete="CASCADE",
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="fk1",
+                constraint_type="FOREIGN KEY",
+                table_schema="public",
+                table_name="orders",
+                columns=["user_id"],
+                ref_schema="public",
+                ref_table="users",
+                ref_columns=["id"],
+                on_delete="CASCADE",
+            )
+        )
         findings = check_foreign_keys(schema, CN, CAT)
         # One CASCADE warning + one summary CONSIDER
         cascade = [f for f in findings if f.severity == Severity.WARNING]
@@ -147,11 +191,18 @@ class TestCheckForeignKeys:
 
     def test_no_cascade_fk(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="fk1", constraint_type="FOREIGN KEY",
-            table_schema="public", table_name="orders", columns=["user_id"],
-            ref_schema="public", ref_table="users", ref_columns=["id"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="fk1",
+                constraint_type="FOREIGN KEY",
+                table_schema="public",
+                table_name="orders",
+                columns=["user_id"],
+                ref_schema="public",
+                ref_table="users",
+                ref_columns=["id"],
+            )
+        )
         findings = check_foreign_keys(schema, CN, CAT)
         # Only summary, no CASCADE warning
         assert len(findings) == 1
@@ -167,35 +218,52 @@ class TestCheckForeignKeys:
 # check_deferrable_constraints
 # ---------------------------------------------------------------------------
 
+
 class TestCheckDeferrableConstraints:
     def test_deferrable_pk_is_critical(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="pk", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="t", columns=["id"],
-            deferrable=True, initially_deferred=True,
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="pk",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="t",
+                columns=["id"],
+                deferrable=True,
+                initially_deferred=True,
+            )
+        )
         findings = check_deferrable_constraints(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CRITICAL
 
     def test_deferrable_unique_is_warning(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="uq", constraint_type="UNIQUE",
-            table_schema="public", table_name="t", columns=["email"],
-            deferrable=True,
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="uq",
+                constraint_type="UNIQUE",
+                table_schema="public",
+                table_name="t",
+                columns=["email"],
+                deferrable=True,
+            )
+        )
         findings = check_deferrable_constraints(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
 
     def test_non_deferrable_ignored(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="pk", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="t", columns=["id"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="pk",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="t",
+                columns=["id"],
+            )
+        )
         findings = check_deferrable_constraints(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -204,13 +272,18 @@ class TestCheckDeferrableConstraints:
 # check_exclusion_constraints
 # ---------------------------------------------------------------------------
 
+
 class TestCheckExclusionConstraints:
     def test_exclusion_found(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="no_overlap", constraint_type="EXCLUDE",
-            table_schema="public", table_name="bookings",
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="no_overlap",
+                constraint_type="EXCLUDE",
+                table_schema="public",
+                table_name="bookings",
+            )
+        )
         findings = check_exclusion_constraints(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
@@ -225,43 +298,74 @@ class TestCheckExclusionConstraints:
 # check_missing_fk_indexes
 # ---------------------------------------------------------------------------
 
+
 class TestCheckMissingFkIndexes:
     def test_fk_without_index(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="fk1", constraint_type="FOREIGN KEY",
-            table_schema="public", table_name="orders", columns=["user_id"],
-            ref_schema="public", ref_table="users", ref_columns=["id"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="fk1",
+                constraint_type="FOREIGN KEY",
+                table_schema="public",
+                table_name="orders",
+                columns=["user_id"],
+                ref_schema="public",
+                ref_table="users",
+                ref_columns=["id"],
+            )
+        )
         findings = check_missing_fk_indexes(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CONSIDER
 
     def test_fk_with_covering_index(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="fk1", constraint_type="FOREIGN KEY",
-            table_schema="public", table_name="orders", columns=["user_id"],
-            ref_schema="public", ref_table="users", ref_columns=["id"],
-        ))
-        schema.indexes.append(IndexDef(
-            name="idx_user_id", table_schema="public", table_name="orders",
-            columns=["user_id"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="fk1",
+                constraint_type="FOREIGN KEY",
+                table_schema="public",
+                table_name="orders",
+                columns=["user_id"],
+                ref_schema="public",
+                ref_table="users",
+                ref_columns=["id"],
+            )
+        )
+        schema.indexes.append(
+            IndexDef(
+                name="idx_user_id",
+                table_schema="public",
+                table_name="orders",
+                columns=["user_id"],
+            )
+        )
         findings = check_missing_fk_indexes(schema, CN, CAT)
         assert len(findings) == 0
 
     def test_fk_covered_by_pk(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="fk1", constraint_type="FOREIGN KEY",
-            table_schema="public", table_name="orders", columns=["id"],
-            ref_schema="public", ref_table="users", ref_columns=["id"],
-        ))
-        schema.constraints.append(ConstraintDef(
-            name="pk", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="orders", columns=["id"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="fk1",
+                constraint_type="FOREIGN KEY",
+                table_schema="public",
+                table_name="orders",
+                columns=["id"],
+                ref_schema="public",
+                ref_table="users",
+                ref_columns=["id"],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="pk",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="orders",
+                columns=["id"],
+            )
+        )
         findings = check_missing_fk_indexes(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -270,12 +374,17 @@ class TestCheckMissingFkIndexes:
 # check_unlogged_tables
 # ---------------------------------------------------------------------------
 
+
 class TestCheckUnloggedTables:
     def test_unlogged_found(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="cache", unlogged=True,
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="cache",
+                unlogged=True,
+            )
+        )
         findings = check_unlogged_tables(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
@@ -291,23 +400,30 @@ class TestCheckUnloggedTables:
 # check_large_objects
 # ---------------------------------------------------------------------------
 
+
 class TestCheckLargeObjects:
     def test_oid_column(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="docs",
-            columns=[ColumnDef(name="data_oid", data_type="oid")],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="docs",
+                columns=[ColumnDef(name="data_oid", data_type="oid")],
+            )
+        )
         findings = check_large_objects(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
 
     def test_no_oid_columns(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="docs",
-            columns=[ColumnDef(name="data", data_type="bytea")],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="docs",
+                columns=[ColumnDef(name="data", data_type="bytea")],
+            )
+        )
         findings = check_large_objects(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -316,35 +432,46 @@ class TestCheckLargeObjects:
 # check_column_defaults
 # ---------------------------------------------------------------------------
 
+
 class TestCheckColumnDefaults:
     def test_volatile_now(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="events",
-            columns=[ColumnDef(name="created_at", data_type="timestamp",
-                               default_expr="now()")],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="events",
+                columns=[ColumnDef(name="created_at", data_type="timestamp", default_expr="now()")],
+            )
+        )
         findings = check_column_defaults(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CONSIDER
 
     def test_nextval_skipped(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="t",
-            columns=[ColumnDef(name="id", data_type="integer",
-                               default_expr="nextval('t_id_seq'::regclass)")],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="t",
+                columns=[
+                    ColumnDef(
+                        name="id", data_type="integer", default_expr="nextval('t_id_seq'::regclass)"
+                    )
+                ],
+            )
+        )
         findings = check_column_defaults(schema, CN, CAT)
         assert len(findings) == 0
 
     def test_non_volatile_skipped(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="t",
-            columns=[ColumnDef(name="status", data_type="text",
-                               default_expr="'active'")],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="t",
+                columns=[ColumnDef(name="status", data_type="text", default_expr="'active'")],
+            )
+        )
         findings = check_column_defaults(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -353,33 +480,43 @@ class TestCheckColumnDefaults:
 # check_numeric_columns
 # ---------------------------------------------------------------------------
 
+
 class TestCheckNumericColumns:
     def test_nullable_counter(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="stats",
-            columns=[ColumnDef(name="total_count", data_type="integer", not_null=False)],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="stats",
+                columns=[ColumnDef(name="total_count", data_type="integer", not_null=False)],
+            )
+        )
         findings = check_numeric_columns(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
 
     def test_not_null_counter(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="stats",
-            columns=[ColumnDef(name="balance", data_type="numeric", not_null=True)],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="stats",
+                columns=[ColumnDef(name="balance", data_type="numeric", not_null=True)],
+            )
+        )
         findings = check_numeric_columns(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CONSIDER
 
     def test_non_suspect_name_ignored(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="users",
-            columns=[ColumnDef(name="age", data_type="integer", not_null=True)],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="users",
+                columns=[ColumnDef(name="age", data_type="integer", not_null=True)],
+            )
+        )
         findings = check_numeric_columns(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -388,27 +525,43 @@ class TestCheckNumericColumns:
 # check_multiple_unique_indexes
 # ---------------------------------------------------------------------------
 
+
 class TestCheckMultipleUniqueIndexes:
     def test_multiple_unique(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="pk", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="users", columns=["id"],
-        ))
-        schema.constraints.append(ConstraintDef(
-            name="uq_email", constraint_type="UNIQUE",
-            table_schema="public", table_name="users", columns=["email"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="pk",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="users",
+                columns=["id"],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="uq_email",
+                constraint_type="UNIQUE",
+                table_schema="public",
+                table_name="users",
+                columns=["email"],
+            )
+        )
         findings = check_multiple_unique_indexes(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CONSIDER
 
     def test_single_unique_ok(self):
         schema = ParsedSchema()
-        schema.constraints.append(ConstraintDef(
-            name="pk", constraint_type="PRIMARY KEY",
-            table_schema="public", table_name="users", columns=["id"],
-        ))
+        schema.constraints.append(
+            ConstraintDef(
+                name="pk",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="users",
+                columns=["id"],
+            )
+        )
         findings = check_multiple_unique_indexes(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -417,13 +570,17 @@ class TestCheckMultipleUniqueIndexes:
 # check_enum_types
 # ---------------------------------------------------------------------------
 
+
 class TestCheckEnumTypes:
     def test_enum_found(self):
         schema = ParsedSchema()
-        schema.enum_types.append(EnumTypeDef(
-            schema_name="public", type_name="status",
-            labels=["active", "inactive"],
-        ))
+        schema.enum_types.append(
+            EnumTypeDef(
+                schema_name="public",
+                type_name="status",
+                labels=["active", "inactive"],
+            )
+        )
         findings = check_enum_types(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CONSIDER
@@ -438,24 +595,32 @@ class TestCheckEnumTypes:
 # check_generated_columns
 # ---------------------------------------------------------------------------
 
+
 class TestCheckGeneratedColumns:
     def test_generated_column(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="products",
-            columns=[ColumnDef(name="total", data_type="numeric",
-                               generated_expr="price + tax")],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="products",
+                columns=[
+                    ColumnDef(name="total", data_type="numeric", generated_expr="price + tax")
+                ],
+            )
+        )
         findings = check_generated_columns(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CONSIDER
 
     def test_no_generated(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="t",
-            columns=[ColumnDef(name="x", data_type="integer")],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="t",
+                columns=[ColumnDef(name="x", data_type="integer")],
+            )
+        )
         findings = check_generated_columns(schema, CN, CAT)
         assert len(findings) == 0
 
@@ -464,23 +629,34 @@ class TestCheckGeneratedColumns:
 # check_rules
 # ---------------------------------------------------------------------------
 
+
 class TestCheckRules:
     def test_instead_rule_is_warning(self):
         schema = ParsedSchema()
-        schema.rules.append(RuleDef(
-            schema_name="public", table_name="important",
-            rule_name="no_delete", event="DELETE", is_instead=True,
-        ))
+        schema.rules.append(
+            RuleDef(
+                schema_name="public",
+                table_name="important",
+                rule_name="no_delete",
+                event="DELETE",
+                is_instead=True,
+            )
+        )
         findings = check_rules(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
 
     def test_non_instead_rule_is_consider(self):
         schema = ParsedSchema()
-        schema.rules.append(RuleDef(
-            schema_name="public", table_name="audit",
-            rule_name="log_update", event="UPDATE", is_instead=False,
-        ))
+        schema.rules.append(
+            RuleDef(
+                schema_name="public",
+                table_name="audit",
+                rule_name="log_update",
+                event="UPDATE",
+                is_instead=False,
+            )
+        )
         findings = check_rules(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.CONSIDER
@@ -490,13 +666,17 @@ class TestCheckRules:
 # check_inheritance
 # ---------------------------------------------------------------------------
 
+
 class TestCheckInheritance:
     def test_inheritance_found(self):
         schema = ParsedSchema()
-        schema.tables.append(TableDef(
-            schema_name="public", table_name="child",
-            inherits=["public.parent"],
-        ))
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="child",
+                inherits=["public.parent"],
+            )
+        )
         findings = check_inheritance(schema, CN, CAT)
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
@@ -511,6 +691,7 @@ class TestCheckInheritance:
 # ---------------------------------------------------------------------------
 # check_installed_extensions
 # ---------------------------------------------------------------------------
+
 
 class TestCheckInstalledExtensions:
     def test_known_warning_extension(self):
@@ -544,14 +725,19 @@ class TestCheckInstalledExtensions:
 # check_sequence_audit
 # ---------------------------------------------------------------------------
 
+
 class TestCheckSequenceAudit:
     def test_sequences_found(self):
         schema = ParsedSchema()
-        schema.sequences.append(SequenceDef(
-            schema_name="public", sequence_name="users_id_seq",
-            data_type="bigint", owned_by_table="public.users",
-            owned_by_column="id",
-        ))
+        schema.sequences.append(
+            SequenceDef(
+                schema_name="public",
+                sequence_name="users_id_seq",
+                data_type="bigint",
+                owned_by_table="public.users",
+                owned_by_column="id",
+            )
+        )
         findings = check_sequence_audit(schema, CN, "sequences")
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
@@ -559,9 +745,12 @@ class TestCheckSequenceAudit:
 
     def test_unowned_sequence(self):
         schema = ParsedSchema()
-        schema.sequences.append(SequenceDef(
-            schema_name="public", sequence_name="global_seq",
-        ))
+        schema.sequences.append(
+            SequenceDef(
+                schema_name="public",
+                sequence_name="global_seq",
+            )
+        )
         findings = check_sequence_audit(schema, CN, "sequences")
         assert "not owned" in findings[0].detail
 
@@ -575,32 +764,42 @@ class TestCheckSequenceAudit:
 # check_sequence_data_types
 # ---------------------------------------------------------------------------
 
+
 class TestCheckSequenceDataTypes:
     def test_integer_sequence_warned(self):
         schema = ParsedSchema()
-        schema.sequences.append(SequenceDef(
-            schema_name="public", sequence_name="narrow_seq",
-            data_type="integer",
-        ))
+        schema.sequences.append(
+            SequenceDef(
+                schema_name="public",
+                sequence_name="narrow_seq",
+                data_type="integer",
+            )
+        )
         findings = check_sequence_data_types(schema, CN, "sequences")
         assert len(findings) == 1
         assert findings[0].severity == Severity.WARNING
 
     def test_smallint_sequence_warned(self):
         schema = ParsedSchema()
-        schema.sequences.append(SequenceDef(
-            schema_name="public", sequence_name="tiny_seq",
-            data_type="smallint",
-        ))
+        schema.sequences.append(
+            SequenceDef(
+                schema_name="public",
+                sequence_name="tiny_seq",
+                data_type="smallint",
+            )
+        )
         findings = check_sequence_data_types(schema, CN, "sequences")
         assert len(findings) == 1
 
     def test_bigint_sequence_ok(self):
         schema = ParsedSchema()
-        schema.sequences.append(SequenceDef(
-            schema_name="public", sequence_name="wide_seq",
-            data_type="bigint",
-        ))
+        schema.sequences.append(
+            SequenceDef(
+                schema_name="public",
+                sequence_name="wide_seq",
+                data_type="bigint",
+            )
+        )
         findings = check_sequence_data_types(schema, CN, "sequences")
         assert len(findings) == 0
 
@@ -608,6 +807,7 @@ class TestCheckSequenceDataTypes:
 # ---------------------------------------------------------------------------
 # check_pg_version
 # ---------------------------------------------------------------------------
+
 
 class TestCheckPgVersion:
     def test_unsupported_version(self):
@@ -632,6 +832,7 @@ class TestCheckPgVersion:
 # ---------------------------------------------------------------------------
 # run_analyze orchestrator
 # ---------------------------------------------------------------------------
+
 
 class TestRunAnalyze:
     def test_report_structure(self, tmp_path):
@@ -659,7 +860,9 @@ class TestRunAnalyze:
         f = tmp_path / "dump.sql"
         f.write_text("", encoding="utf-8")
         report = run_analyze(
-            ParsedSchema(), file_path=str(f), categories=["config"],
+            ParsedSchema(),
+            file_path=str(f),
+            categories=["config"],
         )
         active = [r for r in report.results if not r.skipped]
         # Only pg_version is a config check in the active set

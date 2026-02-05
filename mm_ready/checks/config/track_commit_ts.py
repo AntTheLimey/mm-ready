@@ -16,24 +16,26 @@ class TrackCommitTimestampCheck(BaseCheck):
 
         findings = []
         if val != "on":
-            findings.append(Finding(
-                severity=Severity.CRITICAL,
-                check_name=self.name,
-                category=self.category,
-                title=f"track_commit_timestamp is '{val}' — must be 'on'",
-                detail=(
-                    f"track_commit_timestamp = '{val}'. Spock uses commit "
-                    "timestamps for last-update-wins conflict resolution. This "
-                    "is a PostgreSQL server setting that should be configured "
-                    "before installing Spock."
-                ),
-                object_name="track_commit_timestamp",
-                remediation=(
-                    "Configure before installing Spock:\n"
-                    "  ALTER SYSTEM SET track_commit_timestamp = on;\n"
-                    "Then restart PostgreSQL. No Spock installation is needed "
-                    "for this change — it is a standard PostgreSQL setting."
-                ),
-                metadata={"current_value": val},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CRITICAL,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"track_commit_timestamp is '{val}' — must be 'on'",
+                    detail=(
+                        f"track_commit_timestamp = '{val}'. Spock uses commit "
+                        "timestamps for last-update-wins conflict resolution. This "
+                        "is a PostgreSQL server setting that should be configured "
+                        "before installing Spock."
+                    ),
+                    object_name="track_commit_timestamp",
+                    remediation=(
+                        "Configure before installing Spock:\n"
+                        "  ALTER SYSTEM SET track_commit_timestamp = on;\n"
+                        "Then restart PostgreSQL. No Spock installation is needed "
+                        "for this change — it is a standard PostgreSQL setting."
+                    ),
+                    metadata={"current_value": val},
+                )
+            )
         return findings

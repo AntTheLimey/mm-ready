@@ -24,23 +24,25 @@ class ConcurrentIndexesCheck(BaseCheck):
 
         findings = []
         if rows:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"CREATE INDEX CONCURRENTLY detected ({len(rows)} pattern(s))",
-                detail=(
-                    "CREATE INDEX CONCURRENTLY statements were found in SQL history. "
-                    "Concurrent indexes must be created by hand on each node in a "
-                    "Spock cluster — they cannot be replicated via DDL replication.\n\n"
-                    "Patterns found:\n" +
-                    "\n".join(f"  [{r[1]} calls] {r[0][:150]}" for r in rows[:10])
-                ),
-                object_name="(queries)",
-                remediation=(
-                    "Plan to execute CREATE INDEX CONCURRENTLY manually on each node. "
-                    "Do not rely on DDL replication for these operations."
-                ),
-                metadata={"pattern_count": len(rows)},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"CREATE INDEX CONCURRENTLY detected ({len(rows)} pattern(s))",
+                    detail=(
+                        "CREATE INDEX CONCURRENTLY statements were found in SQL history. "
+                        "Concurrent indexes must be created by hand on each node in a "
+                        "Spock cluster — they cannot be replicated via DDL replication.\n\n"
+                        "Patterns found:\n"
+                        + "\n".join(f"  [{r[1]} calls] {r[0][:150]}" for r in rows[:10])
+                    ),
+                    object_name="(queries)",
+                    remediation=(
+                        "Plan to execute CREATE INDEX CONCURRENTLY manually on each node. "
+                        "Do not rely on DDL replication for these operations."
+                    ),
+                    metadata={"pattern_count": len(rows)},
+                )
+            )
         return findings

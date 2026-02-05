@@ -35,22 +35,24 @@ class SequencePrimaryKeysCheck(BaseCheck):
         findings = []
         for schema_name, table_name, col_name, seq_name in rows:
             fqn = f"{schema_name}.{table_name}"
-            findings.append(Finding(
-                severity=Severity.CRITICAL,
-                check_name=self.name,
-                category=self.category,
-                title=f"PK column '{fqn}.{col_name}' uses a standard sequence",
-                detail=(
-                    f"Primary key column '{col_name}' on table '{fqn}' is backed by "
-                    f"sequence '{seq_name or 'identity column'}'. In a multi-master setup, "
-                    "standard sequences will produce conflicting values across nodes. "
-                    "Must migrate to pgEdge snowflake sequences."
-                ),
-                object_name=fqn,
-                remediation=(
-                    f"Convert '{fqn}.{col_name}' to use the pgEdge snowflake extension "
-                    "for globally unique ID generation. See: pgEdge snowflake documentation."
-                ),
-                metadata={"column": col_name, "sequence": seq_name},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CRITICAL,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"PK column '{fqn}.{col_name}' uses a standard sequence",
+                    detail=(
+                        f"Primary key column '{col_name}' on table '{fqn}' is backed by "
+                        f"sequence '{seq_name or 'identity column'}'. In a multi-master setup, "
+                        "standard sequences will produce conflicting values across nodes. "
+                        "Must migrate to pgEdge snowflake sequences."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        f"Convert '{fqn}.{col_name}' to use the pgEdge snowflake extension "
+                        "for globally unique ID generation. See: pgEdge snowflake documentation."
+                    ),
+                    metadata={"column": col_name, "sequence": seq_name},
+                )
+            )
         return findings

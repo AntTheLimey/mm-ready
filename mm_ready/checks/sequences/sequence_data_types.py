@@ -29,34 +29,36 @@ class SequenceDataTypesCheck(BaseCheck):
             rows = cur.fetchall()
 
         findings = []
-        for schema_name, seq_name, data_type, max_value, start_value, increment in rows:
+        for schema_name, seq_name, data_type, max_value, _start_value, increment in rows:
             fqn = f"{schema_name}.{seq_name}"
 
             if data_type in ("smallint", "integer"):
                 type_max = 32767 if data_type == "smallint" else 2147483647
-                findings.append(Finding(
-                    severity=Severity.WARNING,
-                    check_name=self.name,
-                    category=self.category,
-                    title=f"Sequence '{fqn}' uses {data_type} (max {type_max:,})",
-                    detail=(
-                        f"Sequence '{fqn}' is defined as {data_type} with max value "
-                        f"{max_value:,}. In a multi-master setup with pgEdge Snowflake "
-                        "sequences, the ID space is partitioned across nodes and includes "
-                        "a node identifier component. Smaller integer types can exhaust "
-                        "their range much faster. Consider upgrading to bigint."
-                    ),
-                    object_name=fqn,
-                    remediation=(
-                        f"Alter the column and sequence to use bigint:\n"
-                        f"  ALTER TABLE ... ALTER COLUMN ... TYPE bigint;\n"
-                        "This allows room for Snowflake-style globally unique IDs."
-                    ),
-                    metadata={
-                        "data_type": data_type,
-                        "max_value": max_value,
-                        "increment": increment,
-                    },
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.WARNING,
+                        check_name=self.name,
+                        category=self.category,
+                        title=f"Sequence '{fqn}' uses {data_type} (max {type_max:,})",
+                        detail=(
+                            f"Sequence '{fqn}' is defined as {data_type} with max value "
+                            f"{max_value:,}. In a multi-master setup with pgEdge Snowflake "
+                            "sequences, the ID space is partitioned across nodes and includes "
+                            "a node identifier component. Smaller integer types can exhaust "
+                            "their range much faster. Consider upgrading to bigint."
+                        ),
+                        object_name=fqn,
+                        remediation=(
+                            "Alter the column and sequence to use bigint:\n"
+                            "  ALTER TABLE ... ALTER COLUMN ... TYPE bigint;\n"
+                            "This allows room for Snowflake-style globally unique IDs."
+                        ),
+                        metadata={
+                            "data_type": data_type,
+                            "max_value": max_value,
+                            "increment": increment,
+                        },
+                    )
+                )
 
         return findings

@@ -18,29 +18,31 @@ class LargeObjectsCheck(BaseCheck):
 
         findings = []
         if lob_count > 0:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Database contains {lob_count} large object(s)",
-                detail=(
-                    f"Found {lob_count} large object(s) in pg_largeobject_metadata. "
-                    "PostgreSQL's logical decoding facility does not support decoding "
-                    "changes to large objects. These will not be replicated by Spock."
-                ),
-                object_name="pg_largeobject",
-                remediation=(
-                    "Migrate large objects to use the LOLOR extension for replication-safe "
-                    "large object management, or store binary data in BYTEA columns.\n\n"
-                    "To use LOLOR:\n"
-                    "  CREATE EXTENSION lolor;\n"
-                    "  ALTER SYSTEM SET lolor.node = <unique_node_id>;  -- unique per node, 1 to 2^28\n"
-                    "  -- Restart PostgreSQL\n"
-                    "  SELECT spock.repset_add_table('default', 'lolor.pg_largeobject');\n"
-                    "  SELECT spock.repset_add_table('default', 'lolor.pg_largeobject_metadata');"
-                ),
-                metadata={"lob_count": lob_count},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Database contains {lob_count} large object(s)",
+                    detail=(
+                        f"Found {lob_count} large object(s) in pg_largeobject_metadata. "
+                        "PostgreSQL's logical decoding facility does not support decoding "
+                        "changes to large objects. These will not be replicated by Spock."
+                    ),
+                    object_name="pg_largeobject",
+                    remediation=(
+                        "Migrate large objects to use the LOLOR extension for replication-safe "
+                        "large object management, or store binary data in BYTEA columns.\n\n"
+                        "To use LOLOR:\n"
+                        "  CREATE EXTENSION lolor;\n"
+                        "  ALTER SYSTEM SET lolor.node = <unique_node_id>;  -- unique per node, 1 to 2^28\n"
+                        "  -- Restart PostgreSQL\n"
+                        "  SELECT spock.repset_add_table('default', 'lolor.pg_largeobject');\n"
+                        "  SELECT spock.repset_add_table('default', 'lolor.pg_largeobject_metadata');"
+                    ),
+                    metadata={"lob_count": lob_count},
+                )
+            )
 
         # Also check for columns using OID type (commonly used with large objects)
         oid_query = """
@@ -64,22 +66,24 @@ class LargeObjectsCheck(BaseCheck):
 
         for schema_name, table_name, col_name in rows:
             fqn = f"{schema_name}.{table_name}"
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"OID column '{fqn}.{col_name}' may reference large objects",
-                detail=(
-                    f"Column '{col_name}' on table '{fqn}' uses the OID data type, "
-                    "which is commonly used to reference large objects. If used for LOB "
-                    "references, these will not replicate through logical decoding."
-                ),
-                object_name=f"{fqn}.{col_name}",
-                remediation=(
-                    "If this column references large objects, migrate to LOLOR or "
-                    "BYTEA. LOLOR requires lolor.node to be set uniquely per node "
-                    "and its tables added to a replication set. "
-                    "If the column is used for other purposes, this finding can be ignored."
-                ),
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"OID column '{fqn}.{col_name}' may reference large objects",
+                    detail=(
+                        f"Column '{col_name}' on table '{fqn}' uses the OID data type, "
+                        "which is commonly used to reference large objects. If used for LOB "
+                        "references, these will not replicate through logical decoding."
+                    ),
+                    object_name=f"{fqn}.{col_name}",
+                    remediation=(
+                        "If this column references large objects, migrate to LOLOR or "
+                        "BYTEA. LOLOR requires lolor.node to be set uniquely per node "
+                        "and its tables added to a replication set. "
+                        "If the column is used for other purposes, this finding can be ignored."
+                    ),
+                )
+            )
         return findings

@@ -22,27 +22,29 @@ class MaxWalSendersCheck(BaseCheck):
         findings = []
 
         if max_senders < 10:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"max_wal_senders is {max_senders} (recommend >= 10)",
-                detail=(
-                    f"max_wal_senders is set to {max_senders} with {active_senders} "
-                    "currently active. Each Spock subscription requires a WAL sender "
-                    "process. In a multi-master topology with N nodes, each node needs "
-                    "at least N-1 senders plus headroom for initial sync and backups."
-                ),
-                object_name="max_wal_senders",
-                remediation=(
-                    "Increase max_wal_senders to at least 10:\n"
-                    "  ALTER SYSTEM SET max_wal_senders = 10;\n"
-                    "Requires a PostgreSQL restart."
-                ),
-                metadata={
-                    "current": max_senders,
-                    "active": active_senders,
-                },
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"max_wal_senders is {max_senders} (recommend >= 10)",
+                    detail=(
+                        f"max_wal_senders is set to {max_senders} with {active_senders} "
+                        "currently active. Each Spock subscription requires a WAL sender "
+                        "process. In a multi-master topology with N nodes, each node needs "
+                        "at least N-1 senders plus headroom for initial sync and backups."
+                    ),
+                    object_name="max_wal_senders",
+                    remediation=(
+                        "Increase max_wal_senders to at least 10:\n"
+                        "  ALTER SYSTEM SET max_wal_senders = 10;\n"
+                        "Requires a PostgreSQL restart."
+                    ),
+                    metadata={
+                        "current": max_senders,
+                        "active": active_senders,
+                    },
+                )
+            )
 
         return findings
