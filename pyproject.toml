@@ -16,7 +16,7 @@ dependencies = [
 mm-ready = "mm_ready.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "ruff>=0.15", "pyright>=1.1"]
+dev = ["pytest>=7.0", "ruff>=0.9", "pyright>=1.1"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

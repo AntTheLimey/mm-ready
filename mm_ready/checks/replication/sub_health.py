@@ -1,7 +1,13 @@
 """Audit check: verify Spock subscription health."""
 
+import logging
+
+import psycopg2
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
+
+logger = logging.getLogger(__name__)
 
 
 class SubscriptionHealthCheck(BaseCheck):
@@ -109,7 +115,12 @@ class SubscriptionHealthCheck(BaseCheck):
                         (slot_name,),
                     )
                     slot_row = cur.fetchone()
-            except Exception:
+            except psycopg2.Error as e:
+                logger.warning(
+                    "Failed to query replication slot '%s': %s",
+                    slot_name,
+                    e,
+                )
                 slot_row = None
 
             if slot_row:
