@@ -12,6 +12,17 @@ class ExceptionLogCheck(BaseCheck):
 
     def run(self, conn) -> list[Finding]:
         # Check if spock schema and exception tables exist
+        """
+        Inspect the spock.exception_log table and produce findings describing replication apply errors.
+        
+        Queries whether spock.exception_log exists; if absent returns an INFO finding. If present, summarizes up to 50 grouped exception rows and returns an aggregate Finding with the total error count plus one Finding per origin/table/error group describing counts, a snippet of the error message, and last occurrence.
+        
+        Parameters:
+            conn: A DB connection/cursor-like object used to execute queries against the PostgreSQL instance.
+        
+        Returns:
+            list[Finding]: A list containing an aggregate Finding for total replication exceptions and zero or more per-origin/per-table Findings describing individual exception groups.
+        """
         try:
             with conn.cursor() as cur:
                 cur.execute("""

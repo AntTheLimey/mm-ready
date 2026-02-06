@@ -116,7 +116,15 @@ class TestHTMLReporter:
 
 
 def _make_report_with_severities(*severities: Severity) -> ScanReport:
-    """Build a minimal report with findings of the given severities."""
+    """
+    Create a minimal ScanReport containing one CheckResult per provided severity.
+    
+    Parameters:
+        *severities (Severity): One or more Severity values; for each provided severity the report will include a CheckResult named "check_<index>" whose single finding has that severity. The order of severities determines the numeric suffix of the generated check names.
+    
+    Returns:
+        ScanReport: A ScanReport whose `results` list contains one CheckResult per provided severity, each with a single finding set to the corresponding severity.
+    """
     report = ScanReport(
         database="testdb",
         host="localhost",

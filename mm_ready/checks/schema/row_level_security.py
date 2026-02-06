@@ -10,6 +10,14 @@ class RowLevelSecurityCheck(BaseCheck):
     description = "Row-level security policies — apply worker runs as superuser, bypasses RLS"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Detect tables that have row-level security (RLS) enabled and produce findings describing each table's RLS configuration.
+        
+        For each non-system table with RLS enabled, creates a Finding with the table's fully qualified name, whether RLS is forced, the number of policies, a warning-level message about the Spock apply worker bypassing RLS, and a remediation suggestion.
+        
+        Returns:
+            list[Finding]: A list of Finding objects — one per table with RLS enabled. Each Finding includes `object_name` (schema.table), `severity` set to WARNING, and `metadata` containing `rls_forced` (bool) and `policy_count` (int).
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

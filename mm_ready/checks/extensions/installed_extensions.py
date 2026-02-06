@@ -30,6 +30,17 @@ class InstalledExtensionsCheck(BaseCheck):
     }
 
     def run(self, conn) -> list[Finding]:
+        """
+        Audit installed PostgreSQL extensions and produce findings for known Spock compatibility issues.
+        
+        Executes a query against pg_catalog to list installed extensions with their versions and schema, creates a Finding for each extension that has a known issue (with severity determined by the extension), and appends a summary Finding that lists all discovered extensions.
+        
+        Parameters:
+        	conn: A DB connection object that supports the context manager protocol for cursor() and allows execution of SQL queries.
+        
+        Returns:
+        	findings (list[Finding]): A list containing per-extension Finding objects for extensions in KNOWN_ISSUES (severity INFO or WARNING) followed by a final summary Finding (severity CONSIDER) that lists all installed extensions.
+        """
         query = """
             SELECT extname, extversion, n.nspname AS schema_name
             FROM pg_catalog.pg_extension e

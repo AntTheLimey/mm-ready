@@ -10,6 +10,17 @@ class PartitionedTablesCheck(BaseCheck):
     description = "Partitioned tables — review partition strategy for Spock compatibility"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Identify partitioned tables and produce findings about their partition strategy and partition counts to assess Spock compatibility.
+        
+        Queries the provided database connection for partitioned tables (excluding common system/catalog schemas), maps Postgres partition strategy codes to human-readable labels, and returns a Finding for each partitioned table containing severity, title, detail, remediation guidance, and metadata.
+        
+        Parameters:
+            conn: A DB-API compatible connection that provides a cursor() supporting execute() and fetchall().
+        
+        Returns:
+            list[Finding]: A list of Finding objects, one per partitioned table discovered. Each Finding's metadata includes the keys "strategy" (partition strategy label) and "partition_count" (number of child partitions).
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

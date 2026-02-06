@@ -10,6 +10,17 @@ class ParallelApplyCheck(BaseCheck):
     description = "Parallel apply workers configuration for Spock performance"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Validate Spock parallel-apply related PostgreSQL configuration and produce findings.
+        
+        Queries the database for `max_worker_processes`, `max_parallel_workers`, `max_logical_replication_workers`, and `max_sync_workers_per_subscription`, generates Findings for values that are below recommended thresholds, and always includes a summary Finding containing the observed parameter values.
+        
+        Parameters:
+            conn: A DB-API compatible connection exposing a cursor() context manager used to execute `SHOW <parameter>;` and fetch the parameter value.
+        
+        Returns:
+            list[Finding]: A list of Finding objects describing any configuration issues and a summary entry with all queried parameter values.
+        """
         params = {}
         with conn.cursor() as cur:
             for param in [

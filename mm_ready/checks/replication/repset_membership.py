@@ -12,6 +12,19 @@ class RepsetMembershipCheck(BaseCheck):
 
     def run(self, conn) -> list[Finding]:
         # Check if spock schema exists
+        """
+        Check whether user tables are members of any Spock replication set and report findings.
+        
+        If the Spock schema is missing, returns a single INFO finding indicating the check was skipped.
+        If the query against spock.repset_table fails, returns a single WARNING finding describing the error.
+        Otherwise, returns a WARNING finding for each user table that is not a member of any replication set; each finding includes the table's fully qualified name and remediation SQL.
+        
+        Parameters:
+        	conn: A DB-API connection object providing a .cursor() context manager.
+        
+        Returns:
+        	list[Finding]: Findings describing a skipped check, a query failure, or one finding per user table missing from any replication set.
+        """
         try:
             with conn.cursor() as cur:
                 cur.execute("""

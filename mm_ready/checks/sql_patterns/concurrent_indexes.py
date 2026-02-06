@@ -10,6 +10,15 @@ class ConcurrentIndexesCheck(BaseCheck):
     description = "CREATE INDEX CONCURRENTLY — must be created manually on each node"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.
+        
+        Parameters:
+            conn: A database connection object with a context-managing `.cursor()` method used to query `pg_stat_statements`.
+        
+        Returns:
+            list[Finding]: A list of findings. Returns an empty list if no matching statements are found or if a database error occurs. When matches exist, a single Finding is returned summarizing the number of patterns and listing up to the first 10 matched query snippets.
+        """
         try:
             with conn.cursor() as cur:
                 cur.execute("""

@@ -6,7 +6,20 @@ from mm_ready.models import ScanReport, Severity
 
 
 def render(report: ScanReport) -> str:
-    """Render a ScanReport as Markdown."""
+    """
+    Render a ScanReport into a Markdown-formatted readiness report.
+    
+    The output includes a header with database and scan metadata, a summary table of
+    check counts by severity, a readiness verdict, findings grouped by severity and
+    category (with details and optional remediation), an errors section if present,
+    and a footer identifying the generator.
+    
+    Parameters:
+        report (ScanReport): The scan report to render.
+    
+    Returns:
+        str: The complete report as a Markdown-formatted string.
+    """
     lines = []
 
     # Header

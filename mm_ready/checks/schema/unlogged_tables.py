@@ -10,6 +10,15 @@ class UnloggedTablesCheck(BaseCheck):
     description = "UNLOGGED tables — not written to WAL and cannot be replicated"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Identify UNLOGGED tables (tables not written to the write-ahead log) outside standard system schemas and produce a Finding for each.
+        
+        Parameters:
+            conn: A DB connection object that provides a cursor() context manager for executing queries.
+        
+        Returns:
+            list[Finding]: A list of Finding objects, one per UNLOGGED table found. Each Finding contains the table's fully-qualified name in `object_name`, a warning `severity`, explanatory `detail`, and a `remediation` suggesting converting the table to LOGGED.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

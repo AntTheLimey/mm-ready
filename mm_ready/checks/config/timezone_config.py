@@ -10,6 +10,18 @@ class TimezoneConfigCheck(BaseCheck):
     description = "Timezone settings — UTC recommended for consistent commit timestamps"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check the server's timezone and log_timezone settings and produce findings recommending UTC when appropriate.
+        
+        Parameters:
+        	conn: A DB connection object providing a cursor() context manager used to execute "SHOW timezone;" and "SHOW log_timezone;".
+        
+        Returns:
+        	list[Finding]: A list containing one or more Findings:
+        	- A CONSIDER Finding for `timezone` if the server timezone is not "UTC".
+        	- A CONSIDER Finding for `log_timezone` if the log timezone is not "UTC".
+        	- An INFO Finding confirming both settings are UTC when both are "UTC".
+        """
         with conn.cursor() as cur:
             cur.execute("SHOW timezone;")
             tz = cur.fetchone()[0]

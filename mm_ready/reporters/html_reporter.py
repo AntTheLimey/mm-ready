@@ -280,7 +280,15 @@ def _render_detail(text: str) -> str:
 
 
 def render(report: ScanReport) -> str:
-    """Render a ScanReport as a standalone HTML document with sidebar navigation."""
+    """
+    Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
+    
+    Parameters:
+        report (ScanReport): Scan report containing findings, results, counts, and metadata used to populate the document.
+    
+    Returns:
+        html (str): A single HTML string containing the full report (sidebar, findings by severity and category, errors, To Do list, styles, and embedded JavaScript).
+    """
     all_findings = report.findings
     badge_map = {
         Severity.CRITICAL: ("badge-critical", "tree-badge-critical"),

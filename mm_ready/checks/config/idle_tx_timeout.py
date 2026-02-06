@@ -12,6 +12,17 @@ class IdleTransactionTimeoutCheck(BaseCheck):
     )
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check PostgreSQL idle timeout settings and report findings when either timeout is disabled.
+        
+        Queries the server for `idle_in_transaction_session_timeout` and, if available, `idle_session_timeout`. If either parameter is explicitly set to "0" (disabled), a corresponding Finding is produced describing the risk and remediation.
+        
+        Parameters:
+            conn: A DB-API compatible database connection used to execute `SHOW` statements.
+        
+        Returns:
+            list[Finding]: A list of Findings for timeouts that are disabled; empty if neither timeout is "0".
+        """
         findings = []
 
         with conn.cursor() as cur:

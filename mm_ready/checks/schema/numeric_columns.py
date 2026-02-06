@@ -30,6 +30,15 @@ class NumericColumnsCheck(BaseCheck):
     ]
 
     def run(self, conn) -> list[Finding]:
+        """
+        Scan the database catalog for numeric columns whose names suggest they are counters or accumulators, and produce findings about their suitability for Delta-Apply.
+        
+        Parameters:
+            conn: A DB-API connection used to query the database catalog for table and column metadata.
+        
+        Returns:
+            findings (list[Finding]): A list of Finding objects describing columns that match suspect name patterns. Each finding indicates severity (nullable columns produce a WARNING; NOT NULL columns produce a CONSIDER), includes a descriptive title and detail, and provides remediation guidance and metadata (column name, data type, nullable).
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

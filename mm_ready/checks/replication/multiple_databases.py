@@ -10,6 +10,15 @@ class MultipleDatabasesCheck(BaseCheck):
     description = "More than one user database in the instance — Spock supports one DB per instance"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check for multiple user databases in the PostgreSQL instance.
+        
+        Parameters:
+            conn: A PEP-249 compatible database connection to the target PostgreSQL instance.
+        
+        Returns:
+            findings (list[Finding]): A list containing a single `Finding` with severity `WARNING` describing the user databases when more than one non-template database (excluding 'postgres') exists; otherwise an empty list.
+        """
         query = """
             SELECT datname
             FROM pg_catalog.pg_database

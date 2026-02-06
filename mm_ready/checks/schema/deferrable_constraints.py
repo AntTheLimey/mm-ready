@@ -10,6 +10,17 @@ class DeferrableConstraintsCheck(BaseCheck):
     description = "Deferrable unique/PK constraints — silently skipped by Spock conflict resolution"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Detect deferrable UNIQUE and PRIMARY KEY constraints in the database and return findings describing them.
+        
+        Scans PostgreSQL catalogs for constraints that are DEFERRABLE (excluding system schemas) and produces a Finding for each match that describes the constraint, its initially deferred state, recommended remediation, and metadata. PRIMARY KEY constraints are reported with CRITICAL severity; UNIQUE constraints are reported with WARNING severity. Each Finding's metadata includes the constraint type and whether it is initially deferred, and the Finding's object_name is the fully qualified constraint identifier.
+        
+        Parameters:
+            conn: A DB-API compatible database connection used to query the PostgreSQL catalogs.
+        
+        Returns:
+            list[Finding]: A list of Finding objects describing deferrable constraints found in the database.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

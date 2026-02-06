@@ -14,6 +14,18 @@ class PgVersionCheck(BaseCheck):
     SUPPORTED_MAJORS = {15, 16, 17, 18}
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check PostgreSQL server major version for compatibility with Spock 5.
+        
+        Parameters:
+            conn: A DB connection object providing a context-managed cursor that can execute queries and fetch results.
+        
+        Returns:
+            findings (list[Finding]): One Finding describing the server's PostgreSQL major version and compatibility.
+                - If the major version is not supported, the Finding has `Severity.CRITICAL` and includes remediation guidance.
+                - If the major version is supported, the Finding has `Severity.INFO`.
+                Both variants include `metadata` with `major` and `version_num`.
+        """
         query = "SELECT version(), current_setting('server_version_num')::int;"
         with conn.cursor() as cur:
             cur.execute(query)

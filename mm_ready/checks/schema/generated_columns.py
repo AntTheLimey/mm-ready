@@ -10,6 +10,17 @@ class GeneratedColumnsCheck(BaseCheck):
     description = "Generated/stored columns — replication behavior differences"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Identify generated (stored or virtual) columns in the connected PostgreSQL database and produce Findings for each.
+        
+        Queries PostgreSQL system catalogs to locate columns declared as generated and returns a Finding per generated column describing its type, generation expression, and a remediation suggestion.
+        
+        Parameters:
+        	conn: A DB-API compatible connection with a context-manager cursor() that can execute SQL against the target PostgreSQL database.
+        
+        Returns:
+        	findings (list[Finding]): A list of Finding objects, one per generated column. Each Finding includes the column's fully qualified name, generation label ("STORED" or "VIRTUAL"), the generation expression in metadata, severity (Severity.CONSIDER), and a remediation message.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

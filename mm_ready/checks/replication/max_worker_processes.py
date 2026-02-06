@@ -10,6 +10,15 @@ class MaxWorkerProcessesCheck(BaseCheck):
     description = "Sufficient worker processes for Spock background workers"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check whether max_worker_processes is large enough for Spock background workers.
+        
+        Parameters:
+            conn: A database connection exposing a context-managed cursor (supports execute and fetchone).
+        
+        Returns:
+            list[Finding]: Findings describing insufficient `max_worker_processes` (contains a WARNING Finding when the value is less than 16); empty list if the setting is sufficient.
+        """
         with conn.cursor() as cur:
             cur.execute("SHOW max_worker_processes;")
             max_workers = int(cur.fetchone()[0])

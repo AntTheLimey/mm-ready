@@ -26,6 +26,14 @@ class ColumnDefaultsCheck(BaseCheck):
     ]
 
     def run(self, conn) -> list[Finding]:
+        """
+        Scan the connected PostgreSQL database for columns that have volatile default expressions and return findings for each match.
+        
+        This method queries the system catalogs for regular table columns with explicit default expressions, ignores columns without defaults and defaults using sequence `nextval(...)`, and detects defaults that match known volatile patterns (for example: now(), random(), gen_random_uuid(), uuid_generate_*). For each matching column it produces a Finding describing the potentially divergent default behavior across nodes.
+        
+        Returns:
+            list[Finding]: A list of Findings for columns with volatile defaults. Each Finding uses Severity.CONSIDER and includes the original default expression in `metadata["default_expr"]`.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

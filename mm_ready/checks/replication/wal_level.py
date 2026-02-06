@@ -10,6 +10,14 @@ class WalLevelCheck(BaseCheck):
     description = "wal_level must be 'logical' for Spock replication"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check the PostgreSQL server's wal_level and produce a Finding if it is not set to 'logical'.
+        
+        Queries the server with "SHOW wal_level;" and, if the value is not "logical", returns a single `Finding` with severity CRITICAL that includes the current value, explanatory detail, remediation steps, and metadata.
+        
+        Returns:
+            list[Finding]: Empty when wal_level is "logical"; otherwise a list containing one `Finding` describing the issue and how to remediate it.
+        """
         with conn.cursor() as cur:
             cur.execute("SHOW wal_level;")
             wal_level = cur.fetchone()[0]
