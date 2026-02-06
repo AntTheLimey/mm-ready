@@ -168,3 +168,8 @@ connection".
   performance and access to internal details).
 - Check findings should include actionable remediation text.
 - Reference specific Spock source file + line when citing behaviour.
+
+## Current Task List
+
+See `todo.md` in the project root for the current implementation plan and
+progress tracking. This file is gitignored but referenced here for visibility.

@@ -200,6 +200,8 @@ def run_analyze(
     file_path: str,
     categories: list[str] | None = None,
     verbose: bool = False,
+    exclude: set[str] | None = None,
+    include_only: set[str] | None = None,
 ) -> ScanReport:
     """Run all static checks against a parsed schema dump.
 
@@ -208,6 +210,8 @@ def run_analyze(
         file_path: Path to the source SQL file (for report metadata).
         categories: Optional list of categories to limit checks.
         verbose: Print progress to stderr.
+        exclude: Optional set of check names to exclude.
+        include_only: Optional set of check names to include (whitelist mode).
 
     Returns:
         ScanReport populated with check results.
@@ -270,10 +274,16 @@ def run_analyze(
         ("pg_version", "config", "PostgreSQL version compatibility with Spock 5", check_pg_version),
     ]
 
-    # Filter by categories if specified
-    if categories:
+    # Filter by include_only (whitelist mode) or categories
+    if include_only is not None:
+        checks = [c for c in checks if c[0] in include_only]
+    elif categories:
         cat_set = set(categories)
         checks = [c for c in checks if c[1] in cat_set]
+
+    # Apply exclude filter
+    if exclude:
+        checks = [c for c in checks if c[0] not in exclude]
 
     total = len(checks)
     if verbose:
@@ -298,9 +308,16 @@ def run_analyze(
 
         report.results.append(result)
 
-    # Add skipped checks
+    # Add skipped checks (respect exclude/include_only)
     for s_name, s_category, s_description in _SKIPPED_CHECKS:
-        if categories and s_category not in categories:
+        # Skip if explicitly excluded
+        if exclude and s_name in exclude:
+            continue
+        # In whitelist mode, skip if not in include_only
+        if include_only is not None:
+            if s_name not in include_only:
+                continue
+        elif categories and s_category not in categories:
             continue
         report.results.append(
             CheckResult(

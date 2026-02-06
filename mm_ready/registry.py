@@ -13,13 +13,17 @@ from mm_ready.checks.base import BaseCheck
 def discover_checks(
     categories: list[str] | None = None,
     mode: str | None = None,
+    exclude: set[str] | None = None,
+    include_only: set[str] | None = None,
 ) -> list[BaseCheck]:
     """
-    Discover and instantiate all BaseCheck subclasses under the mm_ready.checks package, optionally filtering by category and mode.
+    Discover and instantiate all BaseCheck subclasses under the mm_ready.checks package, optionally filtering by category, mode, and check name.
 
     Parameters:
         categories (list[str] | None): If provided, only include checks whose `category` is in this list.
         mode (str | None): If provided, only include checks whose `mode` equals this value (e.g. "scan" or "audit"); checks with `mode == "both"` match any mode.
+        exclude (set[str] | None): If provided, exclude checks whose `name` is in this set.
+        include_only (set[str] | None): If provided, only include checks whose `name` is in this set (whitelist mode). Takes precedence over category/mode filtering for check selection, but excluded checks are still removed.
 
     Returns:
         list[BaseCheck]: Instantiated check objects, sorted by (category, name).
@@ -36,10 +40,22 @@ def discover_checks(
         if cls in seen or not cls.name:
             continue
         seen.add(cls)
-        if categories and cls.category not in categories:
+
+        # Whitelist mode: only include checks in include_only set
+        if include_only is not None:
+            if cls.name not in include_only:
+                continue
+        else:
+            # Standard filtering by category and mode
+            if categories and cls.category not in categories:
+                continue
+            if mode and cls.mode != mode and cls.mode != "both":
+                continue
+
+        # Exclude check if in exclude set
+        if exclude and cls.name in exclude:
             continue
-        if mode and cls.mode != mode and cls.mode != "both":
-            continue
+
         instances.append(cls())
 
     instances.sort(key=lambda c: (c.category, c.name))
