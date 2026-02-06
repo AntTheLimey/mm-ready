@@ -116,14 +116,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Configure PostgreSQL
-        run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';"
-          # Restart not possible in CI services, but pg_stat_statements should already be loaded in pgEdge image
-
       - name: Load test schema
         run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -d mmready -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+          # pg_stat_statements may not be available in all PostgreSQL images
+          PGPASSWORD=postgres psql -h localhost -U postgres -d mmready -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" || true
           PGPASSWORD=postgres psql -h localhost -U postgres -d mmready -f tests/test_schema_setup.sql
 
       - name: Load test workload
