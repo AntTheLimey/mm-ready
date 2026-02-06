@@ -20,6 +20,11 @@ class TestDiscoverChecks:
             )
 
     def test_no_duplicate_names(self):
+        """
+        Verifies that all discovered checks have unique names.
+
+        Asserts that the list of check names returned by `discover_checks()` contains no duplicates; if duplicates exist the assertion message lists the duplicated names.
+        """
         checks = discover_checks()
         names = [c.name for c in checks]
         assert len(names) == len(set(names)), (

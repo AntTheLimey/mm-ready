@@ -59,7 +59,22 @@ def take_snapshot(conn) -> dict[str, StatementSnapshot]:
 
 
 def collect_over_duration(conn, duration: int, verbose: bool = False) -> StatsDelta:
-    """Collect two snapshots separated by `duration` seconds and compute the delta."""
+    """
+    Collect snapshots of pg_stat_statements separated by a time window and compute their delta.
+
+    Takes an initial snapshot, waits for the specified duration, takes a final snapshot, and returns a StatsDelta summarizing queries newly observed during the window and queries whose statistics increased. The delta's changed_queries list is sorted in descending order by delta_calls.
+
+    Parameters:
+        conn: Database connection used to query pg_stat_statements.
+        duration (int): Observation window length in seconds.
+        verbose (bool): If true, emit progress messages to stderr.
+
+    Returns:
+        StatsDelta: An object containing:
+            - duration_seconds: actual observation duration in seconds,
+            - new_queries: list of StatementSnapshot for queries seen only in the final snapshot,
+            - changed_queries: list of dicts with keys `query`, `delta_calls`, `delta_time`, and `delta_rows` describing per-query increases.
+    """
     if verbose:
         print("  Taking initial pg_stat_statements snapshot...", file=sys.stderr)
 

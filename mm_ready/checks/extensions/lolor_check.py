@@ -10,6 +10,17 @@ class LolorCheck(BaseCheck):
     description = "LOLOR extension — required for replicating large objects"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Assess whether the database uses large objects and verify that the LOLOR extension is installed and correctly configured for large-object replication.
+
+        Checks presence of large objects and OID-typed columns; if large objects are present, verifies whether the LOLOR extension is installed and whether `lolor.node` is set to a non-zero, unique value. Produces warnings when LOLOR is missing or `lolor.node` is unset/zero, and an informational finding when LOLOR is installed and configured.
+
+        Returns:
+            A list of Finding objects describing detected issues or status:
+            - empty list if no large-object usage is detected,
+            - WARNING findings if LOLOR is not installed or `lolor.node` is not configured properly,
+            - INFO finding when LOLOR is installed and `lolor.node` is set.
+        """
         findings = []
 
         # Check if large objects exist or OID columns are present

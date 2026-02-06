@@ -11,6 +11,15 @@ class LargeObjectsCheck(BaseCheck):
 
     def run(self, conn) -> list[Finding]:
         # Check if any large objects exist
+        """
+        Detect large-object usage and OID-typed columns that may reference large objects and produce findings about replication issues.
+
+        Parameters:
+            conn: A DB connection with a cursor() context manager used to run queries.
+
+        Returns:
+            list[Finding]: A list of Finding objects describing detected large objects and OID columns that may not replicate via logical decoding; returns an empty list if no issues are found.
+        """
         query = "SELECT count(*) FROM pg_catalog.pg_largeobject_metadata;"
         with conn.cursor() as cur:
             cur.execute(query)

@@ -10,6 +10,15 @@ class MultipleUniqueIndexesCheck(BaseCheck):
     description = "Tables with multiple unique indexes — affects Spock conflict resolution"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Identify tables that have more than one unique index and generate Findings describing potential Spock conflict-resolution implications.
+
+        Parameters:
+            conn: A DB-API compatible connection providing a cursor() context manager on which the query is executed.
+
+        Returns:
+            list[Finding]: A list of Finding objects, one per table that has more than one unique index. Each Finding includes the table's fully qualified name, the count and names of unique indexes (in metadata), a severity of `Severity.CONSIDER`, and remediation guidance regarding Spock's conflict-detection behavior.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

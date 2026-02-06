@@ -26,12 +26,20 @@ def run_monitor(
     log_file: str | None = None,
     verbose: bool = False,
 ) -> ScanReport:
-    """Run a full scan plus time-based observation.
+    """
+    Run a monitor workflow that executes standard checks, observes pg_stat_statements for a period, and optionally analyzes a PostgreSQL log file.
 
-    1. Run all standard checks (same as scan mode)
-    2. If pg_stat_statements is available, observe for `duration` seconds
-    3. If log_file is provided, parse it for SQL patterns
-    4. Add observation findings to the report
+    Parameters:
+        conn: Database connection used to run checks and collect statistics.
+        host (str): Hostname of the monitored database (recorded in the report).
+        port (int): Port of the monitored database (recorded in the report).
+        dbname (str): Database name (recorded in the report).
+        duration (int): Number of seconds to observe pg_stat_statements. Defaults to 3600.
+        log_file (str | None): Path to a PostgreSQL log file to parse; if None, log analysis is skipped.
+        verbose (bool): If True, emit progress messages to stderr.
+
+    Returns:
+        report (ScanReport): Aggregated report containing CheckResult entries from standard checks, a pg_stat_statements observation (or a skipped entry if unavailable), and an optional log-analysis result.
     """
     report = ScanReport(
         database=dbname,
@@ -114,7 +122,21 @@ def run_monitor(
 
 
 def _build_pgstat_result(delta) -> CheckResult:
-    """Convert pg_stat_statements delta into findings."""
+    """
+    Builds a CheckResult describing SQL activity observed in a pg_stat_statements delta.
+
+    Parameters:
+        delta: An object representing a pg_stat_statements delta with the following attributes:
+            - duration_seconds (float|int): Observation duration in seconds.
+            - new_queries (iterable): Sequence of objects with attributes `calls` (int) and `query` (str) for newly observed query patterns.
+            - changed_queries (iterable): Sequence of dict-like entries with keys `query` (str) and `delta_calls` (int) for patterns with changed activity.
+
+    Returns:
+        CheckResult: A result containing:
+            - an INFO finding listing up to 20 newly observed query patterns (if any),
+            - WARNING findings for observed `TRUNCATE ... CASCADE` and `CREATE INDEX CONCURRENTLY` occurrences (up to first 50 changed patterns inspected),
+            - a final INFO summary finding containing counts of active and new patterns and the observation duration.
+    """
     result = CheckResult(
         check_name="pgstat_observation",
         category="monitor",
@@ -198,7 +220,15 @@ def _build_pgstat_result(delta) -> CheckResult:
 
 
 def _build_log_result(analysis: LogAnalysis) -> CheckResult:
-    """Convert log analysis into findings."""
+    """
+    Build a CheckResult summarizing findings from a parsed PostgreSQL log analysis.
+
+    Parameters:
+        analysis (LogAnalysis): Parsed log analysis containing categorized statements and counts.
+
+    Returns:
+        CheckResult: A monitor-category CheckResult populated with Findings for truncate cascade, concurrent index creation, DDL, advisory locks, temp tables, and a final summary of parsed statements.
+    """
     result = CheckResult(
         check_name="log_analysis",
         category="monitor",

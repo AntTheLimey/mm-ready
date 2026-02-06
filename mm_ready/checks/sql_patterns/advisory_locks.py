@@ -10,6 +10,15 @@ class AdvisoryLocksCheck(BaseCheck):
     description = "Advisory lock usage — locks are node-local, not replicated"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Search pg_stat_statements for queries that call PostgreSQL advisory lock functions and produce Findings for each detected usage.
+
+        Parameters:
+            conn: A DB-API compatible database connection with a working cursor() method.
+
+        Returns:
+            list[Finding]: A list of Finding objects describing detected advisory lock usage. Returns an empty list if the statistics query cannot be executed.
+        """
         try:
             with conn.cursor() as cur:
                 cur.execute("""

@@ -11,6 +11,14 @@ class SharedPreloadCheck(BaseCheck):
     mode = "audit"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check that the PostgreSQL configuration parameter `shared_preload_libraries` includes the `spock` library and produce findings if it does not.
+
+        Queries the server for `shared_preload_libraries`, parses the comma-separated value into a list, and returns a finding when `spock` is absent. The finding contains severity, explanatory detail, remediation instructions, and the current libraries in metadata.
+
+        Returns:
+            list[Finding]: A list of findings; contains a single CRITICAL Finding when `spock` is not present, otherwise an empty list.
+        """
         with conn.cursor() as cur:
             cur.execute("SHOW shared_preload_libraries;")
             libs = cur.fetchone()[0]

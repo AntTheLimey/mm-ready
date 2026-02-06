@@ -10,6 +10,15 @@ class SequenceAuditCheck(BaseCheck):
     description = "All sequences, types, and ownership — need snowflake migration plan"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Audit all non-system sequences in the connected PostgreSQL database and produce findings describing each sequence's type, start/increment values, cycle behavior, and ownership, along with migration guidance for multi-master setups.
+
+        Parameters:
+            conn: A DB-API compatible connection used to execute the sequence catalog query.
+
+        Returns:
+            list[Finding]: A list of Finding objects (one per discovered sequence). Each finding contains a warning severity, a title and detail explaining the sequence properties and migration recommendation, remediation text, and metadata with keys: `data_type`, `start`, `increment`, `cycle`, `owner_table`, and `owner_column`. An empty list is returned if no user sequences are found.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

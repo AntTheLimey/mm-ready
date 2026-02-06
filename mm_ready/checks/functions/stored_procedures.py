@@ -10,6 +10,17 @@ class StoredProceduresCheck(BaseCheck):
     description = "Audit stored procedures/functions for write operations and DDL"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Audit user-defined functions and procedures for potential write operations and non-replicated side effects.
+
+        Connects to the provided database connection, inspects user-defined functions/procedures in non-system schemas, and scans their source for patterns that indicate write operations or DDL (for example: INSERT, UPDATE, CREATE, DROP, EXECUTE). For each routine that contains such patterns, produces a Finding describing the routine, the detected write patterns, and remediation guidance; if any routines are present, also returns a summary informational Finding with the total count.
+
+        Parameters:
+            conn: A DB-API compatible connection object providing a cursor() context manager that supports execute() and fetchall().
+
+        Returns:
+            list[Finding]: A list of Finding objects. Includes one Finding per routine that contains potential write/DDL operations (severity = Severity.CONSIDER) with metadata about the routine and matched patterns, and an informational Finding (severity = Severity.INFO) summarizing the total number of audited routines when any routines are found.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,

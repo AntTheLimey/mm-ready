@@ -10,6 +10,14 @@ class InheritanceCheck(BaseCheck):
     description = "Table inheritance (non-partition) — not well supported in logical replication"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Identify non-partition table inheritance relationships in the database and produce findings for each child table.
+
+        This query excludes partitioned parents and common system/catalog namespaces ('pg_catalog', 'information_schema', 'spock', 'pg_toast'). For each discovered child table that inherits from a regular (non-partition) parent, a Finding is created describing the inheritance and recommending migration to declarative partitioning or standalone tables.
+
+        Returns:
+            list[Finding]: A list of Finding objects, one per child table that inherits from a non-partition parent; empty list if none are found.
+        """
         query = """
             SELECT
                 pn.nspname AS parent_schema,

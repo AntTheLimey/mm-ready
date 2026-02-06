@@ -66,6 +66,17 @@ class SpockGucsCheck(BaseCheck):
     ]
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check configured Spock GUCs and produce a Finding for each setting.
+
+        For every GUC in self.GUCS this method reads the current value and appends one Finding:
+        - if the GUC cannot be read, an INFO Finding indicates the GUC is not available;
+        - if the current value differs from the recommended value, a Finding with the GUC's configured severity is produced and includes the current/recommended values, detail, remediation, and metadata;
+        - if the current value matches the recommendation, an INFO Finding is produced with detail and current value metadata.
+
+        Returns:
+            list[Finding]: A list of Finding objects, one per configured GUC.
+        """
         findings = []
 
         for guc in self.GUCS:

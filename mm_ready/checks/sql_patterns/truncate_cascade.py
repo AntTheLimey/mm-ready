@@ -10,6 +10,15 @@ class TruncateCascadeCheck(BaseCheck):
     description = "TRUNCATE ... CASCADE and RESTART IDENTITY — replication behaviour caveats"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Run checks against the provided PostgreSQL connection to detect TRUNCATE ... CASCADE and TRUNCATE ... RESTART IDENTITY usage recorded in pg_stat_statements.
+
+        Parameters:
+                conn: A live DB connection used to query `pg_stat_statements`.
+
+        Returns:
+                list[Finding]: A list of Findings describing detected TRUNCATE CASCADE or TRUNCATE RESTART IDENTITY statements. If `pg_stat_statements` is unavailable or an error occurs while querying it, returns a single INFO Finding indicating the check could not be performed.
+        """
         findings = []
 
         # Check if pg_stat_statements is available

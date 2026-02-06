@@ -11,6 +11,21 @@ class SnowflakeExtensionCheck(BaseCheck):
 
     def run(self, conn) -> list[Finding]:
         # Check if installed
+        """
+        Check pgEdge Snowflake extension installation, availability, and the configured snowflake.node on the connected PostgreSQL server.
+
+        This runs queries against the provided connection to determine whether the `snowflake` extension is installed, available, or missing. If installed, it also reads `snowflake.node` to verify a non-zero node identifier and produces findings based on those outcomes.
+
+        Parameters:
+                conn: A DB connection object with a cursor() method (PEP-249-style) connected to the target PostgreSQL server.
+
+        Returns:
+                list[Finding]: A list of Finding objects describing the result:
+                        - INFO: extension installed and a non-zero `snowflake.node` value found (includes node and version metadata).
+                        - WARNING: extension installed but `snowflake.node` is missing or set to "0".
+                        - CONSIDER: extension available but not installed (includes available version metadata).
+                        - CONSIDER: extension not available on the server.
+        """
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT extversion FROM pg_catalog.pg_extension WHERE extname = 'snowflake';

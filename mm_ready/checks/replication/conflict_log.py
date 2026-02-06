@@ -12,6 +12,21 @@ class ConflictLogCheck(BaseCheck):
 
     def run(self, conn) -> list[Finding]:
         # Check if spock schema and conflict history table exist
+        """
+        Inspect Spock's conflict history and produce Findings describing any recent replication conflicts.
+
+        This method checks for the existence of the spock.conflict_history table, and if present aggregates conflicts by table, conflict type, and resolution (limited to 50 rows). Possible single-entry Findings returned describe a missing table, a query error, or an empty conflict table. When conflicts are found the method returns an aggregate Finding with the total conflict count followed by one Finding per aggregated row with per-table conflict details and metadata.
+
+        Parameters:
+            conn: A DB-API compatible connection or cursor context used to execute queries against the PostgreSQL instance.
+
+        Returns:
+            findings (list[Finding]): A list of Findings representing the audit results:
+                - Single INFO Finding if the spock.conflict_history table is not found.
+                - Single WARNING Finding if the conflict query fails.
+                - Single INFO Finding if the table exists but contains no records.
+                - Otherwise, an aggregate Finding with total_conflicts in metadata followed by one WARNING Finding per aggregated table row containing conflict_type, resolution, count, and last_conflict metadata.
+        """
         try:
             with conn.cursor() as cur:
                 cur.execute("""

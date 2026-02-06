@@ -10,6 +10,17 @@ class ExclusionConstraintsCheck(BaseCheck):
     description = "Exclusion constraints — not enforceable across Spock nodes"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Finds exclusion constraints in non-system schemas and produces a Finding for each describing potential multi-node replication risks.
+
+        Each Finding represents an exclusion constraint (pg_constraint.contype = 'x') found outside the system schemas ('pg_catalog', 'information_schema', 'spock', 'pg_toast') and explains that exclusion constraints are evaluated locally on each node, which can lead to replication conflicts or data inconsistencies in multi-master topologies.
+
+        Parameters:
+            conn: A DB-API-compatible connection to the PostgreSQL cluster used to query catalog tables.
+
+        Returns:
+            list[Finding]: A list of Findings, one per exclusion constraint, with severity WARNING and fields populated for title, detail, object_name, and remediation.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,
