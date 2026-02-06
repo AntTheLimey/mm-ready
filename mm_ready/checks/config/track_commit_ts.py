@@ -12,10 +12,10 @@ class TrackCommitTimestampCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Check PostgreSQL's track_commit_timestamp setting and report a Finding if it is not enabled.
-        
+
         Parameters:
             conn: A DB-API/psycopg2-compatible database connection used to execute the query.
-        
+
         Returns:
             list[Finding]: An empty list if `track_commit_timestamp` is "on"; otherwise a list containing one `Severity.CRITICAL` Finding that records the current value, explains why the setting is required for Spock conflict resolution, and provides remediation steps.
         """

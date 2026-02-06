@@ -12,14 +12,14 @@ class DatabaseEncodingCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Check the current database's encoding and produce Findings describing its compatibility for Spock replication.
-        
+
         Queries the current database to determine its encoding, collation, and ctype, and returns one or more Finding objects:
         - If the encoding is not UTF-8, returns a Finding with severity `Severity.CONSIDER` recommending all Spock nodes use the same encoding (UTF-8 is recommended).
         - If the encoding is UTF-8, returns an informational Finding with encoding, collation, and ctype metadata.
-        
+
         Parameters:
             conn: A DB-API compatible connection object used to execute the check query.
-        
+
         Returns:
             list[Finding]: A list containing one Finding describing the database encoding and related metadata, or an empty list if the current database could not be determined.
         """

@@ -20,12 +20,12 @@ class SubscriptionHealthCheck(BaseCheck):
         # Check if spock schema exists
         """
         Assess Spock subscription and replication-slot health for the connected database node.
-        
+
         This method checks for the presence of the `spock` schema, enumerates entries in `spock.subscription`, and inspects the corresponding replication slots to produce findings about disabled subscriptions, inactive replication slots, query failures, or informational states (no spock schema or no subscriptions).
-        
+
         Parameters:
             conn (psycopg2.extensions.connection): Database connection to the PostgreSQL node being audited.
-        
+
         Returns:
             list[Finding]: A list of findings describing detected issues or informational results. Possible findings include:
               - INFO when the `spock` schema is absent or no subscriptions are configured;

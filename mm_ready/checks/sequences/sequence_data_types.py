@@ -12,9 +12,9 @@ class SequenceDataTypesCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Detect sequences using small integer types that may overflow in multi-master setups.
-        
+
         Scans database sequences (excluding system schemas) and produces a Finding for each sequence defined with `smallint` or `integer` advising to upgrade to `bigint`.
-        
+
         Returns:
             list[Finding]: A list of Findings describing sequences at risk of exhausting their range.
         """

@@ -282,10 +282,10 @@ def _render_detail(text: str) -> str:
 def render(report: ScanReport) -> str:
     """
     Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
-    
+
     Parameters:
         report (ScanReport): Scan report containing findings, results, counts, and metadata used to populate the document.
-    
+
     Returns:
         html (str): A single HTML string containing the full report (sidebar, findings by severity and category, errors, To Do list, styles, and embedded JavaScript).
     """

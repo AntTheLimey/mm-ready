@@ -15,15 +15,15 @@ class UpdateDeleteNoPkCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Identify tables that lack a primary key and generate Findings based on recent DML activity.
-        
+
         Queries the database statistics/catalogs to find user tables without a primary key and with recorded INSERT/UPDATE/DELETE activity. For each matching table:
         - Produces a CRITICAL Finding when there are UPDATE or DELETE operations (indicating changes that would be lost by Spock's default_insert_only behavior).
         - Produces an INFO Finding when there are only INSERTs (indicating safe placement in the default_insert_only replication set).
         Findings include the table's fully qualified name, a descriptive title and detail, remediation guidance when applicable, and metadata with counts of updates, deletes, and/or inserts.
-        
+
         Parameters:
             conn: A DB-API compatible connection with a cursor() method connected to the Postgres instance to inspect.
-        
+
         Returns:
             list[Finding]: A list of Findings for tables with relevant activity and no primary key.
         """

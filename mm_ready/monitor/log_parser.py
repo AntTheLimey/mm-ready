@@ -29,7 +29,7 @@ class LogAnalysis:
     def has_findings(self) -> bool:
         """
         Indicates whether the analysis contains any notable SQL findings.
-        
+
         Returns:
             True if any finding categories (DDL, truncate cascade, temp table creation, advisory locks, concurrent indexes, or other notable) contain entries, False otherwise.
         """
@@ -68,17 +68,17 @@ _CONCURRENT_INDEX = re.compile(r"\bCREATE\s+INDEX\s+CONCURRENTLY\b", re.IGNORECA
 def parse_log_file(log_path: str) -> LogAnalysis:
     """
     Parse a PostgreSQL log file and extract notable SQL statements and patterns.
-    
+
     Supports logs that include a timestamped log_line_prefix. Lines beginning with a tab are treated as continuations of the previous statement and are appended to it.
-    
+
     Parameters:
         log_path (str): Path to the PostgreSQL log file to parse.
-    
+
     Returns:
         LogAnalysis: Aggregated analysis containing total statements and categorized findings
         (DDL statements, TRUNCATE ... CASCADE, temporary table creations, advisory locks,
         concurrent index creations, and other notable statements).
-    
+
     Raises:
         FileNotFoundError: If the provided `log_path` does not exist.
     """

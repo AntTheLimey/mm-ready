@@ -14,12 +14,12 @@ class ConflictLogCheck(BaseCheck):
         # Check if spock schema and conflict history table exist
         """
         Inspect Spock's conflict history and produce Findings describing any recent replication conflicts.
-        
+
         This method checks for the existence of the spock.conflict_history table, and if present aggregates conflicts by table, conflict type, and resolution (limited to 50 rows). Possible single-entry Findings returned describe a missing table, a query error, or an empty conflict table. When conflicts are found the method returns an aggregate Finding with the total conflict count followed by one Finding per aggregated row with per-table conflict details and metadata.
-        
+
         Parameters:
             conn: A DB-API compatible connection or cursor context used to execute queries against the PostgreSQL instance.
-        
+
         Returns:
             findings (list[Finding]): A list of Findings representing the audit results:
                 - Single INFO Finding if the spock.conflict_history table is not found.

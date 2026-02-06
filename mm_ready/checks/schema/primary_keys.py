@@ -12,10 +12,10 @@ class PrimaryKeysCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Identify all regular tables that lack a primary key and return a Finding for each.
-        
+
         Parameters:
             conn: A DB-API compatible connection to the PostgreSQL instance used to query system catalogs.
-        
+
         Returns:
             list[Finding]: A list of Finding objects, one per table without a primary key. Each Finding explains how Spock handles tables without primary keys (placed into the default_insert_only replication set where only INSERT and TRUNCATE are replicated) and includes remediation guidance.
         """

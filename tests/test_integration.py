@@ -40,7 +40,7 @@ pytestmark = pytest.mark.skipif(
 def db_conn():
     """
     Provide a module-scoped test database connection for integration tests.
-    
+
     Yields:
         A live database connection to the Postgres test instance at localhost:5499
         (dbname="mmready", user="postgres"). The connection is closed after the
@@ -64,10 +64,10 @@ def db_conn():
 def scan_report(db_conn):
     """
     Run a full database scan using the provided connection and return the scan report.
-    
+
     Parameters:
         db_conn: Active database connection used to perform the scan.
-    
+
     Returns:
         scan_report: Object containing scan results and metadata (including findings, checks_total, pg_version, and scan_mode).
     """

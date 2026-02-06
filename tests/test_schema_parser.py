@@ -20,11 +20,11 @@ from mm_ready.schema_parser import (
 def _parse(tmp_path, sql: str) -> ParsedSchema:
     """
     Parse a SQL dump string by writing it into a temporary dump.sql file and returning the parsed schema.
-    
+
     Parameters:
         tmp_path (pathlib.Path): Temporary directory in which a file named `dump.sql` will be created.
         sql (str): SQL text to be dedented and written to the file before parsing.
-    
+
     Returns:
         ParsedSchema: The schema parsed from the written SQL dump.
     """

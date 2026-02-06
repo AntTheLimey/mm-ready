@@ -12,7 +12,7 @@ class TablespaceUsageCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Finds database objects that use non-default (local) tablespaces and returns a Finding for each tablespace with the objects that use it.
-        
+
         Returns:
             list[Finding]: A list of findings grouped by tablespace. Each Finding describes the tablespace name, the count of objects using it, up to the first 10 example objects in the detail text, and includes metadata with `object_count` and up to 20 `objects`.
         """

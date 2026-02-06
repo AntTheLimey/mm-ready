@@ -54,10 +54,10 @@ class MyCustomCheck(BaseCheck):
         # 1. Query the database -----------------------------------------------
         """
         Scan non-system PostgreSQL tables and produce a Finding for each discovered table.
-        
+
         Parameters:
             conn: A DB-API compatible PostgreSQL connection used to execute a read-only query.
-        
+
         Returns:
             findings (list[Finding]): A list of Finding objects for each table found; an empty list indicates the check passed.
         """

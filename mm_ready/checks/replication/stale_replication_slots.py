@@ -13,14 +13,14 @@ class StaleReplicationSlotsCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Detects inactive PostgreSQL replication slots that are retaining WAL and returns findings for each.
-        
+
         Each returned Finding represents an inactive slot that prevents WAL cleanup and includes severity based on retained WAL:
         - Severity.CRITICAL for > 1024 MB retained
         - Severity.WARNING for > 100 MB retained
         - Severity.CONSIDER otherwise
-        
+
         The Finding's metadata contains: `slot_type`, `wal_retained_mb` (rounded), `restart_lsn`, and `confirmed_flush_lsn`. Titles, details, object_name, and remediation SQL are provided to identify and address slots that should be dropped or for which the subscriber should be restarted.
-        
+
         Returns:
             list[Finding]: A list of findings for inactive replication slots that are retaining WAL.
         """

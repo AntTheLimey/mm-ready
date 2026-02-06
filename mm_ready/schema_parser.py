@@ -119,12 +119,12 @@ class ParsedSchema:
     ) -> list[ConstraintDef]:
         """
         Retrieve constraints defined on a specific table.
-        
+
         Parameters:
             schema (str): Schema name of the table.
             name (str): Table name.
             con_type (str | None): If provided, limits results to constraints with this constraint_type (e.g., "PRIMARY KEY", "FOREIGN KEY", "UNIQUE").
-        
+
         Returns:
             list[ConstraintDef]: Constraints belonging to the specified table; filtered by `con_type` when given.
         """
@@ -136,11 +136,11 @@ class ParsedSchema:
     def get_indexes_for_table(self, schema: str, name: str) -> list[IndexDef]:
         """
         Retrieve index definitions for the specified table.
-        
+
         Parameters:
             schema (str): Schema name containing the table.
             name (str): Table name.
-        
+
         Returns:
             list[IndexDef]: Index definitions whose table_schema equals `schema` and table_name equals `name`; empty list if none.
         """
@@ -240,7 +240,7 @@ RE_FK_ON_UPDATE = re.compile(
 def _unquote(name: str) -> str:
     """
     Remove surrounding double quotes from an SQL identifier.
-    
+
     Returns:
         str: The identifier without surrounding double quotes if both the first and last characters are double quotes; otherwise the original name.
     """
@@ -366,9 +366,9 @@ def _parse_column(line: str) -> ColumnDef | None:
 def parse_dump(file_path: str) -> ParsedSchema:
     """
     Parse a pg_dump --schema-only SQL file into an in-memory ParsedSchema representation.
-    
+
     The returned ParsedSchema is populated with tables, columns, constraints, indexes, sequences, extensions, enum types, rules, and the detected pg_version; search_path changes in the dump are respected when resolving unqualified identifiers.
-    
+
     Returns:
         ParsedSchema: The parsed schema model containing all discovered schema objects.
     """
@@ -389,14 +389,14 @@ def parse_dump(file_path: str) -> ParsedSchema:
 def _split_statements(text: str, schema: ParsedSchema, search_path: str) -> list[tuple[str, str]]:
     """
     Split SQL text into statements paired with the active search_path for each statement.
-    
+
     Parses the input SQL text into a list of complete statements while preserving and returning the search_path that was in effect when each statement ended. Extracts and sets schema.pg_version when a Postgres version header comment is found, updates the current search_path when SET/pg_catalog.set_config calls are encountered, and avoids splitting inside dollar-quoted string bodies.
-    
+
     Parameters:
         text (str): Full SQL dump text to split.
         schema (ParsedSchema): ParsedSchema instance used to record discovered pg_version.
         search_path (str): Initial search_path to use until changed by statements in the text.
-    
+
     Returns:
         list[tuple[str, str]]: A list of (statement, search_path_at_time) tuples, where each statement is the raw SQL text for that statement and search_path_at_time is the active schema name when the statement was terminated.
     """
@@ -469,9 +469,9 @@ def _split_statements(text: str, schema: ParsedSchema, search_path: str) -> list
 def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> None:
     """
     Populate the provided ParsedSchema by extracting schema objects from a single SQL statement.
-    
+
     This function inspects the given SQL statement and, when it matches known DDL patterns, updates the ParsedSchema in-place with parsed objects such as extensions, enum types, sequences, tables (including columns and table-level constraints), constraints (including foreign-key details and deferrable flags), indexes, sequence ownership, column defaults, identity columns, and rules. Statements that target excluded schemas are ignored.
-    
+
     Parameters:
         stmt (str): The complete SQL statement to process.
         search_path (str): The current search_path used to resolve unqualified identifiers.
@@ -750,9 +750,9 @@ def _parse_inline_constraint(
 ) -> None:
     """
     Parse a single inline table-level constraint from a CREATE TABLE body and add a corresponding ConstraintDef to the parsed schema.
-    
+
     This recognizes PRIMARY KEY, UNIQUE, and FOREIGN KEY inline constraints, extracts the constraint name (if present), affected columns, and for UNIQUE constraints the deferrable flag; for FOREIGN KEY constraints it also extracts the referenced schema/table/columns and ON DELETE / ON UPDATE actions, then appends the constructed ConstraintDef to schema.constraints.
-    
+
     Parameters:
         text (str): The raw constraint clause text as it appears inside the CREATE TABLE body.
         tbl (TableDef): The table definition that the constraint applies to; used to populate table_schema and table_name on the created ConstraintDef.

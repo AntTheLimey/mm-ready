@@ -12,10 +12,10 @@ class EnumTypesCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Identify ENUM types in the database and produce findings that warn that ENUM DDL changes require coordinated application across nodes.
-        
+
         Parameters:
             conn: A DB-API compatible connection object used to execute a query and fetch ENUM type definitions.
-        
+
         Returns:
             list[Finding]: A Finding for each discovered ENUM type containing the fully-qualified type name, label count, a short sample of labels, severity, remediation guidance, and related metadata.
         """

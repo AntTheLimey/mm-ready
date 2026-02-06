@@ -12,7 +12,7 @@ class SequencePrimaryKeysCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Identify primary key columns that are backed by standard sequences or identity columns and produce Findings recommending migration to pgEdge snowflake.
-        
+
         Returns:
             list[Finding]: Findings for each detected primary key column. Each Finding has severity `CRITICAL` and includes the fully qualified table name as `object_name`, a descriptive `title` and `detail`, a `remediation` message, and `metadata` containing `column` and `sequence`.
         """

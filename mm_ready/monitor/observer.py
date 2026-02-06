@@ -28,18 +28,18 @@ def run_monitor(
 ) -> ScanReport:
     """
     Run a monitor workflow that executes standard checks, observes pg_stat_statements for a period, and optionally analyzes a PostgreSQL log file.
-    
+
     Parameters:
-    	conn: Database connection used to run checks and collect statistics.
-    	host (str): Hostname of the monitored database (recorded in the report).
-    	port (int): Port of the monitored database (recorded in the report).
-    	dbname (str): Database name (recorded in the report).
-    	duration (int): Number of seconds to observe pg_stat_statements. Defaults to 3600.
-    	log_file (str | None): Path to a PostgreSQL log file to parse; if None, log analysis is skipped.
-    	verbose (bool): If True, emit progress messages to stderr.
-    
+        conn: Database connection used to run checks and collect statistics.
+        host (str): Hostname of the monitored database (recorded in the report).
+        port (int): Port of the monitored database (recorded in the report).
+        dbname (str): Database name (recorded in the report).
+        duration (int): Number of seconds to observe pg_stat_statements. Defaults to 3600.
+        log_file (str | None): Path to a PostgreSQL log file to parse; if None, log analysis is skipped.
+        verbose (bool): If True, emit progress messages to stderr.
+
     Returns:
-    	report (ScanReport): Aggregated report containing CheckResult entries from standard checks, a pg_stat_statements observation (or a skipped entry if unavailable), and an optional log-analysis result.
+        report (ScanReport): Aggregated report containing CheckResult entries from standard checks, a pg_stat_statements observation (or a skipped entry if unavailable), and an optional log-analysis result.
     """
     report = ScanReport(
         database=dbname,
@@ -124,13 +124,13 @@ def run_monitor(
 def _build_pgstat_result(delta) -> CheckResult:
     """
     Builds a CheckResult describing SQL activity observed in a pg_stat_statements delta.
-    
+
     Parameters:
         delta: An object representing a pg_stat_statements delta with the following attributes:
             - duration_seconds (float|int): Observation duration in seconds.
             - new_queries (iterable): Sequence of objects with attributes `calls` (int) and `query` (str) for newly observed query patterns.
             - changed_queries (iterable): Sequence of dict-like entries with keys `query` (str) and `delta_calls` (int) for patterns with changed activity.
-    
+
     Returns:
         CheckResult: A result containing:
             - an INFO finding listing up to 20 newly observed query patterns (if any),
@@ -222,10 +222,10 @@ def _build_pgstat_result(delta) -> CheckResult:
 def _build_log_result(analysis: LogAnalysis) -> CheckResult:
     """
     Build a CheckResult summarizing findings from a parsed PostgreSQL log analysis.
-    
+
     Parameters:
         analysis (LogAnalysis): Parsed log analysis containing categorized statements and counts.
-    
+
     Returns:
         CheckResult: A monitor-category CheckResult populated with Findings for truncate cascade, concurrent index creation, DDL, advisory locks, temp tables, and a final summary of parsed statements.
     """

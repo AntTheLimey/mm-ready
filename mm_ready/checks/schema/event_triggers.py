@@ -12,12 +12,12 @@ class EventTriggersCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Inspect PostgreSQL event triggers and report findings about their enabled modes with respect to DDL replication.
-        
+
         Queries pg_event_trigger and produces a Finding for each non-disabled event trigger describing whether it will fire during replication apply and what remediation (if any) is suggested. Each finding's metadata contains the trigger's event name and raw enabled code.
-        
+
         Parameters:
             conn: A DB connection/cursor provider used to query pg_catalog.pg_event_trigger.
-        
+
         Returns:
             list[Finding]: A list of findings for each non-disabled event trigger. Each Finding includes severity, title, detail, object_name, remediation, and metadata {"event": <event>, "enabled": <enabled_code>}.
         """

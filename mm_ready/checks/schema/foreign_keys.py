@@ -12,7 +12,7 @@ class ForeignKeysCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Check database foreign key constraints for replication-ordering concerns and report CASCADE actions.
-        
+
         Returns:
             list[Finding]: A list of Findings where each foreign key using ON DELETE/ON UPDATE CASCADE is reported as a WARNING Finding, followed by a CONSIDER summary Finding containing the total foreign key count and number of cascade FKs. Returns an empty list if no foreign keys are found.
         """

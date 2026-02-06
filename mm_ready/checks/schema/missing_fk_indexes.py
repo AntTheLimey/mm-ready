@@ -14,12 +14,12 @@ class MissingFkIndexesCheck(BaseCheck):
         # This is the standard "missing FK index" query adapted for Spock context.
         """
         Locate foreign key constraints whose referencing (child) columns do not have supporting indexes and produce Finding objects describing each missing-index case.
-        
+
         Parameters:
-        	conn: A DBAPI-compatible connection to the PostgreSQL database used to query system catalogs.
-        
+                conn: A DBAPI-compatible connection to the PostgreSQL database used to query system catalogs.
+
         Returns:
-        	list[Finding]: A list of Findings, one per foreign key constraint that lacks an index on its referencing columns. Each Finding includes severity, check name, category, title, detail, remediation SQL, and metadata with the constraint name and column list.
+                list[Finding]: A list of Findings, one per foreign key constraint that lacks an index on its referencing columns. Each Finding includes severity, check name, category, title, detail, remediation SQL, and metadata with the constraint name and column list.
         """
         query = """
             SELECT

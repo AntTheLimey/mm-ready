@@ -12,12 +12,12 @@ class MaxReplicationSlotsCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Determine whether PostgreSQL's max_replication_slots provides sufficient headroom for Spock node connections.
-        
+
         Queries the server for the configured max_replication_slots and the number currently in use; if the configured value is less than 10, returns a warning Finding describing the shortfall and recommended remediation.
-        
+
         Parameters:
             conn: A live PostgreSQL DB connection used to run the queries.
-        
+
         Returns:
             A list of Finding objects. Contains a single warning Finding when max_replication_slots is less than 10 (including metadata with the current and used slot counts); returns an empty list otherwise.
         """

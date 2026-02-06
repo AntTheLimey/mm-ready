@@ -12,9 +12,9 @@ class RulesCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Detects rules defined on regular tables that may interfere with logical replication and reports findings for each rule.
-        
+
         Each Finding describes the rule (fully-qualified table and rule name), the affected event (SELECT/UPDATE/INSERT/DELETE when mappable), a severity (WARNING when the rule is an INSTEAD rule, CONSIDER otherwise), a human-readable title and detailed explanation of replication implications, a remediation suggestion, and metadata containing the event and `is_instead` flag.
-        
+
         Returns:
             list[Finding]: A list of Finding objects, one per detected rule, containing severity, check_name, category, title, detail, object_name, remediation, and metadata (keys: "event", "is_instead").
         """

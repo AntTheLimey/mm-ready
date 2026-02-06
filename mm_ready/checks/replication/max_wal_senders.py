@@ -12,9 +12,9 @@ class MaxWalSendersCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Check that max_wal_senders is sufficiently large for Spock logical replication.
-        
+
         When the server setting `max_wal_senders` is less than 10, returns a WARNING Finding that describes the current `max_wal_senders` value, the number of active WAL senders, recommended minimum (10), remediation steps, and metadata (`current` and `active`). Returns an empty list when the setting meets or exceeds 10.
-        
+
         Returns:
             list[Finding]: A list of findings; contains one WARNING Finding when `max_wal_senders < 10`, otherwise an empty list.
         """

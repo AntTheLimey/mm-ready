@@ -12,9 +12,9 @@ class TriggerFunctionsCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Identify triggers that may conflict with replication and produce a Finding for each discovered trigger.
-        
+
         Queries PostgreSQL system catalogs for non-internal triggers (excluding pg_catalog, information_schema, spock, pg_toast) and evaluates each trigger's enabled mode to determine potential replication-related concerns.
-        
+
         Returns:
             list[Finding]: One Finding per trigger containing severity, check_name, category, title, detail, object_name, remediation (non-empty for warnings), and metadata with keys `"timing"`, `"event"`, `"function"`, and `"enabled"`.
         """

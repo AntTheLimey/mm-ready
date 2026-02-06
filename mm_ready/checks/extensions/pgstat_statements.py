@@ -12,12 +12,12 @@ class PgStatStatementsCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         """
         Check for the pg_stat_statements extension and report its availability and queryability.
-        
+
         If pg_stat_statements is installed and queryable, returns an INFO finding with the extension version and the number of tracked statements. If it is installed but cannot be queried, returns a WARNING finding explaining the access issue. If it is not installed, returns a CONSIDER finding describing limited analysis and steps to install.
-        
+
         Parameters:
             conn: A live PostgreSQL connection object used to query extension and stats.
-        
+
         Returns:
             findings (list[Finding]): A list of findings describing the pg_stat_statements status and any relevant metadata or remediation.
         """
