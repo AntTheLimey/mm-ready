@@ -279,12 +279,13 @@ def _render_detail(text: str) -> str:
     return _esc(text)
 
 
-def render(report: ScanReport) -> str:
+def render(report: ScanReport, report_cfg=None) -> str:
     """
     Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
 
     Parameters:
         report (ScanReport): Scan report containing findings, results, counts, and metadata used to populate the document.
+        report_cfg: Optional ReportConfig object controlling To Do list behavior. If None, defaults are used.
 
     Returns:
         html (str): A single HTML string containing the full report (sidebar, findings by severity and category, errors, To Do list, styles, and embedded JavaScript).
@@ -296,6 +297,13 @@ def render(report: ScanReport) -> str:
         Severity.CONSIDER: ("badge-consider", "tree-badge-consider"),
         Severity.INFO: ("badge-info", "tree-badge-info"),
     }
+
+    # Extract report config settings (with defaults)
+    show_todo = True
+    include_consider_in_todo = False
+    if report_cfg is not None:
+        show_todo = report_cfg.todo_list
+        include_consider_in_todo = report_cfg.todo_include_consider
 
     # ── Build severity → category → findings structure ──
     sev_cat_map: dict[Severity, dict[str, list]] = {}
@@ -310,12 +318,16 @@ def render(report: ScanReport) -> str:
 
     errors = [r for r in report.results if r.error]
 
-    # Collect To Do items: CRITICAL, WARNING, and CONSIDER findings with remediation
+    # Collect To Do items: CRITICAL, WARNING, and optionally CONSIDER findings with remediation
     todo_items = []
-    for severity in [Severity.CRITICAL, Severity.WARNING, Severity.CONSIDER]:
-        for f in all_findings:
-            if f.severity == severity and f.remediation:
-                todo_items.append(f)
+    if show_todo:
+        todo_severities = [Severity.CRITICAL, Severity.WARNING]
+        if include_consider_in_todo:
+            todo_severities.append(Severity.CONSIDER)
+        for severity in todo_severities:
+            for f in all_findings:
+                if f.severity == severity and f.remediation:
+                    todo_items.append(f)
 
     # ── Build sidebar HTML ──
     sidebar_lines = []

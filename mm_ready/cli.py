@@ -28,6 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_connection_args(scan_parser)
     _add_output_args(scan_parser)
+    _add_check_filter_args(scan_parser)
     scan_parser.add_argument(
         "--categories",
         help="Comma-separated list of check categories to run (default: all)",
@@ -40,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_connection_args(audit_parser)
     _add_output_args(audit_parser)
+    _add_check_filter_args(audit_parser)
     audit_parser.add_argument(
         "--categories",
         help="Comma-separated list of check categories to run (default: all)",
@@ -52,6 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_connection_args(mon_parser)
     _add_output_args(mon_parser)
+    _add_check_filter_args(mon_parser)
     mon_parser.add_argument(
         "--duration",
         type=int,
@@ -72,6 +75,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--file", required=True, help="Path to pg_dump --schema-only SQL file"
     )
     _add_output_args(analyze_parser)
+    _add_check_filter_args(analyze_parser)
     analyze_parser.add_argument(
         "--categories",
         help="Comma-separated list of check categories to run (default: all)",
@@ -89,6 +93,14 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["scan", "audit", "all"],
         default="all",
         help="Filter checks by mode (default: all)",
+    )
+    list_parser.add_argument(
+        "--exclude",
+        help="Comma-separated list of check names to exclude",
+    )
+    list_parser.add_argument(
+        "--include-only",
+        help="Comma-separated list of check names to show (whitelist mode)",
     )
 
     return parser
@@ -125,6 +137,38 @@ def _add_output_args(parser: argparse.ArgumentParser):
     )
     grp.add_argument(
         "--output", "-o", help="Output file path (default: ./reports/<dbname>_<timestamp>.<ext>)"
+    )
+    grp.add_argument(
+        "--no-todo",
+        action="store_true",
+        help="Omit the To Do list from the report",
+    )
+    grp.add_argument(
+        "--todo-include-consider",
+        action="store_true",
+        help="Include CONSIDER severity items in the To Do list",
+    )
+
+
+def _add_check_filter_args(parser: argparse.ArgumentParser):
+    """Add check filtering arguments (exclude, include-only, config)."""
+    grp = parser.add_argument_group("check filtering")
+    grp.add_argument(
+        "--exclude",
+        help="Comma-separated list of check names to exclude",
+    )
+    grp.add_argument(
+        "--include-only",
+        help="Comma-separated list of check names to run (whitelist mode)",
+    )
+    grp.add_argument(
+        "--config",
+        help="Path to configuration file (default: mm-ready.yaml)",
+    )
+    grp.add_argument(
+        "--no-config",
+        action="store_true",
+        help="Skip loading configuration file",
     )
 
 
@@ -181,14 +225,19 @@ def _cmd_analyze(args):
     schema = parse_dump(args.file)
     categories = args.categories.split(",") if args.categories else None
 
+    # Load and merge configuration
+    check_cfg, report_cfg = _load_and_merge_config(args, "analyze")
+
     report = run_analyze(
         schema,
         file_path=args.file,
         categories=categories,
         verbose=args.verbose,
+        exclude=check_cfg.exclude,
+        include_only=check_cfg.include_only,
     )
 
-    output = _render_report(report, args.format)
+    output = _render_report(report, args.format, report_cfg)
     _write_output(output, args, mode="analyze", dbname=report.database)
 
 
@@ -197,7 +246,19 @@ def _cmd_list_checks(args):
 
     categories = args.categories.split(",") if args.categories else None
     mode = args.mode if args.mode != "all" else None
-    checks = discover_checks(categories=categories, mode=mode)
+
+    # Parse exclude/include-only
+    exclude = None
+    if getattr(args, "exclude", None):
+        exclude = set(args.exclude.split(","))
+
+    include_only = None
+    if getattr(args, "include_only", None):
+        include_only = set(args.include_only.split(","))
+
+    checks = discover_checks(
+        categories=categories, mode=mode, exclude=exclude, include_only=include_only
+    )
 
     if not checks:
         print("No checks found.")
@@ -231,10 +292,13 @@ def _run_mode(args, mode: str):
             - format: output format ("json", "markdown", "html").
             - verbose: verbosity flag.
             - output: optional output path.
+            - exclude, include_only, config, no_config: check filtering options.
+            - no_todo, todo_include_consider: report options.
         mode (str): Scan mode to run (e.g., "scan" or "audit").
 
     Behavior:
         - Parses categories from args.categories when present.
+        - Loads configuration and merges with CLI arguments.
         - Attempts to connect to the database; on connection failure prints an error and contextual hints to stderr and exits with status 1.
         - Ensures the database connection is closed after the scan completes.
         - Renders the scan report into the requested format and writes it to the resolved output path (or stdout).
@@ -245,6 +309,9 @@ def _run_mode(args, mode: str):
     from mm_ready.scanner import run_scan
 
     categories = args.categories.split(",") if args.categories else None
+
+    # Load and merge configuration
+    check_cfg, report_cfg = _load_and_merge_config(args, mode)
 
     try:
         conn = connect(
@@ -282,11 +349,13 @@ def _run_mode(args, mode: str):
             categories=categories,
             mode=mode,
             verbose=args.verbose,
+            exclude=check_cfg.exclude,
+            include_only=check_cfg.include_only,
         )
     finally:
         conn.close()
 
-    output = _render_report(report, args.format)
+    output = _render_report(report, args.format, report_cfg)
     _write_output(output, args, mode=mode, dbname=report.database)
 
 
@@ -305,6 +374,9 @@ def _cmd_monitor(args):
 
     from mm_ready.connection import connect
     from mm_ready.monitor.observer import run_monitor
+
+    # Load and merge configuration (check_cfg not used by monitor currently)
+    _check_cfg, report_cfg = _load_and_merge_config(args, "monitor")
 
     try:
         conn = connect(
@@ -346,7 +418,7 @@ def _cmd_monitor(args):
     finally:
         conn.close()
 
-    output = _render_report(report, args.format)
+    output = _render_report(report, args.format, report_cfg)
     _write_output(output, args, mode="monitor", dbname=report.database)
 
 
@@ -394,13 +466,63 @@ def _make_output_path(user_path: str, fmt: str, dbname: str = "") -> str:
     return f"{base}_{ts}{existing_ext}"
 
 
-def _render_report(report, fmt: str) -> str:
+def _load_and_merge_config(args, mode: str):
+    """Load config file and merge with CLI arguments."""
+    from mm_ready.config import load_config, merge_cli_with_config
+
+    # Load config (skip if --no-config)
+    no_config = getattr(args, "no_config", False)
+    config_path = getattr(args, "config", None)
+
+    if no_config:
+        config = None
+    else:
+        try:
+            config = load_config(config_path, auto_discover=(config_path is None))
+        except FileNotFoundError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
+    if config is None:
+        # Create default config
+        from mm_ready.config import Config
+
+        config = Config()
+
+    # Parse CLI args
+    cli_exclude = None
+    if getattr(args, "exclude", None):
+        cli_exclude = set(args.exclude.split(","))
+
+    cli_include_only = None
+    if getattr(args, "include_only", None):
+        cli_include_only = set(args.include_only.split(","))
+
+    cli_no_todo = getattr(args, "no_todo", False)
+    cli_todo_include_consider = getattr(args, "todo_include_consider", False)
+
+    return merge_cli_with_config(
+        config,
+        mode,
+        cli_exclude=cli_exclude,
+        cli_include_only=cli_include_only,
+        cli_no_todo=cli_no_todo,
+        cli_todo_include_consider=cli_todo_include_consider,
+    )
+
+
+def _render_report(report, fmt: str, report_cfg=None) -> str:
     if fmt == "json":
         from mm_ready.reporters.json_reporter import render
+
+        return render(report)
     elif fmt == "markdown":
         from mm_ready.reporters.markdown_reporter import render
+
+        return render(report)
     elif fmt == "html":
         from mm_ready.reporters.html_reporter import render
+
+        return render(report, report_cfg=report_cfg)
     else:
         raise ValueError(f"Unknown format: {fmt}")
-    return render(report)
