@@ -11,6 +11,12 @@ class ViewsCheck(BaseCheck):
 
     def run(self, conn) -> list[Finding]:
         # Materialized views
+        """
+        Audit database views and materialized views and produce findings about materialized-view refresh coordination and the presence of regular views.
+
+        Returns:
+            list[Finding]: A list of findings where each materialized view produces a WARNING finding containing its fully qualified name and human-readable size (metadata key "size"), and — if any regular views exist — a single CONSIDER finding summarizing the count of regular views (metadata key "view_count").
+        """
         mat_query = """
             SELECT
                 n.nspname AS schema_name,
@@ -40,38 +46,42 @@ class ViewsCheck(BaseCheck):
 
         for schema_name, view_name, size in mat_rows:
             fqn = f"{schema_name}.{view_name}"
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Materialized view '{fqn}' (size: {size})",
-                detail=(
-                    f"Materialized view '{fqn}' ({size}). Materialized views are not "
-                    "replicated — each node maintains its own copy. REFRESH MATERIALIZED VIEW "
-                    "must be executed independently on each node, and the underlying data "
-                    "may differ between nodes depending on replication lag."
-                ),
-                object_name=fqn,
-                remediation=(
-                    "Plan to coordinate REFRESH MATERIALIZED VIEW across all nodes. "
-                    "Consider scheduling refreshes rather than triggering them from application code."
-                ),
-                metadata={"size": size},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Materialized view '{fqn}' (size: {size})",
+                    detail=(
+                        f"Materialized view '{fqn}' ({size}). Materialized views are not "
+                        "replicated — each node maintains its own copy. REFRESH MATERIALIZED VIEW "
+                        "must be executed independently on each node, and the underlying data "
+                        "may differ between nodes depending on replication lag."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        "Plan to coordinate REFRESH MATERIALIZED VIEW across all nodes. "
+                        "Consider scheduling refreshes rather than triggering them from application code."
+                    ),
+                    metadata={"size": size},
+                )
+            )
 
         if view_count > 0:
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Database has {view_count} regular view(s)",
-                detail=(
-                    f"Found {view_count} regular (non-materialized) views. Regular views "
-                    "are query definitions and don't store data, so they don't need replication. "
-                    "However, ensure view definitions are identical on all nodes."
-                ),
-                object_name="(views)",
-                remediation="Ensure view definitions are created identically on all nodes via DDL replication.",
-                metadata={"view_count": view_count},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Database has {view_count} regular view(s)",
+                    detail=(
+                        f"Found {view_count} regular (non-materialized) views. Regular views "
+                        "are query definitions and don't store data, so they don't need replication. "
+                        "However, ensure view definitions are identical on all nodes."
+                    ),
+                    object_name="(views)",
+                    remediation="Ensure view definitions are created identically on all nodes via DDL replication.",
+                    metadata={"view_count": view_count},
+                )
+            )
         return findings

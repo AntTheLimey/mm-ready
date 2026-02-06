@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import os
 import re
-import sys
 
 import pytest
 
 from mm_ready.cli import (
-    build_parser,
-    main,
     _make_default_output_path,
     _make_output_path,
+    build_parser,
+    main,
 )
 
 
@@ -57,8 +55,12 @@ class TestDefaultToScan:
         # Simulate what main() does
         raw_args = ["--host", "example.com"]
         known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
-        if raw_args and raw_args[0] not in known_commands and raw_args[0] not in ("--version", "--help", "-h"):
-            raw_args = ["scan"] + list(raw_args)
+        if (
+            raw_args
+            and raw_args[0] not in known_commands
+            and raw_args[0] not in ("--version", "--help", "-h")
+        ):
+            raw_args = ["scan", *list(raw_args)]
         args = parser.parse_args(raw_args)
         assert args.command == "scan"
         assert args.host == "example.com"

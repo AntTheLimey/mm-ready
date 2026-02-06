@@ -10,6 +10,12 @@ class TablespaceUsageCheck(BaseCheck):
     description = "Non-default tablespace usage — tablespaces must exist on all nodes"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Finds database objects that use non-default (local) tablespaces and returns a Finding for each tablespace with the objects that use it.
+
+        Returns:
+            list[Finding]: A list of findings grouped by tablespace. Each Finding describes the tablespace name, the count of objects using it, up to the first 10 example objects in the detail text, and includes metadata with `object_count` and up to 20 `objects`.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,
@@ -42,25 +48,27 @@ class TablespaceUsageCheck(BaseCheck):
 
         findings = []
         for ts_name, objects in tablespaces.items():
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Tablespace '{ts_name}' used by {len(objects)} object(s)",
-                detail=(
-                    f"Tablespace '{ts_name}' is used by {len(objects)} object(s): "
-                    f"{', '.join(objects[:10])}"
-                    f"{'...' if len(objects) > 10 else ''}.\n\n"
-                    "Tablespaces are local to each PostgreSQL instance. When setting "
-                    "up Spock replication, the same tablespace names must exist on "
-                    "all nodes, though they can point to different physical paths."
-                ),
-                object_name=ts_name,
-                remediation=(
-                    f"Ensure tablespace '{ts_name}' is created on all Spock nodes "
-                    "before initializing replication."
-                ),
-                metadata={"object_count": len(objects), "objects": objects[:20]},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Tablespace '{ts_name}' used by {len(objects)} object(s)",
+                    detail=(
+                        f"Tablespace '{ts_name}' is used by {len(objects)} object(s): "
+                        f"{', '.join(objects[:10])}"
+                        f"{'...' if len(objects) > 10 else ''}.\n\n"
+                        "Tablespaces are local to each PostgreSQL instance. When setting "
+                        "up Spock replication, the same tablespace names must exist on "
+                        "all nodes, though they can point to different physical paths."
+                    ),
+                    object_name=ts_name,
+                    remediation=(
+                        f"Ensure tablespace '{ts_name}' is created on all Spock nodes "
+                        "before initializing replication."
+                    ),
+                    metadata={"object_count": len(objects), "objects": objects[:20]},
+                )
+            )
 
         return findings

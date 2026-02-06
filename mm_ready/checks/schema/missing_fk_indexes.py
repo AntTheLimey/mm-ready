@@ -12,6 +12,15 @@ class MissingFkIndexesCheck(BaseCheck):
     def run(self, conn) -> list[Finding]:
         # Find FK columns on the referencing (child) side that lack a matching index.
         # This is the standard "missing FK index" query adapted for Spock context.
+        """
+        Locate foreign key constraints whose referencing (child) columns do not have supporting indexes and produce Finding objects describing each missing-index case.
+
+        Parameters:
+                conn: A DBAPI-compatible connection to the PostgreSQL database used to query system catalogs.
+
+        Returns:
+                list[Finding]: A list of Findings, one per foreign key constraint that lacks an index on its referencing columns. Each Finding includes severity, check name, category, title, detail, remediation SQL, and metadata with the constraint name and column list.
+        """
         query = """
             SELECT
                 cn.nspname AS schema_name,
@@ -44,25 +53,24 @@ class MissingFkIndexesCheck(BaseCheck):
         for schema_name, table_name, con_name, fk_cols in rows:
             fqn = f"{schema_name}.{table_name}"
             col_list = ", ".join(fk_cols)
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"No index on FK columns '{fqn}' ({col_list})",
-                detail=(
-                    f"Foreign key constraint '{con_name}' on '{fqn}' references "
-                    f"columns ({col_list}) that have no supporting index. Without "
-                    "an index, DELETE and UPDATE on the referenced (parent) table "
-                    "require a sequential scan of the child table while holding a "
-                    "lock. In multi-master replication, this causes longer lock "
-                    "hold times and increases the likelihood of conflicts."
-                ),
-                object_name=fqn,
-                remediation=(
-                    f"Create an index:\n"
-                    f"  CREATE INDEX ON {fqn} ({col_list});"
-                ),
-                metadata={"constraint": con_name, "columns": fk_cols},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"No index on FK columns '{fqn}' ({col_list})",
+                    detail=(
+                        f"Foreign key constraint '{con_name}' on '{fqn}' references "
+                        f"columns ({col_list}) that have no supporting index. Without "
+                        "an index, DELETE and UPDATE on the referenced (parent) table "
+                        "require a sequential scan of the child table while holding a "
+                        "lock. In multi-master replication, this causes longer lock "
+                        "hold times and increases the likelihood of conflicts."
+                    ),
+                    object_name=fqn,
+                    remediation=(f"Create an index:\n  CREATE INDEX ON {fqn} ({col_list});"),
+                    metadata={"constraint": con_name, "columns": fk_cols},
+                )
+            )
 
         return findings

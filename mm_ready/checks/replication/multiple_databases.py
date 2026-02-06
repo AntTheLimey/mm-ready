@@ -10,6 +10,15 @@ class MultipleDatabasesCheck(BaseCheck):
     description = "More than one user database in the instance — Spock supports one DB per instance"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check for multiple user databases in the PostgreSQL instance.
+
+        Parameters:
+            conn: A PEP-249 compatible database connection to the target PostgreSQL instance.
+
+        Returns:
+            findings (list[Finding]): A list containing a single `Finding` with severity `WARNING` describing the user databases when more than one non-template database (excluding 'postgres') exists; otherwise an empty list.
+        """
         query = """
             SELECT datname
             FROM pg_catalog.pg_database
@@ -25,22 +34,24 @@ class MultipleDatabasesCheck(BaseCheck):
 
         findings = []
         if len(db_names) > 1:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Instance has {len(db_names)} user database(s): {', '.join(db_names)}",
-                detail=(
-                    f"Found {len(db_names)} non-template databases (excluding 'postgres'): "
-                    f"{', '.join(db_names)}. pgEdge Spock officially supports one database "
-                    "per PostgreSQL instance. Multiple databases may require separate "
-                    "instances for multi-master replication."
-                ),
-                object_name="(instance)",
-                remediation=(
-                    "Plan to separate databases into individual PostgreSQL instances, "
-                    "one per database, for Spock multi-master replication."
-                ),
-                metadata={"databases": db_names},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Instance has {len(db_names)} user database(s): {', '.join(db_names)}",
+                    detail=(
+                        f"Found {len(db_names)} non-template databases (excluding 'postgres'): "
+                        f"{', '.join(db_names)}. pgEdge Spock officially supports one database "
+                        "per PostgreSQL instance. Multiple databases may require separate "
+                        "instances for multi-master replication."
+                    ),
+                    object_name="(instance)",
+                    remediation=(
+                        "Plan to separate databases into individual PostgreSQL instances, "
+                        "one per database, for Spock multi-master replication."
+                    ),
+                    metadata={"databases": db_names},
+                )
+            )
         return findings

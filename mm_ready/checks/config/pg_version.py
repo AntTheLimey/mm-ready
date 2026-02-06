@@ -14,6 +14,18 @@ class PgVersionCheck(BaseCheck):
     SUPPORTED_MAJORS = {15, 16, 17, 18}
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check PostgreSQL server major version for compatibility with Spock 5.
+
+        Parameters:
+            conn: A DB connection object providing a context-managed cursor that can execute queries and fetch results.
+
+        Returns:
+            findings (list[Finding]): One Finding describing the server's PostgreSQL major version and compatibility.
+                - If the major version is not supported, the Finding has `Severity.CRITICAL` and includes remediation guidance.
+                - If the major version is supported, the Finding has `Severity.INFO`.
+                Both variants include `metadata` with `major` and `version_num`.
+        """
         query = "SELECT version(), current_setting('server_version_num')::int;"
         with conn.cursor() as cur:
             cur.execute(query)
@@ -23,34 +35,38 @@ class PgVersionCheck(BaseCheck):
 
         findings = []
         if major not in self.SUPPORTED_MAJORS:
-            findings.append(Finding(
-                severity=Severity.CRITICAL,
-                check_name=self.name,
-                category=self.category,
-                title=f"PostgreSQL {major} is not supported by Spock 5",
-                detail=(
-                    f"Server is running PostgreSQL {major} ({version_str}). "
-                    f"Spock 5 supports PostgreSQL versions: "
-                    f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}. "
-                    "A PostgreSQL upgrade is required before Spock can be installed."
-                ),
-                object_name="pg_version",
-                remediation=(
-                    f"Upgrade PostgreSQL to version "
-                    f"{max(self.SUPPORTED_MAJORS)} (recommended) or any of: "
-                    f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}."
-                ),
-                metadata={"major": major, "version_num": version_num},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CRITICAL,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"PostgreSQL {major} is not supported by Spock 5",
+                    detail=(
+                        f"Server is running PostgreSQL {major} ({version_str}). "
+                        f"Spock 5 supports PostgreSQL versions: "
+                        f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}. "
+                        "A PostgreSQL upgrade is required before Spock can be installed."
+                    ),
+                    object_name="pg_version",
+                    remediation=(
+                        f"Upgrade PostgreSQL to version "
+                        f"{max(self.SUPPORTED_MAJORS)} (recommended) or any of: "
+                        f"{', '.join(str(v) for v in sorted(self.SUPPORTED_MAJORS))}."
+                    ),
+                    metadata={"major": major, "version_num": version_num},
+                )
+            )
         else:
-            findings.append(Finding(
-                severity=Severity.INFO,
-                check_name=self.name,
-                category=self.category,
-                title=f"PostgreSQL {major} is supported by Spock 5",
-                detail=f"Server is running {version_str}, which is compatible with Spock 5.",
-                object_name="pg_version",
-                metadata={"major": major, "version_num": version_num},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.INFO,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"PostgreSQL {major} is supported by Spock 5",
+                    detail=f"Server is running {version_str}, which is compatible with Spock 5.",
+                    object_name="pg_version",
+                    metadata={"major": major, "version_num": version_num},
+                )
+            )
 
         return findings

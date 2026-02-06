@@ -10,6 +10,15 @@ class ConcurrentIndexesCheck(BaseCheck):
     description = "CREATE INDEX CONCURRENTLY — must be created manually on each node"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.
+
+        Parameters:
+            conn: A database connection object with a context-managing `.cursor()` method used to query `pg_stat_statements`.
+
+        Returns:
+            list[Finding]: A list of findings. Returns an empty list if no matching statements are found or if a database error occurs. When matches exist, a single Finding is returned summarizing the number of patterns and listing up to the first 10 matched query snippets.
+        """
         try:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -24,23 +33,25 @@ class ConcurrentIndexesCheck(BaseCheck):
 
         findings = []
         if rows:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"CREATE INDEX CONCURRENTLY detected ({len(rows)} pattern(s))",
-                detail=(
-                    "CREATE INDEX CONCURRENTLY statements were found in SQL history. "
-                    "Concurrent indexes must be created by hand on each node in a "
-                    "Spock cluster — they cannot be replicated via DDL replication.\n\n"
-                    "Patterns found:\n" +
-                    "\n".join(f"  [{r[1]} calls] {r[0][:150]}" for r in rows[:10])
-                ),
-                object_name="(queries)",
-                remediation=(
-                    "Plan to execute CREATE INDEX CONCURRENTLY manually on each node. "
-                    "Do not rely on DDL replication for these operations."
-                ),
-                metadata={"pattern_count": len(rows)},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"CREATE INDEX CONCURRENTLY detected ({len(rows)} pattern(s))",
+                    detail=(
+                        "CREATE INDEX CONCURRENTLY statements were found in SQL history. "
+                        "Concurrent indexes must be created by hand on each node in a "
+                        "Spock cluster — they cannot be replicated via DDL replication.\n\n"
+                        "Patterns found:\n"
+                        + "\n".join(f"  [{r[1]} calls] {r[0][:150]}" for r in rows[:10])
+                    ),
+                    object_name="(queries)",
+                    remediation=(
+                        "Plan to execute CREATE INDEX CONCURRENTLY manually on each node. "
+                        "Do not rely on DDL replication for these operations."
+                    ),
+                    metadata={"pattern_count": len(rows)},
+                )
+            )
         return findings

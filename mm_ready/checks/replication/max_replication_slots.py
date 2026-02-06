@@ -10,6 +10,17 @@ class MaxReplicationSlotsCheck(BaseCheck):
     description = "Sufficient replication slots for Spock node connections"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Determine whether PostgreSQL's max_replication_slots provides sufficient headroom for Spock node connections.
+
+        Queries the server for the configured max_replication_slots and the number currently in use; if the configured value is less than 10, returns a warning Finding describing the shortfall and recommended remediation.
+
+        Parameters:
+            conn: A live PostgreSQL DB connection used to run the queries.
+
+        Returns:
+            A list of Finding objects. Contains a single warning Finding when max_replication_slots is less than 10 (including metadata with the current and used slot counts); returns an empty list otherwise.
+        """
         with conn.cursor() as cur:
             cur.execute("SHOW max_replication_slots;")
             max_slots = int(cur.fetchone()[0])
@@ -20,22 +31,24 @@ class MaxReplicationSlotsCheck(BaseCheck):
         findings = []
         # Spock needs at least 1 slot per peer node. Recommend headroom.
         if max_slots < 10:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"max_replication_slots = {max_slots} (currently {used_slots} in use)",
-                detail=(
-                    f"max_replication_slots is set to {max_slots} with {used_slots} currently "
-                    "in use. Spock requires at least one replication slot per peer node, plus "
-                    "slots for any other logical replication consumers. A multi-master cluster "
-                    "with N nodes needs N-1 slots per node at minimum."
-                ),
-                object_name="max_replication_slots",
-                remediation=(
-                    "Set max_replication_slots to at least 10 (or more for larger clusters) "
-                    "in postgresql.conf. Requires a restart."
-                ),
-                metadata={"current_value": max_slots, "used": used_slots},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"max_replication_slots = {max_slots} (currently {used_slots} in use)",
+                    detail=(
+                        f"max_replication_slots is set to {max_slots} with {used_slots} currently "
+                        "in use. Spock requires at least one replication slot per peer node, plus "
+                        "slots for any other logical replication consumers. A multi-master cluster "
+                        "with N nodes needs N-1 slots per node at minimum."
+                    ),
+                    object_name="max_replication_slots",
+                    remediation=(
+                        "Set max_replication_slots to at least 10 (or more for larger clusters) "
+                        "in postgresql.conf. Requires a restart."
+                    ),
+                    metadata={"current_value": max_slots, "used": used_slots},
+                )
+            )
         return findings

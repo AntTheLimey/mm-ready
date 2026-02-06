@@ -10,6 +10,17 @@ class GeneratedColumnsCheck(BaseCheck):
     description = "Generated/stored columns — replication behavior differences"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Identify generated (stored or virtual) columns in the connected PostgreSQL database and produce Findings for each.
+
+        Queries PostgreSQL system catalogs to locate columns declared as generated and returns a Finding per generated column describing its type, generation expression, and a remediation suggestion.
+
+        Parameters:
+                conn: A DB-API compatible connection with a context-manager cursor() that can execute SQL against the target PostgreSQL database.
+
+        Returns:
+                findings (list[Finding]): A list of Finding objects, one per generated column. Each Finding includes the column's fully qualified name, generation label ("STORED" or "VIRTUAL"), the generation expression in metadata, severity (Severity.CONSIDER), and a remediation message.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,
@@ -36,22 +47,24 @@ class GeneratedColumnsCheck(BaseCheck):
         for schema_name, table_name, col_name, gen_type, expression in rows:
             fqn = f"{schema_name}.{table_name}"
             gen_label = "STORED" if gen_type == "s" else "VIRTUAL"
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Generated column '{fqn}.{col_name}' ({gen_label})",
-                detail=(
-                    f"Column '{col_name}' on table '{fqn}' is a {gen_label} generated column "
-                    f"with expression: {expression}. Generated columns are recomputed on the "
-                    "subscriber side. If the expression depends on functions or data that "
-                    "differs across nodes, values may diverge."
-                ),
-                object_name=f"{fqn}.{col_name}",
-                remediation=(
-                    "Verify the generation expression produces identical results on all nodes. "
-                    "Avoid expressions that depend on volatile functions or node-local state."
-                ),
-                metadata={"gen_type": gen_label, "expression": expression},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Generated column '{fqn}.{col_name}' ({gen_label})",
+                    detail=(
+                        f"Column '{col_name}' on table '{fqn}' is a {gen_label} generated column "
+                        f"with expression: {expression}. Generated columns are recomputed on the "
+                        "subscriber side. If the expression depends on functions or data that "
+                        "differs across nodes, values may diverge."
+                    ),
+                    object_name=f"{fqn}.{col_name}",
+                    remediation=(
+                        "Verify the generation expression produces identical results on all nodes. "
+                        "Avoid expressions that depend on volatile functions or node-local state."
+                    ),
+                    metadata={"gen_type": gen_label, "expression": expression},
+                )
+            )
         return findings

@@ -10,6 +10,12 @@ class ForeignKeysCheck(BaseCheck):
     description = "Foreign key relationships — replication ordering and cross-node considerations"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Check database foreign key constraints for replication-ordering concerns and report CASCADE actions.
+
+        Returns:
+            list[Finding]: A list of Findings where each foreign key using ON DELETE/ON UPDATE CASCADE is reported as a WARNING Finding, followed by a CONSIDER summary Finding containing the total foreign key count and number of cascade FKs. Returns an empty list if no foreign keys are found.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,
@@ -36,8 +42,11 @@ class ForeignKeysCheck(BaseCheck):
             return []
 
         action_labels = {
-            "a": "NO ACTION", "r": "RESTRICT", "c": "CASCADE",
-            "n": "SET NULL", "d": "SET DEFAULT",
+            "a": "NO ACTION",
+            "r": "RESTRICT",
+            "c": "CASCADE",
+            "n": "SET NULL",
+            "d": "SET DEFAULT",
         }
 
         # Group by table for a summary finding
@@ -54,39 +63,43 @@ class ForeignKeysCheck(BaseCheck):
 
         # Report CASCADE FKs specifically — they can cause issues
         for fqn, con_name, ref_fqn, del_label, upd_label in cascade_fks:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"CASCADE foreign key '{con_name}' on '{fqn}'",
-                detail=(
-                    f"Foreign key '{con_name}' on '{fqn}' references '{ref_fqn}' with "
-                    f"ON DELETE {del_label} / ON UPDATE {upd_label}. CASCADE actions are "
-                    "executed locally on each node, meaning the cascaded changes happen "
-                    "independently on provider and subscriber, which can lead to conflicts "
-                    "in a multi-master setup."
-                ),
-                object_name=fqn,
-                remediation=(
-                    "Review CASCADE behavior. In multi-master, consider handling cascades "
-                    "in application logic or ensuring operations flow through a single node."
-                ),
-                metadata={"constraint": con_name, "references": ref_fqn},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"CASCADE foreign key '{con_name}' on '{fqn}'",
+                    detail=(
+                        f"Foreign key '{con_name}' on '{fqn}' references '{ref_fqn}' with "
+                        f"ON DELETE {del_label} / ON UPDATE {upd_label}. CASCADE actions are "
+                        "executed locally on each node, meaning the cascaded changes happen "
+                        "independently on provider and subscriber, which can lead to conflicts "
+                        "in a multi-master setup."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        "Review CASCADE behavior. In multi-master, consider handling cascades "
+                        "in application logic or ensuring operations flow through a single node."
+                    ),
+                    metadata={"constraint": con_name, "references": ref_fqn},
+                )
+            )
 
         # Summary finding about FK count
-        findings.append(Finding(
-            severity=Severity.CONSIDER,
-            check_name=self.name,
-            category=self.category,
-            title=f"Database has {len(rows)} foreign key constraint(s)",
-            detail=(
-                f"Found {len(rows)} foreign key constraints. Ensure all referenced tables "
-                "are included in the replication set, and that replication ordering will "
-                "satisfy referential integrity."
-            ),
-            object_name="(database)",
-            remediation="Ensure all FK-related tables are in the same replication set.",
-            metadata={"fk_count": len(rows), "cascade_count": len(cascade_fks)},
-        ))
+        findings.append(
+            Finding(
+                severity=Severity.CONSIDER,
+                check_name=self.name,
+                category=self.category,
+                title=f"Database has {len(rows)} foreign key constraint(s)",
+                detail=(
+                    f"Found {len(rows)} foreign key constraints. Ensure all referenced tables "
+                    "are included in the replication set, and that replication ordering will "
+                    "satisfy referential integrity."
+                ),
+                object_name="(database)",
+                remediation="Ensure all FK-related tables are in the same replication set.",
+                metadata={"fk_count": len(rows), "cascade_count": len(cascade_fks)},
+            )
+        )
         return findings

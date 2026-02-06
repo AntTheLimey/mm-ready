@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib
 import pkgutil
 from pathlib import Path
@@ -13,17 +14,18 @@ def discover_checks(
     categories: list[str] | None = None,
     mode: str | None = None,
 ) -> list[BaseCheck]:
-    """Walk the checks/ package tree and instantiate all BaseCheck subclasses.
+    """
+    Discover and instantiate all BaseCheck subclasses under the mm_ready.checks package, optionally filtering by category and mode.
 
-    Args:
-        categories: If provided, only return checks whose category is in this list.
-        mode: If provided, only return checks matching this mode ("scan" or "audit").
-              Checks with mode="both" match either mode.
+    Parameters:
+        categories (list[str] | None): If provided, only include checks whose `category` is in this list.
+        mode (str | None): If provided, only include checks whose `mode` equals this value (e.g. "scan" or "audit"); checks with `mode == "both"` match any mode.
 
     Returns:
-        List of instantiated check objects, sorted by category then name.
+        list[BaseCheck]: Instantiated check objects, sorted by (category, name).
     """
     checks_package = importlib.import_module("mm_ready.checks")
+    assert checks_package.__file__ is not None
     checks_dir = Path(checks_package.__file__).parent
 
     _import_submodules("mm_ready.checks", checks_dir)
@@ -45,19 +47,35 @@ def discover_checks(
 
 
 def _import_submodules(package_name: str, package_dir: Path):
-    """Recursively import all submodules under a package directory."""
-    for importer, modname, ispkg in pkgutil.walk_packages(
+    """
+    Recursively import all submodules in a package directory, ignoring import errors.
+
+    Imports every module found under the given package directory using the package name as the import prefix. Any exception raised while importing an individual submodule is suppressed so discovery continues.
+
+    Parameters:
+        package_name (str): Dotted import path of the package (e.g., "mm_ready.checks") used as the import prefix.
+        package_dir (Path): Filesystem path to the package directory to search for submodules.
+    """
+    for _importer, modname, _ispkg in pkgutil.walk_packages(
         path=[str(package_dir)],
         prefix=package_name + ".",
     ):
-        try:
+        with contextlib.suppress(Exception):
             importlib.import_module(modname)
-        except Exception:
-            pass
 
 
 def _all_subclasses(cls):
-    """Recursively get all subclasses of a class."""
+    """
+    Collect all subclasses of a class recursively.
+
+    Performs a depth-first traversal of the subclass hierarchy and returns every direct and indirect subclass of `cls` (does not include `cls` itself). The traversal order is depth-first: each discovered subclass is listed before its own subclasses.
+
+    Parameters:
+        cls (type): The base class whose subclasses will be discovered.
+
+    Returns:
+        list[type]: A list of subclass types found for `cls`, in depth-first order.
+    """
     result = []
     for sub in cls.__subclasses__():
         result.append(sub)

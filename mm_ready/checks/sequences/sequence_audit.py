@@ -10,6 +10,15 @@ class SequenceAuditCheck(BaseCheck):
     description = "All sequences, types, and ownership — need snowflake migration plan"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Audit all non-system sequences in the connected PostgreSQL database and produce findings describing each sequence's type, start/increment values, cycle behavior, and ownership, along with migration guidance for multi-master setups.
+
+        Parameters:
+            conn: A DB-API compatible connection used to execute the sequence catalog query.
+
+        Returns:
+            list[Finding]: A list of Finding objects (one per discovered sequence). Each finding contains a warning severity, a title and detail explaining the sequence properties and migration recommendation, remediation text, and metadata with keys: `data_type`, `start`, `increment`, `cycle`, `owner_table`, and `owner_column`. An empty list is returned if no user sequences are found.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,
@@ -47,37 +56,52 @@ class SequenceAuditCheck(BaseCheck):
 
         findings = []
         for row in rows:
-            (schema_name, seq_name, data_type, start_val, increment,
-             min_val, max_val, is_cycle, is_owned, owner_table, owner_col) = row
+            (
+                schema_name,
+                seq_name,
+                data_type,
+                start_val,
+                increment,
+                _min_val,
+                _max_val,
+                is_cycle,
+                is_owned,
+                owner_table,
+                owner_col,
+            ) = row
 
             fqn = f"{schema_name}.{seq_name}"
-            ownership = f"owned by {owner_table}.{owner_col}" if is_owned else "not owned by any column"
+            ownership = (
+                f"owned by {owner_table}.{owner_col}" if is_owned else "not owned by any column"
+            )
 
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title=f"Sequence '{fqn}' ({data_type}, {ownership})",
-                detail=(
-                    f"Sequence '{fqn}': type={data_type}, start={start_val}, "
-                    f"increment={increment}, cycle={'yes' if is_cycle else 'no'}, "
-                    f"{ownership}. Standard sequences produce overlapping values in "
-                    "multi-master setups. Must migrate to pgEdge snowflake sequences "
-                    "or implement another globally-unique ID strategy."
-                ),
-                object_name=fqn,
-                remediation=(
-                    f"Migrate sequence '{fqn}' to use pgEdge snowflake for globally "
-                    "unique ID generation across all cluster nodes."
-                ),
-                metadata={
-                    "data_type": str(data_type),
-                    "start": start_val,
-                    "increment": increment,
-                    "cycle": is_cycle,
-                    "owner_table": owner_table,
-                    "owner_column": owner_col,
-                },
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Sequence '{fqn}' ({data_type}, {ownership})",
+                    detail=(
+                        f"Sequence '{fqn}': type={data_type}, start={start_val}, "
+                        f"increment={increment}, cycle={'yes' if is_cycle else 'no'}, "
+                        f"{ownership}. Standard sequences produce overlapping values in "
+                        "multi-master setups. Must migrate to pgEdge snowflake sequences "
+                        "or implement another globally-unique ID strategy."
+                    ),
+                    object_name=fqn,
+                    remediation=(
+                        f"Migrate sequence '{fqn}' to use pgEdge snowflake for globally "
+                        "unique ID generation across all cluster nodes."
+                    ),
+                    metadata={
+                        "data_type": str(data_type),
+                        "start": start_val,
+                        "increment": increment,
+                        "cycle": is_cycle,
+                        "owner_table": owner_table,
+                        "owner_column": owner_col,
+                    },
+                )
+            )
 
         return findings

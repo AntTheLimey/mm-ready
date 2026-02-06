@@ -10,6 +10,17 @@ class DeferrableConstraintsCheck(BaseCheck):
     description = "Deferrable unique/PK constraints — silently skipped by Spock conflict resolution"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Detect deferrable UNIQUE and PRIMARY KEY constraints in the database and return findings describing them.
+
+        Scans PostgreSQL catalogs for constraints that are DEFERRABLE (excluding system schemas) and produces a Finding for each match that describes the constraint, its initially deferred state, recommended remediation, and metadata. PRIMARY KEY constraints are reported with CRITICAL severity; UNIQUE constraints are reported with WARNING severity. Each Finding's metadata includes the constraint type and whether it is initially deferred, and the Finding's object_name is the fully qualified constraint identifier.
+
+        Parameters:
+            conn: A DB-API compatible database connection used to query the PostgreSQL catalogs.
+
+        Returns:
+            list[Finding]: A list of Finding objects describing deferrable constraints found in the database.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,
@@ -33,37 +44,39 @@ class DeferrableConstraintsCheck(BaseCheck):
         type_labels = {"p": "PRIMARY KEY", "u": "UNIQUE"}
 
         findings = []
-        for schema_name, table_name, con_name, con_type, is_deferrable, is_deferred in rows:
+        for schema_name, table_name, con_name, con_type, _is_deferrable, is_deferred in rows:
             fqn = f"{schema_name}.{table_name}"
             con_label = type_labels.get(con_type, con_type)
 
             severity = Severity.CRITICAL if con_type == "p" else Severity.WARNING
 
-            findings.append(Finding(
-                severity=severity,
-                check_name=self.name,
-                category=self.category,
-                title=f"Deferrable {con_label} '{con_name}' on '{fqn}'",
-                detail=(
-                    f"Table '{fqn}' has a DEFERRABLE {con_label} constraint "
-                    f"'{con_name}' (initially {'DEFERRED' if is_deferred else 'IMMEDIATE'}). "
-                    "Spock's conflict resolution checks indimmediate on indexes via "
-                    "IsIndexUsableForInsertConflict() and silently SKIPS deferrable "
-                    "indexes. This means conflicts on this constraint will NOT be "
-                    "detected during replication apply, potentially causing "
-                    "duplicate key violations or data inconsistencies."
-                ),
-                object_name=f"{fqn}.{con_name}",
-                remediation=(
-                    f"If possible, make the constraint non-deferrable:\n"
-                    f"  ALTER TABLE {fqn} ALTER CONSTRAINT {con_name} NOT DEFERRABLE;\n"
-                    "If deferral is required by the application, be aware that Spock "
-                    "will not use this constraint for conflict detection."
-                ),
-                metadata={
-                    "constraint_type": con_label,
-                    "initially_deferred": is_deferred,
-                },
-            ))
+            findings.append(
+                Finding(
+                    severity=severity,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Deferrable {con_label} '{con_name}' on '{fqn}'",
+                    detail=(
+                        f"Table '{fqn}' has a DEFERRABLE {con_label} constraint "
+                        f"'{con_name}' (initially {'DEFERRED' if is_deferred else 'IMMEDIATE'}). "
+                        "Spock's conflict resolution checks indimmediate on indexes via "
+                        "IsIndexUsableForInsertConflict() and silently SKIPS deferrable "
+                        "indexes. This means conflicts on this constraint will NOT be "
+                        "detected during replication apply, potentially causing "
+                        "duplicate key violations or data inconsistencies."
+                    ),
+                    object_name=f"{fqn}.{con_name}",
+                    remediation=(
+                        f"If possible, make the constraint non-deferrable:\n"
+                        f"  ALTER TABLE {fqn} ALTER CONSTRAINT {con_name} NOT DEFERRABLE;\n"
+                        "If deferral is required by the application, be aware that Spock "
+                        "will not use this constraint for conflict detection."
+                    ),
+                    metadata={
+                        "constraint_type": con_label,
+                        "initially_deferred": is_deferred,
+                    },
+                )
+            )
 
         return findings

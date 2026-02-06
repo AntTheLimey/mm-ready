@@ -11,6 +11,17 @@ class HbaConfigCheck(BaseCheck):
 
     def run(self, conn) -> list[Finding]:
         # pg_hba_file_rules is available in PG >= 15
+        """
+        Check pg_hba.conf for replication entries by querying pg_hba_file_rules.
+
+        Queries the server's pg_hba_file_rules (PostgreSQL 15+) to locate rules that grant access to the special `replication` database and returns Findings describing the result. On query failure the returned list contains a single CONSIDER Finding indicating the view could not be read; if no replication rules are found a WARNING Finding is returned; if one or more replication rules are found a CONSIDER Finding is returned with `metadata['entry_count']` set to the number of replication entries.
+
+        Parameters:
+            conn: A DB-API compatible connection used to execute the query against the PostgreSQL server.
+
+        Returns:
+            list[Finding]: A list of Findings describing whether replication entries exist and any read errors.
+        """
         query = """
             SELECT
                 line_number, type, database, user_name, address, netmask, auth_method
@@ -23,53 +34,61 @@ class HbaConfigCheck(BaseCheck):
                 cur.execute(query)
                 rows = cur.fetchall()
         except Exception:
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title="Could not read pg_hba_file_rules",
-                detail=(
-                    "Unable to query pg_hba_file_rules. This view requires superuser "
-                    "or pg_read_all_settings privilege, and is available in PostgreSQL 15+."
-                ),
-                object_name="pg_hba.conf",
-                remediation="Manually verify pg_hba.conf allows replication connections.",
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title="Could not read pg_hba_file_rules",
+                    detail=(
+                        "Unable to query pg_hba_file_rules. This view requires superuser "
+                        "or pg_read_all_settings privilege, and is available in PostgreSQL 15+."
+                    ),
+                    object_name="pg_hba.conf",
+                    remediation="Manually verify pg_hba.conf allows replication connections.",
+                )
+            )
             return findings
 
         # Check for replication database entries
         replication_entries = [
-            r for r in rows if r[2] and "replication" in (r[2] if isinstance(r[2], list) else [r[2]])
+            r
+            for r in rows
+            if r[2] and "replication" in (r[2] if isinstance(r[2], list) else [r[2]])
         ]
 
         if not replication_entries:
-            findings.append(Finding(
-                severity=Severity.WARNING,
-                check_name=self.name,
-                category=self.category,
-                title="No replication entries found in pg_hba.conf",
-                detail=(
-                    "No pg_hba.conf rules were found granting access to the 'replication' "
-                    "database. Spock requires replication connections between nodes."
-                ),
-                object_name="pg_hba.conf",
-                remediation=(
-                    "Add replication entries to pg_hba.conf, e.g.:\n"
-                    "host replication spock_user 0.0.0.0/0 scram-sha-256"
-                ),
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.WARNING,
+                    check_name=self.name,
+                    category=self.category,
+                    title="No replication entries found in pg_hba.conf",
+                    detail=(
+                        "No pg_hba.conf rules were found granting access to the 'replication' "
+                        "database. Spock requires replication connections between nodes."
+                    ),
+                    object_name="pg_hba.conf",
+                    remediation=(
+                        "Add replication entries to pg_hba.conf, e.g.:\n"
+                        "host replication spock_user 0.0.0.0/0 scram-sha-256"
+                    ),
+                )
+            )
         else:
-            findings.append(Finding(
-                severity=Severity.CONSIDER,
-                check_name=self.name,
-                category=self.category,
-                title=f"Found {len(replication_entries)} replication entry/entries in pg_hba.conf",
-                detail=(
-                    f"pg_hba.conf has {len(replication_entries)} replication access rule(s). "
-                    "Verify these allow connections from all Spock peer nodes."
-                ),
-                object_name="pg_hba.conf",
-                remediation="Ensure all peer node IPs are covered by replication rules.",
-                metadata={"entry_count": len(replication_entries)},
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.CONSIDER,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Found {len(replication_entries)} replication entry/entries in pg_hba.conf",
+                    detail=(
+                        f"pg_hba.conf has {len(replication_entries)} replication access rule(s). "
+                        "Verify these allow connections from all Spock peer nodes."
+                    ),
+                    object_name="pg_hba.conf",
+                    remediation="Ensure all peer node IPs are covered by replication rules.",
+                    metadata={"entry_count": len(replication_entries)},
+                )
+            )
         return findings

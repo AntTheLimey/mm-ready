@@ -11,28 +11,39 @@ class PgMinorVersionCheck(BaseCheck):
     mode = "audit"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Query the connected PostgreSQL server and return a Finding that reports its minor version and full version string.
+
+        Parameters:
+            conn: A live database connection used to query the server version.
+
+        Returns:
+            list[Finding]: A single-item list containing a Finding that describes the server's reported `server_version`, includes the full version string in the detail, and sets `metadata["server_version"]` to the reported minor version.
+        """
         with conn.cursor() as cur:
             cur.execute("SELECT version(), current_setting('server_version');")
             full_version, server_version = cur.fetchone()
 
-        return [Finding(
-            severity=Severity.CONSIDER,
-            check_name=self.name,
-            category=self.category,
-            title=f"PostgreSQL {server_version}",
-            detail=(
-                f"Server version: {server_version}\n"
-                f"Full version string: {full_version}\n\n"
-                "All nodes in a Spock cluster should run the same PostgreSQL "
-                "minor version. Minor version mismatches can introduce subtle "
-                "behavioral differences and complicate troubleshooting. Verify "
-                "this version matches all other cluster nodes."
-            ),
-            object_name="pg_version",
-            remediation=(
-                "Ensure all cluster nodes are upgraded to the same minor version "
-                "during maintenance windows. Apply minor upgrades to all nodes "
-                "before resuming normal operation."
-            ),
-            metadata={"server_version": server_version},
-        )]
+        return [
+            Finding(
+                severity=Severity.CONSIDER,
+                check_name=self.name,
+                category=self.category,
+                title=f"PostgreSQL {server_version}",
+                detail=(
+                    f"Server version: {server_version}\n"
+                    f"Full version string: {full_version}\n\n"
+                    "All nodes in a Spock cluster should run the same PostgreSQL "
+                    "minor version. Minor version mismatches can introduce subtle "
+                    "behavioral differences and complicate troubleshooting. Verify "
+                    "this version matches all other cluster nodes."
+                ),
+                object_name="pg_version",
+                remediation=(
+                    "Ensure all cluster nodes are upgraded to the same minor version "
+                    "during maintenance windows. Apply minor upgrades to all nodes "
+                    "before resuming normal operation."
+                ),
+                metadata={"server_version": server_version},
+            )
+        ]

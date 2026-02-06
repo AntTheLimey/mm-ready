@@ -10,6 +10,14 @@ class TriggerFunctionsCheck(BaseCheck):
     description = "Triggers — ENABLE REPLICA and ENABLE ALWAYS both fire during Spock apply"
 
     def run(self, conn) -> list[Finding]:
+        """
+        Identify triggers that may conflict with replication and produce a Finding for each discovered trigger.
+
+        Queries PostgreSQL system catalogs for non-internal triggers (excluding pg_catalog, information_schema, spock, pg_toast) and evaluates each trigger's enabled mode to determine potential replication-related concerns.
+
+        Returns:
+            list[Finding]: One Finding per trigger containing severity, check_name, category, title, detail, object_name, remediation (non-empty for warnings), and metadata with keys `"timing"`, `"event"`, `"function"`, and `"enabled"`.
+        """
         query = """
             SELECT
                 n.nspname AS schema_name,
@@ -86,23 +94,27 @@ class TriggerFunctionsCheck(BaseCheck):
                 severity = Severity.INFO
                 concern = f"Trigger enabled mode: {enabled_label}."
 
-            findings.append(Finding(
-                severity=severity,
-                check_name=self.name,
-                category=self.category,
-                title=f"Trigger '{trig_name}' on '{fqn}' ({timing} {event}, {enabled_label})",
-                detail=f"Trigger '{trig_name}' calls {func_name}. {concern}",
-                object_name=f"{fqn}.{trig_name}",
-                remediation=(
-                    "For most triggers, ORIGIN mode (default 'O') is correct — it only "
-                    "fires on the node where the write originates. Use ENABLE REPLICA or "
-                    "ENABLE ALWAYS only when the trigger must also fire during replication apply."
-                ) if severity != Severity.INFO else "",
-                metadata={
-                    "timing": timing,
-                    "event": event,
-                    "function": func_name,
-                    "enabled": enabled,
-                },
-            ))
+            findings.append(
+                Finding(
+                    severity=severity,
+                    check_name=self.name,
+                    category=self.category,
+                    title=f"Trigger '{trig_name}' on '{fqn}' ({timing} {event}, {enabled_label})",
+                    detail=f"Trigger '{trig_name}' calls {func_name}. {concern}",
+                    object_name=f"{fqn}.{trig_name}",
+                    remediation=(
+                        "For most triggers, ORIGIN mode (default 'O') is correct — it only "
+                        "fires on the node where the write originates. Use ENABLE REPLICA or "
+                        "ENABLE ALWAYS only when the trigger must also fire during replication apply."
+                    )
+                    if severity != Severity.INFO
+                    else "",
+                    metadata={
+                        "timing": timing,
+                        "event": event,
+                        "function": func_name,
+                        "enabled": enabled,
+                    },
+                )
+            )
         return findings
