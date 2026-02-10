@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from datetime import datetime, timezone
+from typing import Any
 
 from mm_ready.connection import get_pg_version
 from mm_ready.models import CheckResult, ScanReport
@@ -11,7 +12,7 @@ from mm_ready.registry import discover_checks
 
 
 def run_scan(
-    conn,
+    conn: Any,
     host: str,
     port: int,
     dbname: str,

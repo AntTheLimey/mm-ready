@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 
+from mm_ready.config import ReportConfig
 from mm_ready.models import ScanReport, Severity
 
 _CSS = """
@@ -279,7 +280,7 @@ def _render_detail(text: str) -> str:
     return _esc(text)
 
 
-def render(report: ScanReport, report_cfg=None) -> str:
+def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
     """
     Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
 

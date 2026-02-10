@@ -6,8 +6,13 @@ import argparse
 import os
 import sys
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from mm_ready import __version__
+
+if TYPE_CHECKING:
+    from mm_ready.config import CheckConfig, ReportConfig
+    from mm_ready.models import ScanReport
 
 # File extensions per output format
 _FORMAT_EXT = {"json": ".json", "markdown": ".md", "html": ".html"}
@@ -150,7 +155,7 @@ def _add_output_args(parser: argparse.ArgumentParser):
     )
 
 
-def _add_check_filter_args(parser: argparse.ArgumentParser):
+def _add_check_filter_args(parser: argparse.ArgumentParser) -> None:
     """Add check filtering arguments (exclude, include-only, config)."""
     grp = parser.add_argument_group("check filtering")
     grp.add_argument(
@@ -466,7 +471,15 @@ def _make_output_path(user_path: str, fmt: str, dbname: str = "") -> str:
     return f"{base}_{ts}{existing_ext}"
 
 
-def _load_and_merge_config(args, mode: str):
+def _parse_csv_set(value: str | None) -> set[str] | None:
+    """Parse a comma-separated string into a set, stripping whitespace."""
+    if not value:
+        return None
+    items = {item.strip() for item in value.split(",") if item.strip()}
+    return items or None
+
+
+def _load_and_merge_config(args: argparse.Namespace, mode: str) -> tuple[CheckConfig, ReportConfig]:
     """Load config file and merge with CLI arguments."""
     from mm_ready.config import load_config, merge_cli_with_config
 
@@ -490,13 +503,8 @@ def _load_and_merge_config(args, mode: str):
         config = Config()
 
     # Parse CLI args
-    cli_exclude = None
-    if getattr(args, "exclude", None):
-        cli_exclude = set(args.exclude.split(","))
-
-    cli_include_only = None
-    if getattr(args, "include_only", None):
-        cli_include_only = set(args.include_only.split(","))
+    cli_exclude = _parse_csv_set(getattr(args, "exclude", None))
+    cli_include_only = _parse_csv_set(getattr(args, "include_only", None))
 
     cli_no_todo = getattr(args, "no_todo", False)
     cli_todo_include_consider = getattr(args, "todo_include_consider", False)
@@ -511,7 +519,7 @@ def _load_and_merge_config(args, mode: str):
     )
 
 
-def _render_report(report, fmt: str, report_cfg=None) -> str:
+def _render_report(report: ScanReport, fmt: str, report_cfg: ReportConfig | None = None) -> str:
     if fmt == "json":
         from mm_ready.reporters.json_reporter import render
 
