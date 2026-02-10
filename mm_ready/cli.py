@@ -253,13 +253,8 @@ def _cmd_list_checks(args):
     mode = args.mode if args.mode != "all" else None
 
     # Parse exclude/include-only
-    exclude = None
-    if getattr(args, "exclude", None):
-        exclude = set(args.exclude.split(","))
-
-    include_only = None
-    if getattr(args, "include_only", None):
-        include_only = set(args.include_only.split(","))
+    exclude = _parse_csv_set(getattr(args, "exclude", None))
+    include_only = _parse_csv_set(getattr(args, "include_only", None))
 
     checks = discover_checks(
         categories=categories, mode=mode, exclude=exclude, include_only=include_only
