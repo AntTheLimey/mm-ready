@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from datetime import datetime, timezone
+from typing import Any
 
 from mm_ready.connection import get_pg_version
 from mm_ready.models import CheckResult, ScanReport
@@ -11,13 +12,15 @@ from mm_ready.registry import discover_checks
 
 
 def run_scan(
-    conn,
+    conn: Any,
     host: str,
     port: int,
     dbname: str,
     categories: list[str] | None = None,
     mode: str = "scan",
     verbose: bool = False,
+    exclude: set[str] | None = None,
+    include_only: set[str] | None = None,
 ) -> ScanReport:
     """Execute all discovered checks against the database.
 
@@ -29,6 +32,8 @@ def run_scan(
         categories: Optional list of categories to filter checks.
         mode: "scan" for pre-Spock readiness, "audit" for post-Spock audit.
         verbose: Print progress to stderr.
+        exclude: Optional set of check names to exclude.
+        include_only: Optional set of check names to include (whitelist mode).
 
     Returns:
         ScanReport with all results.
@@ -43,7 +48,9 @@ def run_scan(
         scan_mode=mode,
     )
 
-    checks = discover_checks(categories=categories, mode=mode)
+    checks = discover_checks(
+        categories=categories, mode=mode, exclude=exclude, include_only=include_only
+    )
     total = len(checks)
 
     if verbose:

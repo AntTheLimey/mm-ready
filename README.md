@@ -11,9 +11,10 @@ before (or after) deploying Spock.
 
 - **56 automated checks** across 7 categories — schema, replication, config,
   extensions, SQL patterns, functions, and sequences
-- **Two operational modes:**
+- **Three operational modes:**
   - `scan` — pre-Spock readiness assessment (vanilla PostgreSQL, no Spock needed)
   - `audit` — post-Spock health check (database with Spock already running)
+  - `analyze` — offline schema dump analysis (no database connection required)
 - **Three output formats:** HTML, Markdown, JSON
 - **Timestamped reports** — output filenames include a timestamp so previous
   scans are never overwritten
@@ -62,6 +63,20 @@ mm-ready audit \
   --format html --output audit.html
 ```
 
+### Analyze (offline schema dump analysis)
+
+```bash
+# Analyze a pg_dump --schema-only SQL file
+mm-ready analyze --file customer_schema.sql --format html --output report.html
+
+# With verbose output
+mm-ready analyze --file schema.sql -v
+```
+
+The `analyze` mode runs 19 of the 56 checks — those that can work from schema
+structure alone. Checks requiring live database access (GUCs, pg_stat_statements,
+Spock catalogs, etc.) are marked as skipped.
+
 ### Monitor (observe activity over time)
 
 ```bash
@@ -76,6 +91,80 @@ mm-ready monitor \
 mm-ready list-checks              # All checks
 mm-ready list-checks --mode scan  # Scan-mode only
 mm-ready list-checks --mode audit # Audit-mode only
+```
+
+### Check filtering
+
+Control which checks run using CLI flags or a configuration file:
+
+```bash
+# Exclude specific checks
+mm-ready scan --host localhost --dbname myapp --exclude sequence_audit,sequence_data_types
+
+# Run only specific checks (whitelist mode)
+mm-ready scan --host localhost --dbname myapp --include-only primary_keys,foreign_keys,wal_level
+
+# Use a specific config file
+mm-ready scan --host localhost --dbname myapp --config ./customer-config.yaml
+
+# Skip config file entirely
+mm-ready scan --host localhost --dbname myapp --no-config
+```
+
+### Report options
+
+```bash
+# Omit the To Do list from the report
+mm-ready scan --host localhost --dbname myapp --no-todo
+
+# Include CONSIDER severity items in the To Do list (excluded by default)
+mm-ready scan --host localhost --dbname myapp --todo-include-consider
+```
+
+## Configuration File
+
+Create a `mm-ready.yaml` file to persistently configure check filtering and
+report options. The tool searches for configuration in this order:
+
+1. `--config /path/to/file.yaml` (explicit)
+2. `./mm-ready.yaml` (current directory)
+3. `~/mm-ready.yaml` (home directory)
+
+CLI flags override config file settings.
+
+### Example configuration
+
+```yaml
+# mm-ready.yaml
+
+# Global settings (apply to all modes)
+checks:
+  exclude:
+    - sequence_audit      # Already addressed
+    - sequence_data_types # Not relevant for this project
+
+# Mode-specific overrides
+scan:
+  checks:
+    exclude:
+      - pg_version  # We know we're on PG 16
+
+audit:
+  checks:
+    exclude:
+      - conflict_log  # Too noisy in dev environment
+
+# Alternative: whitelist mode (mutually exclusive with exclude)
+# checks:
+#   include_only:
+#     - primary_keys
+#     - foreign_keys
+#     - wal_level
+
+# Report settings
+report:
+  todo_list: true              # Show To Do list (default: true)
+  todo_include_consider: false # Include CONSIDER in To Do (default: false)
 ```
 
 ## Output
@@ -290,6 +379,7 @@ No registration required. The check is discovered automatically at runtime.
 
 - Python 3.10+
 - psycopg2-binary >= 2.9
+- pyyaml >= 6.0
 - Target database: PostgreSQL 15, 16, 17, or 18
 - Read-only access to `pg_catalog`, `pg_stat_statements` (optional), and
   `pg_hba_file_rules` (optional)
