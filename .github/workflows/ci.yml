@@ -79,15 +79,6 @@ jobs:
           pip install pytest-cov
           pytest tests/ -v --tb=short --cov=mm_ready --cov-report=xml --cov-report=term-missing
 
-      - name: Upload coverage
-        if: matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage.xml
-          fail_ci_if_error: false
-        continue-on-error: true
-
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
