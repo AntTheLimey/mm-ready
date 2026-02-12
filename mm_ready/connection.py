@@ -39,6 +39,7 @@ def connect(
             params["password"] = os.environ["PGPASSWORD"]
         conn = psycopg2.connect(**params)
 
+    conn.set_client_encoding("UTF8")
     conn.set_session(readonly=True, autocommit=True)
     return conn
 
