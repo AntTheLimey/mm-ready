@@ -109,6 +109,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
+      - name: Install PostgreSQL 18 client
+        run: |
+          sudo apt-get install -y curl ca-certificates
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-18
+
       - name: Load test schema
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d mmready -f tests/test_schema_setup.sql
@@ -130,27 +139,29 @@ jobs:
           import json
           with open('scan-report.json') as f:
               report = json.load(f)
-          print(f\"Checks run: {report['checks_total']}\")
-          print(f\"Critical: {report['critical_count']}\")
-          print(f\"Warnings: {report['warning_count']}\")
-          print(f\"Consider: {report['consider_count']}\")
-          print(f\"Info: {report['info_count']}\")
+          s = report['summary']
+          print(f\"Checks run: {s['total_checks']}\")
+          print(f\"Critical: {s['critical']}\")
+          print(f\"Warnings: {s['warnings']}\")
+          print(f\"Consider: {s['consider']}\")
+          print(f\"Info: {s['info']}\")
           # Verify we got findings (test schema has intentional issues)
-          assert report['checks_total'] > 40, 'Expected 40+ checks to run'
+          assert s['total_checks'] > 40, 'Expected 40+ checks to run'
           print('Integration test passed!')
           "
 
       - name: Test analyze mode
         run: |
           # Create a schema dump and analyze it
-          PGPASSWORD=postgres pg_dump -h localhost -U postgres -d mmready --schema-only > schema.sql
+          PGPASSWORD=postgres /usr/lib/postgresql/18/bin/pg_dump -h localhost -U postgres -d mmready --schema-only > schema.sql
           mm-ready analyze --file schema.sql --format json --output analyze-report.json -v
           python -c "
           import json
           with open('analyze-report.json') as f:
               report = json.load(f)
-          print(f\"Analyze checks: {report['checks_total']}\")
-          assert report['checks_total'] >= 15, 'Expected 15+ analyze checks'
+          s = report['summary']
+          print(f\"Analyze checks: {s['total_checks']}\")
+          assert s['total_checks'] >= 15, 'Expected 15+ analyze checks'
           print('Analyze mode test passed!')
           "
 

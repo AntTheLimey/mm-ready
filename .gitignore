@@ -10,6 +10,9 @@ build/
 # Reports (generated output)
 reports/
 
+# Demo artifacts (generated schema dumps, reports)
+demo/
+
 # Temporary files (customer schema dumps, etc.)
 tmp/
 
