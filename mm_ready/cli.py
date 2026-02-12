@@ -447,23 +447,25 @@ def _make_default_output_path(fmt: str, dbname: str) -> str:
 
 
 def _make_output_path(user_path: str, fmt: str, dbname: str = "") -> str:
-    """Insert a timestamp into the output filename.
+    """Resolve a user-provided output path.
 
-    If the user provides a path like ``report.html``, the result is
-    ``report_20260127_131504.html``.  If they provide a bare directory,
-    the file is placed there with an auto-generated name.
+    If the user provides a directory, generate a timestamped filename
+    inside it.  Otherwise use the path exactly as given — the user
+    chose the name, so we respect it.
     """
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    ext = _FORMAT_EXT.get(fmt, "")
-    name = dbname or "mm-ready"
-
     if os.path.isdir(user_path):
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ext = _FORMAT_EXT.get(fmt, "")
+        name = dbname or "mm-ready"
         return os.path.join(user_path, f"{name}_{ts}{ext}")
 
+    # Add the format extension if the user didn't include one
     base, existing_ext = os.path.splitext(user_path)
     if not existing_ext:
-        existing_ext = ext
-    return f"{base}_{ts}{existing_ext}"
+        existing_ext = _FORMAT_EXT.get(fmt, "")
+        return f"{base}{existing_ext}"
+
+    return user_path
 
 
 def _parse_csv_set(value: str | None) -> set[str] | None:

@@ -120,22 +120,21 @@ class TestMakeDefaultOutputPath:
 
 
 class TestMakeOutputPath:
-    def test_inserts_timestamp(self):
+    def test_uses_exact_filename(self):
         path = _make_output_path("report.html", "html", "db")
-        assert path.startswith("report_")
-        assert path.endswith(".html")
-        assert re.search(r"\d{8}_\d{6}", path)
+        assert path == "report.html"
 
-    def test_no_extension_uses_format(self):
+    def test_no_extension_adds_format_ext(self):
         path = _make_output_path("report", "json", "db")
-        assert path.endswith(".json")
+        assert path == "report.json"
 
     def test_directory_path(self, tmp_path):
         path = _make_output_path(str(tmp_path), "html", "mydb")
         assert path.startswith(str(tmp_path))
         assert "mydb_" in path
         assert path.endswith(".html")
+        assert re.search(r"\d{8}_\d{6}", path)
 
     def test_preserves_user_extension(self):
         path = _make_output_path("output.txt", "html", "db")
-        assert path.endswith(".txt")
+        assert path == "output.txt"
