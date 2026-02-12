@@ -109,6 +109,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
+      - name: Install PostgreSQL 18 client
+        run: |
+          sudo apt-get install -y curl ca-certificates
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-18
+
       - name: Load test schema
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d mmready -f tests/test_schema_setup.sql
@@ -144,7 +153,7 @@ jobs:
       - name: Test analyze mode
         run: |
           # Create a schema dump and analyze it
-          PGPASSWORD=postgres pg_dump -h localhost -U postgres -d mmready --schema-only > schema.sql
+          PGPASSWORD=postgres /usr/lib/postgresql/18/bin/pg_dump -h localhost -U postgres -d mmready --schema-only > schema.sql
           mm-ready analyze --file schema.sql --format json --output analyze-report.json -v
           python -c "
           import json
