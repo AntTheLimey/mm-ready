@@ -6,8 +6,6 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
-
 
 @dataclass
 class CheckConfig:
@@ -92,6 +90,13 @@ def load_config(config_path: str | None = None, auto_discover: bool = True) -> C
 
     if not os.path.isfile(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
+
+    try:
+        import yaml
+    except ImportError:
+        raise ImportError(
+            "PyYAML is required to load config files. Install it with: pip install pyyaml"
+        ) from None
 
     with open(config_path) as f:
         data = yaml.safe_load(f) or {}
