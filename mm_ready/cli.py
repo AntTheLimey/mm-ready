@@ -115,10 +115,18 @@ def _add_connection_args(parser: argparse.ArgumentParser):
     grp = parser.add_argument_group("connection")
     grp.add_argument("--dsn", help="PostgreSQL connection URI (postgres://...)")
     grp.add_argument("--host", "-H", default=None, help="Database host")
-    grp.add_argument("--port", "-p", type=int, default=5432, help="Database port (default: 5432)")
+    grp.add_argument("--port", "-p", type=int, default=None, help="Database port (default: 5432)")
     grp.add_argument("--dbname", "-d", default=None, help="Database name")
     grp.add_argument("--user", "-U", default=None, help="Database user")
     grp.add_argument("--password", "-W", default=None, help="Database password")
+    grp.add_argument(
+        "--sslmode",
+        default=None,
+        help="SSL mode (disable, allow, prefer, require, verify-ca, verify-full)",
+    )
+    grp.add_argument("--sslcert", default=None, help="Path to client SSL certificate")
+    grp.add_argument("--sslkey", default=None, help="Path to client SSL private key")
+    grp.add_argument("--sslrootcert", default=None, help="Path to root CA certificate")
 
 
 def _add_output_args(parser: argparse.ArgumentParser):
@@ -321,6 +329,10 @@ def _run_mode(args, mode: str):
             user=args.user,
             password=args.password,
             dsn=args.dsn,
+            sslmode=args.sslmode,
+            sslcert=args.sslcert,
+            sslkey=args.sslkey,
+            sslrootcert=args.sslrootcert,
         )
     except psycopg2.OperationalError as e:
         error_msg = str(e).strip()
@@ -386,6 +398,10 @@ def _cmd_monitor(args):
             user=args.user,
             password=args.password,
             dsn=args.dsn,
+            sslmode=args.sslmode,
+            sslcert=args.sslcert,
+            sslkey=args.sslkey,
+            sslrootcert=args.sslrootcert,
         )
     except psycopg2.OperationalError as e:
         error_msg = str(e).strip()
