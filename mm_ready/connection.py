@@ -15,6 +15,10 @@ def connect(
     user: str | None = None,
     password: str | None = None,
     dsn: str | None = None,
+    sslmode: str | None = None,
+    sslcert: str | None = None,
+    sslkey: str | None = None,
+    sslrootcert: str | None = None,
 ) -> psycopg2.extensions.connection:
     """Create a database connection from explicit args or a DSN string.
 
@@ -24,19 +28,25 @@ def connect(
     if dsn:
         conn = psycopg2.connect(dsn)
     else:
+        # Build params dict: CLI args > PG* env vars > libpq defaults
+        _env_map = {
+            "host": ("PGHOST", host),
+            "port": ("PGPORT", port),
+            "dbname": ("PGDATABASE", dbname),
+            "user": ("PGUSER", user),
+            "password": ("PGPASSWORD", password),
+            "sslmode": ("PGSSLMODE", sslmode),
+            "sslcert": ("PGSSLCERT", sslcert),
+            "sslkey": ("PGSSLKEY", sslkey),
+            "sslrootcert": ("PGSSLROOTCERT", sslrootcert),
+        }
         params = {}
-        if host:
-            params["host"] = host
-        if port:
-            params["port"] = port
-        if dbname:
-            params["dbname"] = dbname
-        if user:
-            params["user"] = user
-        if password:
-            params["password"] = password
-        elif os.environ.get("PGPASSWORD"):
-            params["password"] = os.environ["PGPASSWORD"]
+        for key, (env_var, cli_val) in _env_map.items():
+            val = cli_val if cli_val is not None else os.environ.get(env_var)
+            if val is not None:
+                params[key] = val
+
+        params.setdefault("port", 5432)
         conn = psycopg2.connect(**params)
 
     conn.set_client_encoding("UTF8")
