@@ -427,11 +427,14 @@ def check_sequence_pks(schema: ParsedSchema, check_name: str, category: str) -> 
                 is_sequence_backed = True
                 seq_name = f"{tbl.table_name}_{col_name}_seq (identity)"
 
-            # Check for nextval() default
+            # Check for nextval() default (skip snowflake.nextval — already
+            # globally unique)
             elif col.default_expr and "nextval(" in col.default_expr.lower():
-                is_sequence_backed = True
-                m = re.search(r"nextval\('([^']+)'", col.default_expr)
-                seq_name = m.group(1) if m else col.default_expr
+                expr_lower = col.default_expr.lower()
+                if "snowflake.nextval" not in expr_lower:
+                    is_sequence_backed = True
+                    m = re.search(r"nextval\('([^']+)'", col.default_expr)
+                    seq_name = m.group(1) if m else col.default_expr
 
             if is_sequence_backed:
                 findings.append(

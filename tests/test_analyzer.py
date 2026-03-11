@@ -160,6 +160,91 @@ class TestCheckSequencePks:
         findings = check_sequence_pks(schema, CN, CAT)
         assert len(findings) == 0
 
+    def test_snowflake_nextval_pk_skipped(self):
+        """Columns using snowflake.nextval() are already globally unique."""
+        schema = ParsedSchema()
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="events",
+                columns=[
+                    ColumnDef(
+                        name="id",
+                        data_type="bigint",
+                        default_expr="snowflake.nextval('public.events_id_seq'::regclass)",
+                    )
+                ],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="events_pkey",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="events",
+                columns=["id"],
+            )
+        )
+        findings = check_sequence_pks(schema, CN, CAT)
+        assert len(findings) == 0
+
+    def test_snowflake_nextval_bare_skipped(self):
+        """Bare snowflake.nextval() without schema-qualified sequence is also safe."""
+        schema = ParsedSchema()
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="orders",
+                columns=[
+                    ColumnDef(
+                        name="id",
+                        data_type="bigint",
+                        default_expr="snowflake.nextval('orders_id_seq')",
+                    )
+                ],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="orders_pkey",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="orders",
+                columns=["id"],
+            )
+        )
+        findings = check_sequence_pks(schema, CN, CAT)
+        assert len(findings) == 0
+
+    def test_standard_nextval_still_flagged(self):
+        """Standard nextval() must still be flagged even when snowflake tests exist."""
+        schema = ParsedSchema()
+        schema.tables.append(
+            TableDef(
+                schema_name="public",
+                table_name="accounts",
+                columns=[
+                    ColumnDef(
+                        name="id",
+                        data_type="integer",
+                        default_expr="nextval('accounts_id_seq'::regclass)",
+                    )
+                ],
+            )
+        )
+        schema.constraints.append(
+            ConstraintDef(
+                name="accounts_pkey",
+                constraint_type="PRIMARY KEY",
+                table_schema="public",
+                table_name="accounts",
+                columns=["id"],
+            )
+        )
+        findings = check_sequence_pks(schema, CN, CAT)
+        assert len(findings) == 1
+        assert findings[0].severity == Severity.CRITICAL
+
 
 # ---------------------------------------------------------------------------
 # check_foreign_keys
