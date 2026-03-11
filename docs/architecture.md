@@ -117,9 +117,13 @@ appropriate `checks/` subdirectory with a class that subclasses `BaseCheck`.
 
 Database connection factory.
 
-`connect(host, port, dbname, user, password, dsn)`:
+`connect(host, port, dbname, user, password, dsn, sslmode, sslcert, sslkey, sslrootcert)`:
 - Accepts either a DSN string or individual connection parameters
-- Falls back to `PGPASSWORD` environment variable if no password provided
+- Falls back to standard `PG*` environment variables (`PGHOST`, `PGPORT`,
+  `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `PGSSLMODE`, `PGSSLCERT`,
+  `PGSSLKEY`, `PGSSLROOTCERT`) when CLI args are not provided
+- Precedence: CLI args > environment variables > DSN components > libpq defaults
+- When `--dsn` is provided, additional CLI/env params override DSN components
 - Configures the connection as **read-only** with **autocommit** enabled
 - Returns a `psycopg2` connection object
 
