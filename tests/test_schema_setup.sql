@@ -16,6 +16,7 @@
 -- ===================== EXTENSIONS =====================
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;   -- needed for exclusion constraints
+CREATE EXTENSION IF NOT EXISTS snowflake;    -- needed for snowflake sequence test
 
 
 -- ===================== TYPES =====================
@@ -251,6 +252,33 @@ CREATE TABLE IF NOT EXISTS mmr_identity_pk (
     id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     val text
 );
+
+-- pg_dump pattern: PK added via ALTER TABLE, not inline (should NOT
+-- trigger primary_keys WARNING — the PK exists, just added separately)
+CREATE TABLE IF NOT EXISTS mmr_alter_pk (
+    id int NOT NULL,
+    data text
+);
+DO $$ BEGIN
+    ALTER TABLE ONLY mmr_alter_pk
+        ADD CONSTRAINT mmr_alter_pk_pkey PRIMARY KEY (id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- snowflake sequence PK: should NOT trigger sequence_pks CRITICAL
+-- (the column already uses pgEdge snowflake for globally unique IDs)
+CREATE SEQUENCE IF NOT EXISTS mmr_snowflake_seq;
+CREATE TABLE IF NOT EXISTS mmr_snowflake_pk (
+    id bigint NOT NULL,
+    name text
+);
+DO $$ BEGIN
+    ALTER TABLE ONLY mmr_snowflake_pk
+        ADD CONSTRAINT mmr_snowflake_pk_pkey PRIMARY KEY (id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+ALTER TABLE ONLY mmr_snowflake_pk ALTER COLUMN id
+    SET DEFAULT snowflake.nextval('mmr_snowflake_seq'::regclass);
 
 -- unlogged_tables check (WARNING)
 DO $$ BEGIN

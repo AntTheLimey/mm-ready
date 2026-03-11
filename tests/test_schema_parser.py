@@ -393,6 +393,45 @@ class TestAlterAddIdentity:
         col = schema.tables[0].columns[0]
         assert col.identity == "BY DEFAULT"
 
+    def test_identity_bare_no_keyword(self, tmp_path):
+        """pg_dump sometimes emits bare ADD GENERATED AS IDENTITY without ALWAYS/BY DEFAULT."""
+        schema = _parse(
+            tmp_path,
+            """\
+            CREATE TABLE public.activitylog (
+                id integer NOT NULL,
+                name text
+            );
+            ALTER TABLE public.activitylog ALTER COLUMN id ADD GENERATED AS IDENTITY (
+                SEQUENCE NAME public.activitylog_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1
+            );
+        """,
+        )
+        col = schema.tables[0].columns[0]
+        assert col.identity == "ALWAYS"
+
+    def test_identity_bare_multiline(self, tmp_path):
+        """Bare identity with sequence options spread across multiple lines."""
+        schema = _parse(
+            tmp_path,
+            """\
+            CREATE TABLE public.logs (
+                id bigint NOT NULL,
+                msg text
+            );
+            ALTER TABLE public.logs ALTER COLUMN id ADD GENERATED AS IDENTITY (
+                SEQUENCE NAME public.logs_id_seq
+                START WITH 100
+                INCREMENT BY 1
+                NO MINVALUE
+                NO MAXVALUE
+                CACHE 1
+            );
+        """,
+        )
+        col = schema.tables[0].columns[0]
+        assert col.identity == "ALWAYS"
+
 
 # ---------------------------------------------------------------------------
 # Extensions

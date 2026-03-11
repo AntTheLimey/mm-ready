@@ -198,7 +198,8 @@ RE_ALTER_SET_DEFAULT = re.compile(
 
 RE_ALTER_ADD_IDENTITY = re.compile(
     r"ALTER\s+TABLE\s+(?:ONLY\s+)?([\w\"]+(?:\.[\w\"]+)?)\s+"
-    r"ALTER\s+COLUMN\s+([\w\"]+)\s+ADD\s+GENERATED\s+(ALWAYS|BY\s+DEFAULT)\s+AS\s+IDENTITY",
+    r"ALTER\s+COLUMN\s+([\w\"]+)\s+ADD\s+GENERATED\s+"
+    r"(?:(ALWAYS|BY\s+DEFAULT)\s+)?AS\s+IDENTITY",
     re.IGNORECASE,
 )
 
@@ -657,7 +658,10 @@ def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> Non
     if m:
         s, n = _split_qualified(m.group(1), search_path)
         col = _unquote(m.group(2))
-        identity_type = m.group(3).upper().replace("  ", " ")
+        # group(3) is None when pg_dump emits bare "ADD GENERATED AS IDENTITY"
+        # without ALWAYS or BY DEFAULT; PostgreSQL defaults to ALWAYS.
+        raw_identity = m.group(3)
+        identity_type = raw_identity.upper().replace("  ", " ") if raw_identity else "ALWAYS"
         if s not in _EXCLUDED_SCHEMAS:
             tbl = schema.get_table(s, n)
             if tbl:
