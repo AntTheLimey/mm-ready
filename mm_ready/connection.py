@@ -25,29 +25,43 @@ def connect(
     CLI args take precedence over DSN components if both are provided.
     Falls back to standard PG* environment variables.
     """
-    if dsn:
-        conn = psycopg2.connect(dsn)
-    else:
-        # Build params dict: CLI args > PG* env vars > libpq defaults
-        _env_map = {
-            "host": ("PGHOST", host),
-            "port": ("PGPORT", port),
-            "dbname": ("PGDATABASE", dbname),
-            "user": ("PGUSER", user),
-            "password": ("PGPASSWORD", password),
-            "sslmode": ("PGSSLMODE", sslmode),
-            "sslcert": ("PGSSLCERT", sslcert),
-            "sslkey": ("PGSSLKEY", sslkey),
-            "sslrootcert": ("PGSSLROOTCERT", sslrootcert),
-        }
-        params = {}
-        for key, (env_var, cli_val) in _env_map.items():
-            val = cli_val if cli_val is not None else os.environ.get(env_var)
-            if val is not None:
-                params[key] = val
 
-        params.setdefault("port", 5432)
-        conn = psycopg2.connect(**params)
+    def _resolve(cli_val: str | int | None, env_var: str) -> str | None:
+        """Return CLI value (as string) if set, else env var, else None."""
+        if cli_val is not None:
+            return str(cli_val)
+        return os.environ.get(env_var)
+
+    if dsn:
+        # psycopg2 lets keyword args override DSN components, so forward
+        # all CLI/env params — they take precedence when provided.
+        r_port = _resolve(port, "PGPORT")
+        conn = psycopg2.connect(
+            dsn,
+            host=_resolve(host, "PGHOST"),
+            port=int(r_port) if r_port else None,
+            dbname=_resolve(dbname, "PGDATABASE"),
+            user=_resolve(user, "PGUSER"),
+            password=_resolve(password, "PGPASSWORD"),
+            sslmode=_resolve(sslmode, "PGSSLMODE"),
+            sslcert=_resolve(sslcert, "PGSSLCERT"),
+            sslkey=_resolve(sslkey, "PGSSLKEY"),
+            sslrootcert=_resolve(sslrootcert, "PGSSLROOTCERT"),
+        )
+    else:
+        # Resolve each param: CLI args > PG* env vars > libpq defaults
+        r_port = _resolve(port, "PGPORT")
+        conn = psycopg2.connect(
+            host=_resolve(host, "PGHOST"),
+            port=int(r_port) if r_port else 5432,
+            dbname=_resolve(dbname, "PGDATABASE"),
+            user=_resolve(user, "PGUSER"),
+            password=_resolve(password, "PGPASSWORD"),
+            sslmode=_resolve(sslmode, "PGSSLMODE"),
+            sslcert=_resolve(sslcert, "PGSSLCERT"),
+            sslkey=_resolve(sslkey, "PGSSLKEY"),
+            sslrootcert=_resolve(sslrootcert, "PGSSLROOTCERT"),
+        )
 
     conn.set_client_encoding("UTF8")
     conn.set_session(readonly=True, autocommit=True)

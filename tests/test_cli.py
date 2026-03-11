@@ -37,10 +37,11 @@ class TestBuildParser:
         assert args.file == "test.sql"
         assert args.format == "html"  # default
 
-    def test_port_default(self):
+    def test_port_default_is_none(self):
+        """Port defaults to None at argparse level; 5432 applied in connection.py."""
         parser = build_parser()
         args = parser.parse_args(["scan", "--host", "x"])
-        assert args.port == 5432
+        assert args.port is None
 
     def test_monitor_duration_default(self):
         parser = build_parser()
