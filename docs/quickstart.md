@@ -49,6 +49,25 @@ Or use a connection URI:
 mm-ready --dsn "postgresql://user:password@host:5432/dbname"
 ```
 
+Or rely on standard PostgreSQL environment variables — any `PG*` variable
+(`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`) is used as a
+fallback when the corresponding CLI flag is not provided:
+
+```bash
+export PGHOST=your-db-host PGDATABASE=your_database PGUSER=your_user
+export PGPASSWORD=your_password
+mm-ready
+```
+
+For SSL connections, use `--sslmode`, `--sslcert`, `--sslkey`, and
+`--sslrootcert` (or their `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY`,
+`PGSSLROOTCERT` environment variable equivalents):
+
+```bash
+mm-ready scan --host db.example.com --dbname myapp --user postgres \
+  --sslmode verify-full --sslrootcert /path/to/ca.crt
+```
+
 You can override any of the defaults explicitly:
 
 ```bash

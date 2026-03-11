@@ -51,9 +51,35 @@ mm-ready scan \
 mm-ready scan --dsn "postgresql://postgres:secret@db.example.com/myapp" \
   --format json --output report.json
 
+# With SSL
+mm-ready scan \
+  --host db.example.com --dbname myapp --user postgres \
+  --sslmode verify-full --sslrootcert /path/to/ca.crt
+
 # Minimal — defaults to scan, HTML format, writes to ./reports/
 mm-ready --host localhost --dbname myapp --user postgres
 ```
+
+### Environment variables
+
+All connection parameters fall back to standard PostgreSQL environment
+variables when not provided via CLI flags:
+
+| CLI flag | Environment variable |
+|----------|---------------------|
+| `--host` | `PGHOST` |
+| `--port` | `PGPORT` |
+| `--dbname` | `PGDATABASE` |
+| `--user` | `PGUSER` |
+| `--password` | `PGPASSWORD` |
+| `--sslmode` | `PGSSLMODE` |
+| `--sslcert` | `PGSSLCERT` |
+| `--sslkey` | `PGSSLKEY` |
+| `--sslrootcert` | `PGSSLROOTCERT` |
+
+CLI flags always take precedence over environment variables. When using
+`--dsn`, any additional CLI flags or environment variables override the
+corresponding DSN component.
 
 ### Audit (post-Spock health check)
 
