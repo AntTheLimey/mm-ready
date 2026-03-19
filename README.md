@@ -412,4 +412,4 @@ No registration required. The check is discovered automatically at runtime.
 
 ## License
 
-Proprietary. All rights reserved.
+Licensed under the [PostgreSQL License](LICENSE.md).

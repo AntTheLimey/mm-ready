@@ -7,7 +7,7 @@ a liberal Open Source license, similar to the BSD or MIT licenses.
 
 PostgreSQL License
 
-Copyright (c) 2025, Antony Pegg
+Copyright (c) 2025, pgEdge, Inc
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement
