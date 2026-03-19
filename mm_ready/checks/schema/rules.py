@@ -14,6 +14,7 @@ class RulesCheck(BaseCheck):
     name = "rules"
     category = "schema"
     description = "Rules on tables — can cause unexpected behaviour with logical replication"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Detects rules defined on regular tables that may interfere with logical replication and reports findings for each rule.

@@ -14,6 +14,7 @@ class MultipleUniqueIndexesCheck(BaseCheck):
     name = "multiple_unique_indexes"
     category = "schema"
     description = "Tables with multiple unique indexes — affects Spock conflict resolution"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify tables that have more than one unique index and generate Findings describing potential Spock conflict-resolution implications.

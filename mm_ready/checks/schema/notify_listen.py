@@ -14,6 +14,7 @@ class NotifyListenCheck(BaseCheck):
     name = "notify_listen"
     category = "schema"
     description = "LISTEN/NOTIFY usage — notifications are not replicated by Spock"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Detects usage of NOTIFY or pg_notify in database functions and recent statements and reports findings about their replication implications.

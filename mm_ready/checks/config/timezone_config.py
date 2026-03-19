@@ -14,6 +14,7 @@ class TimezoneConfigCheck(BaseCheck):
     name = "timezone_config"
     category = "config"
     description = "Timezone settings — UTC recommended for consistent commit timestamps"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check the server's timezone and log_timezone settings and produce findings recommending UTC when appropriate.

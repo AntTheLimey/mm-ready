@@ -14,6 +14,7 @@ class EnumTypesCheck(BaseCheck):
     name = "enum_types"
     category = "schema"
     description = "ENUM types — DDL changes to enums require multi-node coordination"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify ENUM types in the database and produce findings that warn that ENUM DDL changes require coordinated application across nodes.

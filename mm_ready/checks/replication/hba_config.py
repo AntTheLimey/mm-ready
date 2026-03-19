@@ -14,6 +14,7 @@ class HbaConfigCheck(BaseCheck):
     name = "hba_config"
     category = "replication"
     description = "pg_hba.conf must allow replication connections between nodes"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         # pg_hba_file_rules is available in PG >= 15

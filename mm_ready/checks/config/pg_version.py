@@ -14,6 +14,7 @@ class PgVersionCheck(BaseCheck):
     name = "pg_version"
     category = "config"
     description = "PostgreSQL version compatibility with Spock 5"
+    mode = "scan"
 
     # Spock 5.x supports PostgreSQL 15, 16, 17, 18
     # (PG 18 added in Spock 5.0.3; confirmed via src/compat/ directories)

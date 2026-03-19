@@ -16,6 +16,7 @@ class IdleTransactionTimeoutCheck(BaseCheck):
     description = (
         "Idle-in-transaction timeout — long idle transactions block VACUUM and cause bloat"
     )
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check PostgreSQL idle timeout settings and report findings when either timeout is disabled.

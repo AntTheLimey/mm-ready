@@ -14,6 +14,7 @@ class ParallelApplyCheck(BaseCheck):
     name = "parallel_apply"
     category = "config"
     description = "Parallel apply workers configuration for Spock performance"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Validate Spock parallel-apply related PostgreSQL configuration and produce findings.

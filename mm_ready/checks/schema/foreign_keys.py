@@ -14,6 +14,7 @@ class ForeignKeysCheck(BaseCheck):
     name = "foreign_keys"
     category = "schema"
     description = "Foreign key relationships — replication ordering and cross-node considerations"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check database foreign key constraints for replication-ordering concerns and report CASCADE actions.

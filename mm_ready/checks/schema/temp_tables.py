@@ -14,6 +14,7 @@ class TempTablesCheck(BaseCheck):
     name = "temp_tables"
     category = "schema"
     description = "TEMPORARY tables — session-local, never replicated"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         # Temp tables are session-scoped and won't appear in pg_class for other sessions.

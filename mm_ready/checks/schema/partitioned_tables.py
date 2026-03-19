@@ -14,6 +14,7 @@ class PartitionedTablesCheck(BaseCheck):
     name = "partitioned_tables"
     category = "schema"
     description = "Partitioned tables — review partition strategy for Spock compatibility"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify partitioned tables and produce findings about their partition strategy and partition counts to assess Spock compatibility.

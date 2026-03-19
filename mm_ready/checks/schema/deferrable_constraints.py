@@ -14,6 +14,7 @@ class DeferrableConstraintsCheck(BaseCheck):
     name = "deferrable_constraints"
     category = "schema"
     description = "Deferrable unique/PK constraints — silently skipped by Spock conflict resolution"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Detect deferrable UNIQUE and PRIMARY KEY constraints in the database and return findings describing them.

@@ -14,6 +14,7 @@ class GeneratedColumnsCheck(BaseCheck):
     name = "generated_columns"
     category = "schema"
     description = "Generated/stored columns — replication behavior differences"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify generated (stored or virtual) columns in the connected PostgreSQL database and produce Findings for each.

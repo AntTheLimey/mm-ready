@@ -14,6 +14,7 @@ class NumericColumnsCheck(BaseCheck):
     name = "numeric_columns"
     category = "schema"
     description = "Numeric columns that may be Delta-Apply candidates (counters, balances, etc.)"
+    mode = "scan"
 
     # Column names that suggest accumulator/counter patterns
     SUSPECT_PATTERNS = [

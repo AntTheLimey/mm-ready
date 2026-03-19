@@ -14,6 +14,7 @@ class SequencePrimaryKeysCheck(BaseCheck):
     name = "sequence_pks"
     category = "schema"
     description = "Primary keys using standard sequences — must migrate to pgEdge snowflake"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify primary key columns that are backed by standard sequences or identity columns and produce Findings recommending migration to pgEdge snowflake.

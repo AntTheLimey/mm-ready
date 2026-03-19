@@ -14,6 +14,7 @@ class EventTriggersCheck(BaseCheck):
     name = "event_triggers"
     category = "schema"
     description = "Event triggers — fire on DDL events, may interact with Spock DDL replication"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Inspect PostgreSQL event triggers and report findings about their enabled modes with respect to DDL replication.

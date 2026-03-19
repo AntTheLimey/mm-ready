@@ -14,6 +14,7 @@ class MaxReplicationSlotsCheck(BaseCheck):
     name = "max_replication_slots"
     category = "replication"
     description = "Sufficient replication slots for Spock node connections"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Determine whether PostgreSQL's max_replication_slots provides sufficient headroom for Spock node connections.

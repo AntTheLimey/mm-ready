@@ -14,6 +14,7 @@ class ExclusionConstraintsCheck(BaseCheck):
     name = "exclusion_constraints"
     category = "schema"
     description = "Exclusion constraints — not enforceable across Spock nodes"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Finds exclusion constraints in non-system schemas and produces a Finding for each describing potential multi-node replication risks.

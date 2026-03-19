@@ -14,6 +14,7 @@ class ViewsCheck(BaseCheck):
     name = "views_audit"
     category = "functions"
     description = "Views and materialized views — refresh coordination in multi-master"
+    mode = "both"
 
     def run(self, conn: connection) -> list[Finding]:
         # Materialized views

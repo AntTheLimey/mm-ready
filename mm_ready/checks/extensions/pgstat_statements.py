@@ -14,6 +14,7 @@ class PgStatStatementsCheck(BaseCheck):
     name = "pg_stat_statements_check"
     category = "extensions"
     description = "pg_stat_statements availability for SQL pattern observation"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check for the pg_stat_statements extension and report its availability and queryability.

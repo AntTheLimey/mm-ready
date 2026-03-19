@@ -14,6 +14,7 @@ class TruncateCascadeCheck(BaseCheck):
     name = "truncate_cascade"
     category = "sql_patterns"
     description = "TRUNCATE ... CASCADE and RESTART IDENTITY — replication behaviour caveats"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Run checks against the provided PostgreSQL connection to detect TRUNCATE ... CASCADE and TRUNCATE ... RESTART IDENTITY usage recorded in pg_stat_statements.

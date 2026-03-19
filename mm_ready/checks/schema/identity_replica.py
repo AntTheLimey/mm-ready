@@ -17,6 +17,7 @@ class UpdateDeleteNoPkCheck(BaseCheck):
         "Tables without primary keys that have UPDATE/DELETE activity — "
         "these operations are silently dropped by Spock"
     )
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify tables that lack a primary key and generate Findings based on recent DML activity.

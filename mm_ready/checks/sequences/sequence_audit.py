@@ -14,6 +14,7 @@ class SequenceAuditCheck(BaseCheck):
     name = "sequence_audit"
     category = "sequences"
     description = "All sequences, types, and ownership — need snowflake migration plan"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Audit all non-system sequences in the connected PostgreSQL database and produce findings describing each sequence's type, start/increment values, cycle behavior, and ownership, along with migration guidance for multi-master setups.

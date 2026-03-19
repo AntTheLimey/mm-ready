@@ -14,6 +14,7 @@ class DatabaseEncodingCheck(BaseCheck):
     name = "database_encoding"
     category = "replication"
     description = "Database encoding — all Spock nodes must use the same encoding"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check the current database's encoding and produce Findings describing its compatibility for Spock replication.

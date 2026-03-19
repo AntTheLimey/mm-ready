@@ -14,6 +14,7 @@ class InstalledExtensionsCheck(BaseCheck):
     name = "installed_extensions"
     category = "extensions"
     description = "Audit installed extensions for known Spock compatibility issues"
+    mode = "scan"
 
     # Extensions known to have issues or considerations with logical replication
     KNOWN_ISSUES = {

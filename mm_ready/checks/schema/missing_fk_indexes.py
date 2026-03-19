@@ -14,6 +14,7 @@ class MissingFkIndexesCheck(BaseCheck):
     name = "missing_fk_indexes"
     category = "schema"
     description = "Foreign key columns without indexes — slow cascades and lock contention"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         # Find FK columns on the referencing (child) side that lack a matching index.

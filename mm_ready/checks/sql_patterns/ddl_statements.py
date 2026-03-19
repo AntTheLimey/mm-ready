@@ -14,6 +14,7 @@ class DdlStatementsCheck(BaseCheck):
     name = "ddl_statements"
     category = "sql_patterns"
     description = "DDL statements — must use Spock DDL replication or manual coordination"
+    mode = "scan"
 
     DDL_PATTERNS = [
         "CREATE TABLE",

@@ -14,6 +14,7 @@ class TrackCommitTimestampCheck(BaseCheck):
     name = "track_commit_timestamp"
     category = "config"
     description = "track_commit_timestamp must be on for Spock conflict resolution"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check PostgreSQL's track_commit_timestamp setting and report a Finding if it is not enabled.

@@ -14,6 +14,7 @@ class RowLevelSecurityCheck(BaseCheck):
     name = "row_level_security"
     category = "schema"
     description = "Row-level security policies — apply worker runs as superuser, bypasses RLS"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Detect tables that have row-level security (RLS) enabled and produce findings describing each table's RLS configuration.

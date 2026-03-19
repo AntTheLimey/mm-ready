@@ -14,6 +14,7 @@ class ConcurrentIndexesCheck(BaseCheck):
     name = "concurrent_indexes"
     category = "sql_patterns"
     description = "CREATE INDEX CONCURRENTLY — must be created manually on each node"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.

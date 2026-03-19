@@ -14,6 +14,7 @@ class InheritanceCheck(BaseCheck):
     name = "inheritance"
     category = "schema"
     description = "Table inheritance (non-partition) — not well supported in logical replication"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify non-partition table inheritance relationships in the database and produce findings for each child table.

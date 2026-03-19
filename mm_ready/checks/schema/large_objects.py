@@ -14,6 +14,7 @@ class LargeObjectsCheck(BaseCheck):
     name = "large_objects"
     category = "schema"
     description = "Large object (LOB) usage — logical decoding does not support them"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         # Check if any large objects exist

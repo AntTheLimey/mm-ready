@@ -14,6 +14,7 @@ class AdvisoryLocksCheck(BaseCheck):
     name = "advisory_locks"
     category = "sql_patterns"
     description = "Advisory lock usage — locks are node-local, not replicated"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Search pg_stat_statements for queries that call PostgreSQL advisory lock functions and produce Findings for each detected usage.

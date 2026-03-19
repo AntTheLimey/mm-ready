@@ -14,6 +14,7 @@ class TempTableQueriesCheck(BaseCheck):
     name = "temp_table_queries"
     category = "sql_patterns"
     description = "CREATE TEMP TABLE in SQL — session-local, not replicated"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Run the temp-table detection check against pg_stat_statements using the provided DB connection.

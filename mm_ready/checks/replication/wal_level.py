@@ -14,6 +14,7 @@ class WalLevelCheck(BaseCheck):
     name = "wal_level"
     category = "replication"
     description = "wal_level must be 'logical' for Spock replication"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check the PostgreSQL server's wal_level and produce a Finding if it is not set to 'logical'.

@@ -14,6 +14,7 @@ class MaxWorkerProcessesCheck(BaseCheck):
     name = "max_worker_processes"
     category = "replication"
     description = "Sufficient worker processes for Spock background workers"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check whether max_worker_processes is large enough for Spock background workers.

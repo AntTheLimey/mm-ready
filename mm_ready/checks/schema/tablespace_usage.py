@@ -14,6 +14,7 @@ class TablespaceUsageCheck(BaseCheck):
     name = "tablespace_usage"
     category = "schema"
     description = "Non-default tablespace usage — tablespaces must exist on all nodes"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Finds database objects that use non-default (local) tablespaces and returns a Finding for each tablespace with the objects that use it.

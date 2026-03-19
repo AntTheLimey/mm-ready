@@ -14,6 +14,7 @@ class LolorCheck(BaseCheck):
     name = "lolor_check"
     category = "extensions"
     description = "LOLOR extension — required for replicating large objects"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Assess whether the database uses large objects and verify that the LOLOR extension is installed and correctly configured for large-object replication.

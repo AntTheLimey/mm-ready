@@ -14,6 +14,7 @@ class SequenceDataTypesCheck(BaseCheck):
     name = "sequence_data_types"
     category = "sequences"
     description = "Sequence data types — smallint/integer may overflow faster in multi-master"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Detect sequences using small integer types that may overflow in multi-master setups.

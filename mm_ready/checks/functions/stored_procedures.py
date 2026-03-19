@@ -14,6 +14,7 @@ class StoredProceduresCheck(BaseCheck):
     name = "stored_procedures"
     category = "functions"
     description = "Audit stored procedures/functions for write operations and DDL"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Audit user-defined functions and procedures for potential write operations and non-replicated side effects.

@@ -14,6 +14,7 @@ class SnowflakeExtensionCheck(BaseCheck):
     name = "snowflake_check"
     category = "extensions"
     description = "Check availability of pgEdge snowflake extension for unique ID generation"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         # Check if installed

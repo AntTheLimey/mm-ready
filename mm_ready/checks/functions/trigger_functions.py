@@ -14,6 +14,7 @@ class TriggerFunctionsCheck(BaseCheck):
     name = "trigger_functions"
     category = "functions"
     description = "Triggers — ENABLE REPLICA and ENABLE ALWAYS both fire during Spock apply"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify triggers that may conflict with replication and produce a Finding for each discovered trigger.

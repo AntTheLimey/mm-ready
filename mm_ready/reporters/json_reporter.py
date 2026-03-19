@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from mm_ready import __version__
 from mm_ready.models import ScanReport
 
 
@@ -39,7 +40,7 @@ def render(report: ScanReport) -> str:
     data: dict[str, Any] = {
         "meta": {
             "tool": "mm-ready",
-            "version": "0.1.0",
+            "version": __version__,
             "timestamp": report.timestamp.isoformat(),
             "database": report.database,
             "host": report.host,

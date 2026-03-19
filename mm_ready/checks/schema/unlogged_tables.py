@@ -14,6 +14,7 @@ class UnloggedTablesCheck(BaseCheck):
     name = "unlogged_tables"
     category = "schema"
     description = "UNLOGGED tables — not written to WAL and cannot be replicated"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify UNLOGGED tables (tables not written to the write-ahead log) outside standard system schemas and produce a Finding for each.

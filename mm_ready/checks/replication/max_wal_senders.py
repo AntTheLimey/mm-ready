@@ -14,6 +14,7 @@ class MaxWalSendersCheck(BaseCheck):
     name = "max_wal_senders"
     category = "replication"
     description = "Sufficient max_wal_senders for Spock logical replication"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Check that max_wal_senders is sufficiently large for Spock logical replication.

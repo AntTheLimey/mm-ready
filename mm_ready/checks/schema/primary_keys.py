@@ -14,6 +14,7 @@ class PrimaryKeysCheck(BaseCheck):
     name = "primary_keys"
     category = "schema"
     description = "Tables without primary keys — affects Spock replication behaviour"
+    mode = "scan"
 
     def run(self, conn: connection) -> list[Finding]:
         """Identify all regular tables that lack a primary key and return a Finding for each.

@@ -14,6 +14,7 @@ class ColumnDefaultsCheck(BaseCheck):
     name = "column_defaults"
     category = "schema"
     description = "Volatile column defaults (now(), random(), etc.) — may differ across nodes"
+    mode = "scan"
 
     # Patterns that indicate volatile defaults
     VOLATILE_PATTERNS = [
