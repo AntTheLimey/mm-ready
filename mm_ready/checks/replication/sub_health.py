@@ -1,5 +1,7 @@
 """Audit check: verify Spock subscription health."""
 
+from __future__ import annotations
+
 import logging
 
 import psycopg2

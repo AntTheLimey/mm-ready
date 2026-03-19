@@ -1,5 +1,7 @@
 """Check for foreign key columns without supporting indexes."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

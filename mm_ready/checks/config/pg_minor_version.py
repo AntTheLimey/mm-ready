@@ -1,5 +1,7 @@
 """Audit check: report PostgreSQL minor version for cross-node consistency."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

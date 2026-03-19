@@ -1,5 +1,7 @@
 """Check if LOLOR extension is needed and properly configured for large object replication."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

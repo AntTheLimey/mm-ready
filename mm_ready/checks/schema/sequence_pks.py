@@ -1,5 +1,7 @@
 """Check for primary keys backed by standard sequences (need snowflake migration)."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

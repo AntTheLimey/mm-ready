@@ -1,5 +1,7 @@
 """Check for event triggers — fire on DDL events, interact with Spock DDL replication."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

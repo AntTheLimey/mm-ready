@@ -1,5 +1,7 @@
 """Audit check: detect stale or inactive replication slots retaining WAL."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

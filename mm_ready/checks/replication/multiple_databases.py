@@ -1,5 +1,7 @@
 """Check for multiple databases in the instance."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

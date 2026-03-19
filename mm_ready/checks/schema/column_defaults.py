@@ -1,5 +1,7 @@
 """Check for volatile column defaults that may produce different values per node."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

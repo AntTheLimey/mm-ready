@@ -1,5 +1,7 @@
 """Check sequence data types — smallint/integer sequences may overflow in multi-master."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

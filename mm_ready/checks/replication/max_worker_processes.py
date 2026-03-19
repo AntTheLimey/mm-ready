@@ -1,5 +1,7 @@
 """Check max_worker_processes is sufficient for Spock."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

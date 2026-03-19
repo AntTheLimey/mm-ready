@@ -1,5 +1,7 @@
 """Check timezone configuration for commit timestamp consistency across nodes."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

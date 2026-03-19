@@ -1,5 +1,7 @@
 """Check for deferrable unique/PK constraints — Spock skips them for conflict resolution."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

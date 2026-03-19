@@ -1,5 +1,7 @@
 """Check shared_preload_libraries includes spock (audit mode only)."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

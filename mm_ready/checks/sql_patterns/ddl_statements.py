@@ -1,5 +1,7 @@
 """Detect DDL statements in tracked SQL for replication awareness."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

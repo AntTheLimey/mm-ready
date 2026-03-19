@@ -1,5 +1,7 @@
 """Check for large object usage — recommend LOLOR extension."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

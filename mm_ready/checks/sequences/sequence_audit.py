@@ -1,5 +1,7 @@
 """Audit all sequences for multi-master migration planning."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

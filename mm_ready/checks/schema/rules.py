@@ -1,5 +1,7 @@
 """Check for rules on tables — rules interact poorly with logical replication."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 

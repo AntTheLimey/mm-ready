@@ -1,5 +1,7 @@
 """Check for CREATE INDEX CONCURRENTLY usage — must be done manually per node."""
 
+from __future__ import annotations
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
