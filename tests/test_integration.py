@@ -1,17 +1,24 @@
 """Integration tests — run a full scan against the Docker test database.
 
-These tests require the mmready-test Docker container to be running:
+These tests require a PostgreSQL instance with the test schema loaded.
+
+Locally (Docker):
 
     docker run -d --name mmready-test \
       -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=mmready \
       -p 5499:5432 \
       ghcr.io/pgedge/pgedge-postgres:18.1-spock5.0.4-standard-1
 
+In CI, the database runs as a service container on port 5432.
+Connection details are read from PG* environment variables with
+local defaults (localhost:5499).
+
 Tests are skipped automatically if the database is not reachable.
 """
 
 from __future__ import annotations
 
+import os
 from collections.abc import Generator
 
 import pytest
@@ -19,16 +26,23 @@ from psycopg2.extensions import connection
 
 from mm_ready.models import ScanReport
 
+# Connection defaults — CI sets PG* env vars, local uses Docker on 5499
+_DB_HOST = os.environ.get("PGHOST", "localhost")
+_DB_PORT = int(os.environ.get("PGPORT", "5499"))
+_DB_NAME = os.environ.get("PGDATABASE", "mmready")
+_DB_USER = os.environ.get("PGUSER", "postgres")
+_DB_PASS = os.environ.get("PGPASSWORD", "postgres")
+
 # Try to connect; skip entire module if unavailable
 try:
     from mm_ready.connection import connect
 
     _conn = connect(
-        host="localhost",
-        port=5499,
-        dbname="mmready",
-        user="postgres",
-        password="postgres",
+        host=_DB_HOST,
+        port=_DB_PORT,
+        dbname=_DB_NAME,
+        user=_DB_USER,
+        password=_DB_PASS,
         dsn=None,
     )
     _conn.close()
@@ -37,7 +51,7 @@ except Exception:
     _db_available = False
 
 pytestmark = pytest.mark.skipif(
-    not _db_available, reason="Test database not available on localhost:5499"
+    not _db_available, reason=f"Test database not available on {_DB_HOST}:{_DB_PORT}"
 )
 
 
@@ -53,11 +67,11 @@ def db_conn() -> Generator[connection, None, None]:
     from mm_ready.connection import connect
 
     conn = connect(
-        host="localhost",
-        port=5499,
-        dbname="mmready",
-        user="postgres",
-        password="postgres",
+        host=_DB_HOST,
+        port=_DB_PORT,
+        dbname=_DB_NAME,
+        user=_DB_USER,
+        password=_DB_PASS,
         dsn=None,
     )
     yield conn
@@ -76,7 +90,7 @@ def scan_report(db_conn: connection) -> ScanReport:
     """
     from mm_ready.scanner import run_scan
 
-    return run_scan(db_conn, host="localhost", port=5499, dbname="mmready")
+    return run_scan(db_conn, host=_DB_HOST, port=_DB_PORT, dbname=_DB_NAME)
 
 
 class TestFullScan:
