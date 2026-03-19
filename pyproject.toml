@@ -4,20 +4,42 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mm-ready"
-version = "0.1.0"
+version = "0.1.2"
 description = "Database scanner for Spock 5 multi-master replication readiness"
 license = {file = "LICENSE.md"}
 requires-python = ">=3.10"
+readme = "README.md"
+authors = [
+    {name = "pgEdge, Inc"},
+]
+maintainers = [
+    {name = "Antony Pegg", email = "ant@pgedge.com"},
+]
+keywords = ["postgresql", "multi-master", "replication", "spock", "compatibility"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: PostgreSQL License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+]
 dependencies = [
     "psycopg2-binary>=2.9",
     "pyyaml>=6.0",
 ]
 
+[project.urls]
+Repository = "https://github.com/AntTheLimey/MM_Ready"
+Documentation = "https://github.com/AntTheLimey/MM_Ready/tree/main/docs"
+"Issue Tracker" = "https://github.com/AntTheLimey/MM_Ready/issues"
+
 [project.scripts]
 mm-ready = "mm_ready.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "ruff>=0.9", "pyright>=1.1"]
+dev = ["pytest>=7.0", "ruff>=0.9", "pyright>=1.1", "types-psycopg2>=2.9", "interrogate>=1.7", "pytest-cov>=4.0", "pre-commit>=3.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
