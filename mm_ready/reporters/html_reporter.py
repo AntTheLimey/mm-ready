@@ -281,8 +281,7 @@ def _render_detail(text: str) -> str:
 
 
 def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
-    """
-    Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
+    """Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
 
     Parameters:
         report (ScanReport): Scan report containing findings, results, counts, and metadata used to populate the document.

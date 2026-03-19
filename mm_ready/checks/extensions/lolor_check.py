@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class LolorCheck(BaseCheck):
+    """Check: LOLOR extension — required for replicating large objects."""
+
     name = "lolor_check"
     category = "extensions"
     description = "LOLOR extension — required for replicating large objects"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Assess whether the database uses large objects and verify that the LOLOR extension is installed and correctly configured for large-object replication.
+        """Assess whether the database uses large objects and verify that the LOLOR extension is installed and correctly configured for large-object replication.
 
         Checks presence of large objects and OID-typed columns; if large objects are present, verifies whether the LOLOR extension is installed and whether `lolor.node` is set to a non-zero, unique value. Produces warnings when LOLOR is missing or `lolor.node` is unset/zero, and an informational finding when LOLOR is installed and configured.
 

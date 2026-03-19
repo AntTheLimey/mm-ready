@@ -9,6 +9,8 @@ from pathlib import Path
 
 @dataclass
 class LogStatement:
+    """A single SQL statement extracted from a PostgreSQL log file."""
+
     line_number: int
     timestamp: str
     statement: str
@@ -17,6 +19,8 @@ class LogStatement:
 
 @dataclass
 class LogAnalysis:
+    """Aggregated results from parsing a PostgreSQL log file."""
+
     total_statements: int = 0
     ddl_statements: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
     truncate_cascade: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
@@ -27,8 +31,7 @@ class LogAnalysis:
 
     @property
     def has_findings(self) -> bool:
-        """
-        Indicates whether the analysis contains any notable SQL findings.
+        """Indicates whether the analysis contains any notable SQL findings.
 
         Returns:
             True if any finding categories (DDL, truncate cascade, temp table creation, advisory locks, concurrent indexes, or other notable) contain entries, False otherwise.
@@ -66,8 +69,7 @@ _CONCURRENT_INDEX = re.compile(r"\bCREATE\s+INDEX\s+CONCURRENTLY\b", re.IGNORECA
 
 
 def parse_log_file(log_path: str) -> LogAnalysis:
-    """
-    Parse a PostgreSQL log file and extract notable SQL statements and patterns.
+    """Parse a PostgreSQL log file and extract notable SQL statements and patterns.
 
     Supports logs that include a timestamped log_line_prefix. Lines beginning with a tab are treated as continuations of the previous statement and are appended to it.
 

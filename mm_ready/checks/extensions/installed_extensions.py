@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class InstalledExtensionsCheck(BaseCheck):
+    """Check: Audit installed extensions for known Spock compatibility issues."""
+
     name = "installed_extensions"
     category = "extensions"
     description = "Audit installed extensions for known Spock compatibility issues"
@@ -34,8 +36,7 @@ class InstalledExtensionsCheck(BaseCheck):
     }
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Audit installed PostgreSQL extensions and produce findings for known Spock compatibility issues.
+        """Audit installed PostgreSQL extensions and produce findings for known Spock compatibility issues.
 
         Executes a query against pg_catalog to list installed extensions with their versions and schema, creates a Finding for each extension that has a known issue (with severity determined by the extension), and appends a summary Finding that lists all discovered extensions.
 

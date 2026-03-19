@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class TrackCommitTimestampCheck(BaseCheck):
+    """Check: track_commit_timestamp must be on for Spock conflict resolution."""
+
     name = "track_commit_timestamp"
     category = "config"
     description = "track_commit_timestamp must be on for Spock conflict resolution"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check PostgreSQL's track_commit_timestamp setting and report a Finding if it is not enabled.
+        """Check PostgreSQL's track_commit_timestamp setting and report a Finding if it is not enabled.
 
         Parameters:
             conn: A DB-API/psycopg2-compatible database connection used to execute the query.

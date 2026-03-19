@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class MultipleUniqueIndexesCheck(BaseCheck):
+    """Check: Tables with multiple unique indexes — affects Spock conflict resolution."""
+
     name = "multiple_unique_indexes"
     category = "schema"
     description = "Tables with multiple unique indexes — affects Spock conflict resolution"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Identify tables that have more than one unique index and generate Findings describing potential Spock conflict-resolution implications.
+        """Identify tables that have more than one unique index and generate Findings describing potential Spock conflict-resolution implications.
 
         Parameters:
             conn: A DB-API compatible connection providing a cursor() context manager on which the query is executed.

@@ -9,14 +9,15 @@ from mm_ready.models import Finding, Severity
 
 
 class SnowflakeExtensionCheck(BaseCheck):
+    """Check: Check availability of pgEdge snowflake extension for unique ID generation."""
+
     name = "snowflake_check"
     category = "extensions"
     description = "Check availability of pgEdge snowflake extension for unique ID generation"
 
     def run(self, conn: connection) -> list[Finding]:
         # Check if installed
-        """
-        Check pgEdge Snowflake extension installation, availability, and the configured snowflake.node on the connected PostgreSQL server.
+        """Check pgEdge Snowflake extension installation, availability, and the configured snowflake.node on the connected PostgreSQL server.
 
         This runs queries against the provided connection to determine whether the `snowflake` extension is installed, available, or missing. If installed, it also reads `snowflake.node` to verify a non-zero node identifier and produces findings based on those outcomes.
 

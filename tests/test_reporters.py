@@ -16,18 +16,23 @@ from mm_ready.reporters.markdown_reporter import render as render_markdown
 
 
 class TestJSONReporter:
+    """Tests for j s o n reporter."""
+
     def test_valid_json(self, sample_report: ScanReport) -> None:
+        """Verify valid json."""
         output = render_json(sample_report)
         data = json.loads(output)
         assert isinstance(data, dict)
 
     def test_has_required_keys(self, sample_report: ScanReport) -> None:
+        """Verify has required keys."""
         data = json.loads(render_json(sample_report))
         assert "meta" in data
         assert "summary" in data
         assert "results" in data
 
     def test_summary_counts(self, sample_report: ScanReport) -> None:
+        """Verify summary counts."""
         data = json.loads(render_json(sample_report))
         s = data["summary"]
         assert s["critical"] == 1
@@ -37,10 +42,12 @@ class TestJSONReporter:
         assert s["total_checks"] == 6  # 7 total minus 1 skipped
 
     def test_results_count(self, sample_report: ScanReport) -> None:
+        """Verify results count."""
         data = json.loads(render_json(sample_report))
         assert len(data["results"]) == 7
 
     def test_finding_fields(self, sample_report: ScanReport) -> None:
+        """Verify finding fields."""
         data = json.loads(render_json(sample_report))
         # First result is wal_level with a CRITICAL finding
         wal = data["results"][0]
@@ -50,11 +57,13 @@ class TestJSONReporter:
         assert finding["title"] == "wal_level is not 'logical'"
 
     def test_error_reported(self, sample_report: ScanReport) -> None:
+        """Verify error reported."""
         data = json.loads(render_json(sample_report))
         hba = next(r for r in data["results"] if r["check_name"] == "hba_config")
         assert "PermissionError" in hba["error"]
 
     def test_meta_fields(self, sample_report: ScanReport) -> None:
+        """Verify meta fields."""
         data = json.loads(render_json(sample_report))
         assert data["meta"]["database"] == "testdb"
         assert data["meta"]["pg_version"] == "PostgreSQL 17.0"
@@ -64,16 +73,21 @@ class TestJSONReporter:
 
 
 class TestMarkdownReporter:
+    """Tests for markdown reporter."""
+
     def test_contains_header(self, sample_report: ScanReport) -> None:
+        """Verify contains header."""
         output = render_markdown(sample_report)
         assert "# mm-ready" in output or "# MM-Ready" in output.upper() or "testdb" in output
 
     def test_contains_severity_sections(self, sample_report: ScanReport) -> None:
+        """Verify contains severity sections."""
         output = render_markdown(sample_report)
         assert "CRITICAL" in output
         assert "WARNING" in output
 
     def test_contains_finding_titles(self, sample_report: ScanReport) -> None:
+        """Verify contains finding titles."""
         output = render_markdown(sample_report)
         assert "wal_level is not 'logical'" in output
         assert "Table missing primary key" in output
@@ -83,12 +97,16 @@ class TestMarkdownReporter:
 
 
 class TestHTMLReporter:
+    """Tests for h t m l reporter."""
+
     def test_valid_html_structure(self, sample_report: ScanReport) -> None:
+        """Verify valid html structure."""
         output = render_html(sample_report)
         assert "<!DOCTYPE html>" in output or "<!doctype html>" in output.lower()
         assert "</html>" in output
 
     def test_contains_severity_badges(self, sample_report: ScanReport) -> None:
+        """Verify contains severity badges."""
         output = render_html(sample_report)
         assert "badge-critical" in output
         assert "badge-warning" in output
@@ -96,6 +114,7 @@ class TestHTMLReporter:
         assert "badge-info" in output
 
     def test_contains_finding_content(self, sample_report: ScanReport) -> None:
+        """Verify contains finding content."""
         output = render_html(sample_report)
         assert (
             "wal_level is not &#x27;logical&#x27;" in output
@@ -103,11 +122,13 @@ class TestHTMLReporter:
         )
 
     def test_todo_section_present(self, sample_report: ScanReport) -> None:
+        """Verify todo section present."""
         output = render_html(sample_report)
         assert "To Do" in output
         assert "todo-group" in output
 
     def test_sidebar_present(self, sample_report: ScanReport) -> None:
+        """Verify sidebar present."""
         output = render_html(sample_report)
         assert "sidebar" in output
 
@@ -116,8 +137,7 @@ class TestHTMLReporter:
 
 
 def _make_report_with_severities(*severities: Severity) -> ScanReport:
-    """
-    Create a minimal ScanReport containing one CheckResult per provided severity.
+    """Create a minimal ScanReport containing one CheckResult per provided severity.
 
     Parameters:
         *severities (Severity): One or more Severity values; for each provided severity the report will include a CheckResult named "check_<index>" whose single finding has that severity. The order of severities determines the numeric suffix of the generated check names.
@@ -145,7 +165,10 @@ def _make_report_with_severities(*severities: Severity) -> ScanReport:
 
 
 class TestVerdictLogic:
+    """Tests for verdict logic."""
+
     def test_ready_no_findings(self) -> None:
+        """Verify ready no findings."""
         report = ScanReport(
             database="db",
             host="h",
@@ -166,16 +189,19 @@ class TestVerdictLogic:
         assert "CONDITIONALLY" not in md
 
     def test_not_ready_with_critical(self) -> None:
+        """Verify not ready with critical."""
         report = _make_report_with_severities(Severity.CRITICAL)
         md = render_markdown(report)
         assert "NOT READY" in md
 
     def test_conditionally_ready_with_warning(self) -> None:
+        """Verify conditionally ready with warning."""
         report = _make_report_with_severities(Severity.WARNING)
         md = render_markdown(report)
         assert "CONDITIONALLY READY" in md
 
     def test_ready_with_only_consider_and_info(self) -> None:
+        """Verify ready with only consider and info."""
         report = _make_report_with_severities(Severity.CONSIDER, Severity.INFO)
         md = render_markdown(report)
         lines = md.upper()
@@ -183,6 +209,7 @@ class TestVerdictLogic:
         assert "CONDITIONALLY" not in lines
 
     def test_verdict_in_html_too(self) -> None:
+        """Verify verdict in html too."""
         report = _make_report_with_severities(Severity.CRITICAL, Severity.WARNING)
         html = render_html(report)
         assert "NOT READY" in html

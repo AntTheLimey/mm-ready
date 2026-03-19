@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class ColumnDefaultsCheck(BaseCheck):
+    """Check: Volatile column defaults (now(), random(), etc.) — may differ across nodes."""
+
     name = "column_defaults"
     category = "schema"
     description = "Volatile column defaults (now(), random(), etc.) — may differ across nodes"
@@ -30,8 +32,7 @@ class ColumnDefaultsCheck(BaseCheck):
     ]
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Scan the connected PostgreSQL database for columns that have volatile default expressions and return findings for each match.
+        """Scan the connected PostgreSQL database for columns that have volatile default expressions and return findings for each match.
 
         This method queries the system catalogs for regular table columns with explicit default expressions, ignores columns without defaults and defaults using sequence `nextval(...)`, and detects defaults that match known volatile patterns (for example: now(), random(), gen_random_uuid(), uuid_generate_*). For each matching column it produces a Finding describing the potentially divergent default behavior across nodes.
 

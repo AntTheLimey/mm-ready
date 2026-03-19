@@ -9,14 +9,15 @@ from mm_ready.models import Finding, Severity
 
 
 class ViewsCheck(BaseCheck):
+    """Check: Views and materialized views — refresh coordination in multi-master."""
+
     name = "views_audit"
     category = "functions"
     description = "Views and materialized views — refresh coordination in multi-master"
 
     def run(self, conn: connection) -> list[Finding]:
         # Materialized views
-        """
-        Audit database views and materialized views and produce findings about materialized-view refresh coordination and the presence of regular views.
+        """Audit database views and materialized views and produce findings about materialized-view refresh coordination and the presence of regular views.
 
         Returns:
             list[Finding]: A list of findings where each materialized view produces a WARNING finding containing its fully qualified name and human-readable size (metadata key "size"), and — if any regular views exist — a single CONSIDER finding summarizing the count of regular views (metadata key "view_count").

@@ -18,6 +18,8 @@ class _GucSpec(TypedDict):
 
 
 class SpockGucsCheck(BaseCheck):
+    """Check: Verify key Spock configuration parameters (GUCs)."""
+
     name = "spock_gucs"
     category = "config"
     description = "Verify key Spock configuration parameters (GUCs)"
@@ -79,8 +81,7 @@ class SpockGucsCheck(BaseCheck):
     ]
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check configured Spock GUCs and produce a Finding for each setting.
+        """Check configured Spock GUCs and produce a Finding for each setting.
 
         For every GUC in self.GUCS this method reads the current value and appends one Finding:
         - if the GUC cannot be read, an INFO Finding indicates the GUC is not available;

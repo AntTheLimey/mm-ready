@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class TempTableQueriesCheck(BaseCheck):
+    """Check: CREATE TEMP TABLE in SQL — session-local, not replicated."""
+
     name = "temp_table_queries"
     category = "sql_patterns"
     description = "CREATE TEMP TABLE in SQL — session-local, not replicated"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Run the temp-table detection check against pg_stat_statements using the provided DB connection.
+        """Run the temp-table detection check against pg_stat_statements using the provided DB connection.
 
         This executes a query against pg_stat_statements to find statements that match
         CREATE TEMP/TEMPORARY TABLE. If matching rows are found a single Finding is

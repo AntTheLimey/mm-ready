@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class PgVersionCheck(BaseCheck):
+    """Check: PostgreSQL version compatibility with Spock 5."""
+
     name = "pg_version"
     category = "config"
     description = "PostgreSQL version compatibility with Spock 5"
@@ -18,8 +20,7 @@ class PgVersionCheck(BaseCheck):
     SUPPORTED_MAJORS = {15, 16, 17, 18}
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check PostgreSQL server major version for compatibility with Spock 5.
+        """Check PostgreSQL server major version for compatibility with Spock 5.
 
         Parameters:
             conn: A DB connection object providing a context-managed cursor that can execute queries and fetch results.

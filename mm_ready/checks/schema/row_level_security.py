@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class RowLevelSecurityCheck(BaseCheck):
+    """Check: Row-level security policies — apply worker runs as superuser, bypasses RLS."""
+
     name = "row_level_security"
     category = "schema"
     description = "Row-level security policies — apply worker runs as superuser, bypasses RLS"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Detect tables that have row-level security (RLS) enabled and produce findings describing each table's RLS configuration.
+        """Detect tables that have row-level security (RLS) enabled and produce findings describing each table's RLS configuration.
 
         For each non-system table with RLS enabled, creates a Finding with the table's fully qualified name, whether RLS is forced, the number of policies, a warning-level message about the Spock apply worker bypassing RLS, and a remediation suggestion.
 

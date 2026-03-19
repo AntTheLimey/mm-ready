@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class PartitionedTablesCheck(BaseCheck):
+    """Check: Partitioned tables — review partition strategy for Spock compatibility."""
+
     name = "partitioned_tables"
     category = "schema"
     description = "Partitioned tables — review partition strategy for Spock compatibility"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Identify partitioned tables and produce findings about their partition strategy and partition counts to assess Spock compatibility.
+        """Identify partitioned tables and produce findings about their partition strategy and partition counts to assess Spock compatibility.
 
         Queries the provided database connection for partitioned tables (excluding common system/catalog schemas), maps Postgres partition strategy codes to human-readable labels, and returns a Finding for each partitioned table containing severity, title, detail, remediation guidance, and metadata.
 

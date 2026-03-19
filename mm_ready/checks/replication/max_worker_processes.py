@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class MaxWorkerProcessesCheck(BaseCheck):
+    """Check: Sufficient worker processes for Spock background workers."""
+
     name = "max_worker_processes"
     category = "replication"
     description = "Sufficient worker processes for Spock background workers"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check whether max_worker_processes is large enough for Spock background workers.
+        """Check whether max_worker_processes is large enough for Spock background workers.
 
         Parameters:
             conn: A database connection exposing a context-managed cursor (supports execute and fetchone).

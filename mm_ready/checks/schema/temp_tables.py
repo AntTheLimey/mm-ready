@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class TempTablesCheck(BaseCheck):
+    """Check: TEMPORARY tables — session-local, never replicated."""
+
     name = "temp_tables"
     category = "schema"
     description = "TEMPORARY tables — session-local, never replicated"
@@ -16,8 +18,7 @@ class TempTablesCheck(BaseCheck):
     def run(self, conn: connection) -> list[Finding]:
         # Temp tables are session-scoped and won't appear in pg_class for other sessions.
         # We check for functions/procedures that CREATE TEMP TABLE instead.
-        """
-        Find functions and procedures whose source contains CREATE TEMP/TEMPORARY TABLE statements.
+        """Find functions and procedures whose source contains CREATE TEMP/TEMPORARY TABLE statements.
 
         Searches user-visible schemas (excluding standard system schemas) for functions or procedures whose source code matches a case-insensitive pattern for `CREATE TEMP` / `CREATE TEMPORARY` table and returns a Finding for each match describing the object and recommended review.
 

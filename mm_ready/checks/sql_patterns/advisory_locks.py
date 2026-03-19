@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class AdvisoryLocksCheck(BaseCheck):
+    """Check: Advisory lock usage — locks are node-local, not replicated."""
+
     name = "advisory_locks"
     category = "sql_patterns"
     description = "Advisory lock usage — locks are node-local, not replicated"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Search pg_stat_statements for queries that call PostgreSQL advisory lock functions and produce Findings for each detected usage.
+        """Search pg_stat_statements for queries that call PostgreSQL advisory lock functions and produce Findings for each detected usage.
 
         Parameters:
             conn: A DB-API compatible database connection with a working cursor() method.

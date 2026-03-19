@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class SubscriptionHealthCheck(BaseCheck):
+    """Check: Check health of Spock subscriptions."""
+
     name = "subscription_health"
     category = "replication"
     description = "Check health of Spock subscriptions"
@@ -21,8 +23,7 @@ class SubscriptionHealthCheck(BaseCheck):
 
     def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema exists
-        """
-        Assess Spock subscription and replication-slot health for the connected database node.
+        """Assess Spock subscription and replication-slot health for the connected database node.
 
         This method checks for the presence of the `spock` schema, enumerates entries in `spock.subscription`, and inspects the corresponding replication slots to produce findings about disabled subscriptions, inactive replication slots, query failures, or informational states (no spock schema or no subscriptions).
 

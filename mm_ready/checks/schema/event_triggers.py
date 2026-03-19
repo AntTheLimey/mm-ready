@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class EventTriggersCheck(BaseCheck):
+    """Check: Event triggers — fire on DDL events, may interact with Spock DDL replication."""
+
     name = "event_triggers"
     category = "schema"
     description = "Event triggers — fire on DDL events, may interact with Spock DDL replication"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Inspect PostgreSQL event triggers and report findings about their enabled modes with respect to DDL replication.
+        """Inspect PostgreSQL event triggers and report findings about their enabled modes with respect to DDL replication.
 
         Queries pg_event_trigger and produces a Finding for each non-disabled event trigger describing whether it will fire during replication apply and what remediation (if any) is suggested. Each finding's metadata contains the trigger's event name and raw enabled code.
 

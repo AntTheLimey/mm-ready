@@ -29,8 +29,7 @@ def run_monitor(
     log_file: str | None = None,
     verbose: bool = False,
 ) -> ScanReport:
-    """
-    Run a monitor workflow that executes standard checks, observes pg_stat_statements for a period, and optionally analyzes a PostgreSQL log file.
+    """Run a monitor workflow that executes standard checks, observes pg_stat_statements for a period, and optionally analyzes a PostgreSQL log file.
 
     Parameters:
         conn: Database connection used to run checks and collect statistics.
@@ -125,8 +124,7 @@ def run_monitor(
 
 
 def _build_pgstat_result(delta: StatsDelta) -> CheckResult:
-    """
-    Builds a CheckResult describing SQL activity observed in a pg_stat_statements delta.
+    """Builds a CheckResult describing SQL activity observed in a pg_stat_statements delta.
 
     Parameters:
         delta: An object representing a pg_stat_statements delta with the following attributes:
@@ -223,8 +221,7 @@ def _build_pgstat_result(delta: StatsDelta) -> CheckResult:
 
 
 def _build_log_result(analysis: LogAnalysis) -> CheckResult:
-    """
-    Build a CheckResult summarizing findings from a parsed PostgreSQL log analysis.
+    """Build a CheckResult summarizing findings from a parsed PostgreSQL log analysis.
 
     Parameters:
         analysis (LogAnalysis): Parsed log analysis containing categorized statements and counts.

@@ -9,14 +9,15 @@ from mm_ready.models import Finding, Severity
 
 
 class PgMinorVersionCheck(BaseCheck):
+    """Check: PostgreSQL minor version — all cluster nodes should match."""
+
     name = "pg_minor_version"
     category = "config"
     description = "PostgreSQL minor version — all cluster nodes should match"
     mode = "audit"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Query the connected PostgreSQL server and return a Finding that reports its minor version and full version string.
+        """Query the connected PostgreSQL server and return a Finding that reports its minor version and full version string.
 
         Parameters:
             conn: A live database connection used to query the server version.

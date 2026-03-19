@@ -19,8 +19,7 @@ from mm_ready.schema_parser import (
 
 
 def _parse(tmp_path: Path, sql: str) -> ParsedSchema:
-    """
-    Parse a SQL dump string by writing it into a temporary dump.sql file and returning the parsed schema.
+    """Parse a SQL dump string by writing it into a temporary dump.sql file and returning the parsed schema.
 
     Parameters:
         tmp_path (pathlib.Path): Temporary directory in which a file named `dump.sql` will be created.
@@ -40,7 +39,10 @@ def _parse(tmp_path: Path, sql: str) -> ParsedSchema:
 
 
 class TestPgVersion:
+    """Tests for pg version."""
+
     def test_extracts_version(self, tmp_path: Path) -> None:
+        """Verify extracts version."""
         schema = _parse(
             tmp_path,
             """\
@@ -51,6 +53,7 @@ class TestPgVersion:
         assert schema.pg_version == "14.8"
 
     def test_no_version_header(self, tmp_path: Path) -> None:
+        """Verify no version header."""
         schema = _parse(tmp_path, "SELECT 1;")
         assert schema.pg_version == ""
 
@@ -61,7 +64,10 @@ class TestPgVersion:
 
 
 class TestCreateTable:
+    """Tests for create table."""
+
     def test_basic_table(self, tmp_path: Path) -> None:
+        """Verify basic table."""
         schema = _parse(
             tmp_path,
             """\
@@ -84,6 +90,7 @@ class TestCreateTable:
         assert tbl.columns[2].default_expr is not None
 
     def test_unlogged_table(self, tmp_path: Path) -> None:
+        """Verify unlogged table."""
         schema = _parse(
             tmp_path,
             """\
@@ -96,6 +103,7 @@ class TestCreateTable:
         assert schema.tables[0].unlogged is True
 
     def test_inherits(self, tmp_path: Path) -> None:
+        """Verify inherits."""
         schema = _parse(
             tmp_path,
             """\
@@ -108,6 +116,7 @@ class TestCreateTable:
         assert "public.parent" in schema.tables[0].inherits
 
     def test_partition_by(self, tmp_path: Path) -> None:
+        """Verify partition by."""
         schema = _parse(
             tmp_path,
             """\
@@ -121,6 +130,7 @@ class TestCreateTable:
         assert "RANGE" in schema.tables[0].partition_by.upper()
 
     def test_excludes_pg_catalog(self, tmp_path: Path) -> None:
+        """Verify excludes pg catalog."""
         schema = _parse(
             tmp_path,
             """\
@@ -132,6 +142,7 @@ class TestCreateTable:
         assert len(schema.tables) == 0
 
     def test_identity_column_inline(self, tmp_path: Path) -> None:
+        """Verify identity column inline."""
         schema = _parse(
             tmp_path,
             """\
@@ -146,6 +157,7 @@ class TestCreateTable:
         assert "BY DEFAULT" in col.identity
 
     def test_generated_column(self, tmp_path: Path) -> None:
+        """Verify generated column."""
         schema = _parse(
             tmp_path,
             """\
@@ -167,7 +179,10 @@ class TestCreateTable:
 
 
 class TestConstraints:
+    """Tests for constraints."""
+
     def test_primary_key(self, tmp_path: Path) -> None:
+        """Verify primary key."""
         schema = _parse(
             tmp_path,
             """\
@@ -182,6 +197,7 @@ class TestConstraints:
         assert con.table_name == "users"
 
     def test_unique_constraint(self, tmp_path: Path) -> None:
+        """Verify unique constraint."""
         schema = _parse(
             tmp_path,
             """\
@@ -194,6 +210,7 @@ class TestConstraints:
         assert con.columns == ["email"]
 
     def test_foreign_key(self, tmp_path: Path) -> None:
+        """Verify foreign key."""
         schema = _parse(
             tmp_path,
             """\
@@ -209,6 +226,7 @@ class TestConstraints:
         assert con.on_delete == "CASCADE"
 
     def test_foreign_key_on_update(self, tmp_path: Path) -> None:
+        """Verify foreign key on update."""
         schema = _parse(
             tmp_path,
             """\
@@ -222,6 +240,7 @@ class TestConstraints:
         assert con.on_delete == "SET NULL"
 
     def test_deferrable_constraint(self, tmp_path: Path) -> None:
+        """Verify deferrable constraint."""
         schema = _parse(
             tmp_path,
             """\
@@ -234,6 +253,7 @@ class TestConstraints:
         assert con.initially_deferred is True
 
     def test_exclude_constraint(self, tmp_path: Path) -> None:
+        """Verify exclude constraint."""
         schema = _parse(
             tmp_path,
             """\
@@ -245,6 +265,7 @@ class TestConstraints:
         assert con.constraint_type == "EXCLUDE"
 
     def test_inline_primary_key(self, tmp_path: Path) -> None:
+        """Verify inline primary key."""
         schema = _parse(
             tmp_path,
             """\
@@ -266,7 +287,10 @@ class TestConstraints:
 
 
 class TestIndexes:
+    """Tests for indexes."""
+
     def test_basic_index(self, tmp_path: Path) -> None:
+        """Verify basic index."""
         schema = _parse(
             tmp_path,
             """\
@@ -281,6 +305,7 @@ class TestIndexes:
         assert idx.index_method == "btree"
 
     def test_unique_index(self, tmp_path: Path) -> None:
+        """Verify unique index."""
         schema = _parse(
             tmp_path,
             """\
@@ -290,6 +315,7 @@ class TestIndexes:
         assert schema.indexes[0].is_unique is True
 
     def test_index_columns(self, tmp_path: Path) -> None:
+        """Verify index columns."""
         schema = _parse(
             tmp_path,
             """\
@@ -305,7 +331,10 @@ class TestIndexes:
 
 
 class TestSequences:
+    """Tests for sequences."""
+
     def test_basic_sequence(self, tmp_path: Path) -> None:
+        """Verify basic sequence."""
         schema = _parse(
             tmp_path,
             """\
@@ -326,6 +355,7 @@ class TestSequences:
         assert seq.increment == 1
 
     def test_sequence_owned_by(self, tmp_path: Path) -> None:
+        """Verify sequence owned by."""
         schema = _parse(
             tmp_path,
             """\
@@ -344,7 +374,10 @@ class TestSequences:
 
 
 class TestAlterSetDefault:
+    """Tests for alter set default."""
+
     def test_nextval_default(self, tmp_path: Path) -> None:
+        """Verify nextval default."""
         schema = _parse(
             tmp_path,
             """\
@@ -366,7 +399,10 @@ class TestAlterSetDefault:
 
 
 class TestAlterAddIdentity:
+    """Tests for alter add identity."""
+
     def test_identity_always(self, tmp_path: Path) -> None:
+        """Verify identity always."""
         schema = _parse(
             tmp_path,
             """\
@@ -381,6 +417,7 @@ class TestAlterAddIdentity:
         assert col.identity == "ALWAYS"
 
     def test_identity_by_default(self, tmp_path: Path) -> None:
+        """Verify identity by default."""
         schema = _parse(
             tmp_path,
             """\
@@ -440,7 +477,10 @@ class TestAlterAddIdentity:
 
 
 class TestExtensions:
+    """Tests for extensions."""
+
     def test_create_extension(self, tmp_path: Path) -> None:
+        """Verify create extension."""
         schema = _parse(
             tmp_path,
             """\
@@ -452,6 +492,7 @@ class TestExtensions:
         assert schema.extensions[0].schema_name == "public"
 
     def test_extension_no_schema(self, tmp_path: Path) -> None:
+        """Verify extension no schema."""
         schema = _parse(
             tmp_path,
             """\
@@ -467,7 +508,10 @@ class TestExtensions:
 
 
 class TestEnumTypes:
+    """Tests for enum types."""
+
     def test_enum_type(self, tmp_path: Path) -> None:
+        """Verify enum type."""
         schema = _parse(
             tmp_path,
             """\
@@ -490,7 +534,10 @@ class TestEnumTypes:
 
 
 class TestRules:
+    """Tests for rules."""
+
     def test_instead_rule(self, tmp_path: Path) -> None:
+        """Verify instead rule."""
         schema = _parse(
             tmp_path,
             """\
@@ -511,7 +558,10 @@ class TestRules:
 
 
 class TestSearchPath:
+    """Tests for search path."""
+
     def test_search_path_sets_default_schema(self, tmp_path: Path) -> None:
+        """Verify search path sets default schema."""
         schema = _parse(
             tmp_path,
             """\
@@ -530,7 +580,10 @@ class TestSearchPath:
 
 
 class TestParsedSchemaHelpers:
+    """Tests for parsed schema helpers."""
+
     def test_get_table(self) -> None:
+        """Verify get table."""
         schema = ParsedSchema()
         t = TableDef(schema_name="public", table_name="users")
         schema.tables.append(t)
@@ -538,6 +591,7 @@ class TestParsedSchemaHelpers:
         assert schema.get_table("public", "nope") is None
 
     def test_get_constraints_for_table(self) -> None:
+        """Verify get constraints for table."""
         schema = ParsedSchema()
         pk = ConstraintDef(
             name="pk",
@@ -566,6 +620,7 @@ class TestParsedSchemaHelpers:
         assert len(schema.get_constraints_for_table("public", "orders")) == 1
 
     def test_get_indexes_for_table(self) -> None:
+        """Verify get indexes for table."""
         schema = ParsedSchema()
         idx = IndexDef(name="idx1", table_schema="public", table_name="users")
         schema.indexes.append(idx)

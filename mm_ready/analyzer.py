@@ -347,8 +347,7 @@ def run_analyze(
 
 
 def check_primary_keys(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Identify tables that lack a primary key and produce findings for them.
+    """Identify tables that lack a primary key and produce findings for them.
 
     Skips partitioned parent tables. For each non-partitioned table without a primary key, emits a WARNING Finding describing replication implications and remediation guidance.
 
@@ -393,8 +392,7 @@ def check_primary_keys(schema: ParsedSchema, check_name: str, category: str) -> 
 
 
 def check_sequence_pks(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Detect primary key columns that are backed by standard sequences and report CRITICAL findings recommending migration to pgEdge snowflake.
+    """Detect primary key columns that are backed by standard sequences and report CRITICAL findings recommending migration to pgEdge snowflake.
 
     Scans the provided ParsedSchema for PRIMARY KEY constraints whose constituent columns are either identity columns or use a nextval() default; for each match, returns a Finding that describes the risk, remediation, and includes metadata.
 
@@ -461,8 +459,7 @@ def check_sequence_pks(schema: ParsedSchema, check_name: str, category: str) -> 
 
 
 def check_foreign_keys(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Analyze FOREIGN KEY constraints and report replication-related findings.
+    """Analyze FOREIGN KEY constraints and report replication-related findings.
 
     Produces WARNING findings for constraints that use ON DELETE or ON UPDATE CASCADE, describing the risk that cascaded actions are executed locally on each node and can lead to conflicts in multi-master setups. If any foreign keys are present, also emits a CONSIDER finding summarizing the total count of foreign keys and recommending that referenced tables be included in the replication set and that replication ordering preserve referential integrity.
 
@@ -525,8 +522,7 @@ def check_foreign_keys(schema: ParsedSchema, check_name: str, category: str) -> 
 def check_deferrable_constraints(
     schema: ParsedSchema, check_name: str, category: str
 ) -> list[Finding]:
-    """
-    Flag deferrable PRIMARY KEY and UNIQUE constraints that Spock will skip during conflict resolution.
+    """Flag deferrable PRIMARY KEY and UNIQUE constraints that Spock will skip during conflict resolution.
 
     For each constraint in the schema that is DEFERRABLE and of type PRIMARY KEY or UNIQUE, produces a Finding describing the replication risk (conflicts on the constraint may not be detected during replication apply), suggested remediation to make the constraint non-deferrable when possible, and metadata about the constraint. PRIMARY KEY constraints are reported with higher severity than UNIQUE constraints. Each Finding's metadata contains "constraint_type" and "initially_deferred".
 
@@ -580,8 +576,7 @@ def check_deferrable_constraints(
 def check_exclusion_constraints(
     schema: ParsedSchema, check_name: str, category: str
 ) -> list[Finding]:
-    """
-    Identify exclusion constraints in the schema and report them as findings because exclusion constraints are evaluated locally and can lead to conflicts or data inconsistencies in multi-master topologies.
+    """Identify exclusion constraints in the schema and report them as findings because exclusion constraints are evaluated locally and can lead to conflicts or data inconsistencies in multi-master topologies.
 
     Returns:
         list[Finding]: A Finding for each exclusion constraint, describing the constraint, affected object, risk, and suggested remediation.
@@ -619,8 +614,7 @@ def check_exclusion_constraints(
 
 
 def check_missing_fk_indexes(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Identify foreign key constraints whose referenced columns lack a supporting index.
+    """Identify foreign key constraints whose referenced columns lack a supporting index.
 
     Parameters:
         schema (ParsedSchema): Parsed database schema to analyze.
@@ -687,8 +681,7 @@ def check_missing_fk_indexes(schema: ParsedSchema, check_name: str, category: st
 
 
 def check_unlogged_tables(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Identify UNLOGGED tables in the parsed schema and produce findings for each because UNLOGGED tables are not written to the WAL and cannot be replicated.
+    """Identify UNLOGGED tables in the parsed schema and produce findings for each because UNLOGGED tables are not written to the WAL and cannot be replicated.
 
     Parameters:
         schema (ParsedSchema): Parsed schema to scan for tables.
@@ -763,8 +756,7 @@ def check_large_objects(schema: ParsedSchema, check_name: str, category: str) ->
 
 
 def check_column_defaults(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Identify columns with volatile DEFAULT expressions (e.g., now(), random()) that may produce different values on different nodes.
+    """Identify columns with volatile DEFAULT expressions (e.g., now(), random()) that may produce different values on different nodes.
 
     Parameters:
         schema (ParsedSchema): Parsed schema to analyze.
@@ -821,8 +813,7 @@ def check_column_defaults(schema: ParsedSchema, check_name: str, category: str) 
 
 
 def check_numeric_columns(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Identify numeric columns whose names suggest accumulator/counter semantics and report findings useful for Delta-Apply evaluation.
+    """Identify numeric columns whose names suggest accumulator/counter semantics and report findings useful for Delta-Apply evaluation.
 
     Returns:
         list[Finding]: Findings for each matching column. For nullable numeric candidate columns a `WARNING` finding is produced advising to add a NOT NULL constraint; for non-nullable candidates a `CONSIDER` finding is produced suggesting evaluation for Delta-Apply configuration. Each finding includes the column name, data type, nullability, and remediation guidance.
@@ -901,8 +892,7 @@ def check_numeric_columns(schema: ParsedSchema, check_name: str, category: str) 
 def check_multiple_unique_indexes(
     schema: ParsedSchema, check_name: str, category: str
 ) -> list[Finding]:
-    """
-    Identify tables that have more than one unique index and produce findings describing potential replication conflict-resolution ambiguity.
+    """Identify tables that have more than one unique index and produce findings describing potential replication conflict-resolution ambiguity.
 
     For each table with multiple unique indexes or constraints, a Finding with severity `CONSIDER` is created. The finding's metadata contains `unique_index_count` (number of unique indexes) and `indexes` (list of unique index/constraint names).
 
@@ -959,8 +949,7 @@ def check_multiple_unique_indexes(
 
 
 def check_enum_types(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Report ENUM types that may require coordinated DDL changes across nodes.
+    """Report ENUM types that may require coordinated DDL changes across nodes.
 
     For each ENUM type in the parsed schema this function produces a finding that
     calls attention to ALTER TYPE ... ADD VALUE being a DDL operation that must be
@@ -1008,8 +997,7 @@ def check_enum_types(schema: ParsedSchema, check_name: str, category: str) -> li
 
 
 def check_generated_columns(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Identify STORED generated columns that may produce divergent values when replicated.
+    """Identify STORED generated columns that may produce divergent values when replicated.
 
     Scans the provided ParsedSchema for columns with a stored generation expression and produces a Finding for each such column describing the replication risk and remediation. Each Finding uses severity `Severity.CONSIDER` and includes metadata with `gen_type: "STORED"` and the original generation `expression`.
 
@@ -1054,8 +1042,7 @@ def check_generated_columns(schema: ParsedSchema, check_name: str, category: str
 
 
 def check_rules(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Report table-level rules that may interfere with logical replication by producing findings for each rule.
+    """Report table-level rules that may interfere with logical replication by producing findings for each rule.
 
     Each finding describes the rule, its event, remediation suggestions, and includes metadata with the rule's event and whether it is an INSTEAD rule. INSTEAD rules are reported with higher severity (WARNING); non-INSTEAD rules use CONSIDER severity.
 
@@ -1110,8 +1097,7 @@ def check_rules(schema: ParsedSchema, check_name: str, category: str) -> list[Fi
 
 
 def check_inheritance(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Identify tables that use traditional PostgreSQL table inheritance and report replication risks.
+    """Identify tables that use traditional PostgreSQL table inheritance and report replication risks.
 
     For each table that inherits from one or more parent tables, produces a WARNING Finding per parent describing that logical replication treats each table independently and that queries against the parent that rely on child data may behave differently across nodes.
 
@@ -1153,8 +1139,7 @@ def check_inheritance(schema: ParsedSchema, check_name: str, category: str) -> l
 def check_installed_extensions(
     schema: ParsedSchema, check_name: str, category: str
 ) -> list[Finding]:
-    """
-    Audit installed extensions and report known Spock compatibility issues.
+    """Audit installed extensions and report known Spock compatibility issues.
 
     Produces a Finding for each installed extension that has a documented compatibility note
     ( severity set to `WARNING` for selected extensions or `INFO` otherwise ), and appends a
@@ -1203,8 +1188,7 @@ def check_installed_extensions(
 
 
 def check_sequence_audit(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Create findings for every sequence in the parsed schema, reporting sequence properties, ownership, and recommending migration to a globally-unique ID strategy (e.g., pgEdge snowflake).
+    """Create findings for every sequence in the parsed schema, reporting sequence properties, ownership, and recommending migration to a globally-unique ID strategy (e.g., pgEdge snowflake).
 
     Parameters:
         schema (ParsedSchema): Parsed database schema containing sequences to inspect.
@@ -1261,8 +1245,7 @@ def check_sequence_audit(schema: ParsedSchema, check_name: str, category: str) -
 def check_sequence_data_types(
     schema: ParsedSchema, check_name: str, category: str
 ) -> list[Finding]:
-    """
-    Identify sequences defined with small integer types (smallint or integer) that may reach their maximum value more quickly in multi-master deployments.
+    """Identify sequences defined with small integer types (smallint or integer) that may reach their maximum value more quickly in multi-master deployments.
 
     For each sequence using `smallint` or `integer`, produces a WARNING Finding describing the data type, observed max value, and recommendation to migrate to `bigint`. Each Finding's metadata includes `data_type`, `max_value`, and `increment`.
 
@@ -1313,8 +1296,7 @@ def check_sequence_data_types(
 
 
 def check_pg_version(schema: ParsedSchema, check_name: str, category: str) -> list[Finding]:
-    """
-    Assess the PostgreSQL version extracted from the parsed dump and produce findings describing compatibility with Spock 5.
+    """Assess the PostgreSQL version extracted from the parsed dump and produce findings describing compatibility with Spock 5.
 
     This check inspects schema.pg_version (the dump header's "Dumped from database version" string). It emits:
     - a WARNING finding if the version string is missing or cannot be parsed,

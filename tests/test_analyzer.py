@@ -49,7 +49,10 @@ CAT = "schema"
 
 
 class TestCheckPrimaryKeys:
+    """Tests for check primary keys."""
+
     def test_table_without_pk(self) -> None:
+        """Verify table without pk."""
         schema = ParsedSchema()
         schema.tables.append(TableDef(schema_name="public", table_name="orders"))
         findings = check_primary_keys(schema, CN, CAT)
@@ -58,6 +61,7 @@ class TestCheckPrimaryKeys:
         assert "orders" in findings[0].title
 
     def test_table_with_pk(self) -> None:
+        """Verify table with pk."""
         schema = ParsedSchema()
         schema.tables.append(TableDef(schema_name="public", table_name="users"))
         schema.constraints.append(
@@ -73,6 +77,7 @@ class TestCheckPrimaryKeys:
         assert len(findings) == 0
 
     def test_partitioned_table_skipped(self) -> None:
+        """Verify partitioned table skipped."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -91,7 +96,10 @@ class TestCheckPrimaryKeys:
 
 
 class TestCheckSequencePks:
+    """Tests for check sequence pks."""
+
     def test_nextval_pk(self) -> None:
+        """Verify nextval pk."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -120,6 +128,7 @@ class TestCheckSequencePks:
         assert findings[0].severity == Severity.CRITICAL
 
     def test_identity_pk(self) -> None:
+        """Verify identity pk."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -142,6 +151,7 @@ class TestCheckSequencePks:
         assert findings[0].severity == Severity.CRITICAL
 
     def test_non_sequence_pk(self) -> None:
+        """Verify non sequence pk."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -254,7 +264,10 @@ class TestCheckSequencePks:
 
 
 class TestCheckForeignKeys:
+    """Tests for check foreign keys."""
+
     def test_cascade_fk(self) -> None:
+        """Verify cascade fk."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -277,6 +290,7 @@ class TestCheckForeignKeys:
         assert len(summary) == 1
 
     def test_no_cascade_fk(self) -> None:
+        """Verify no cascade fk."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -296,6 +310,7 @@ class TestCheckForeignKeys:
         assert findings[0].severity == Severity.CONSIDER
 
     def test_no_fks(self) -> None:
+        """Verify no fks."""
         schema = ParsedSchema()
         findings = check_foreign_keys(schema, CN, CAT)
         assert len(findings) == 0
@@ -307,7 +322,10 @@ class TestCheckForeignKeys:
 
 
 class TestCheckDeferrableConstraints:
+    """Tests for check deferrable constraints."""
+
     def test_deferrable_pk_is_critical(self) -> None:
+        """Verify deferrable pk is critical."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -325,6 +343,7 @@ class TestCheckDeferrableConstraints:
         assert findings[0].severity == Severity.CRITICAL
 
     def test_deferrable_unique_is_warning(self) -> None:
+        """Verify deferrable unique is warning."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -341,6 +360,7 @@ class TestCheckDeferrableConstraints:
         assert findings[0].severity == Severity.WARNING
 
     def test_non_deferrable_ignored(self) -> None:
+        """Verify non deferrable ignored."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -361,7 +381,10 @@ class TestCheckDeferrableConstraints:
 
 
 class TestCheckExclusionConstraints:
+    """Tests for check exclusion constraints."""
+
     def test_exclusion_found(self) -> None:
+        """Verify exclusion found."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -376,6 +399,7 @@ class TestCheckExclusionConstraints:
         assert findings[0].severity == Severity.WARNING
 
     def test_no_exclusions(self) -> None:
+        """Verify no exclusions."""
         schema = ParsedSchema()
         findings = check_exclusion_constraints(schema, CN, CAT)
         assert len(findings) == 0
@@ -387,7 +411,10 @@ class TestCheckExclusionConstraints:
 
 
 class TestCheckMissingFkIndexes:
+    """Tests for check missing fk indexes."""
+
     def test_fk_without_index(self) -> None:
+        """Verify fk without index."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -406,6 +433,7 @@ class TestCheckMissingFkIndexes:
         assert findings[0].severity == Severity.CONSIDER
 
     def test_fk_with_covering_index(self) -> None:
+        """Verify fk with covering index."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -431,6 +459,7 @@ class TestCheckMissingFkIndexes:
         assert len(findings) == 0
 
     def test_fk_covered_by_pk(self) -> None:
+        """Verify fk covered by pk."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -463,7 +492,10 @@ class TestCheckMissingFkIndexes:
 
 
 class TestCheckUnloggedTables:
+    """Tests for check unlogged tables."""
+
     def test_unlogged_found(self) -> None:
+        """Verify unlogged found."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -477,6 +509,7 @@ class TestCheckUnloggedTables:
         assert findings[0].severity == Severity.WARNING
 
     def test_logged_table_ignored(self) -> None:
+        """Verify logged table ignored."""
         schema = ParsedSchema()
         schema.tables.append(TableDef(schema_name="public", table_name="users"))
         findings = check_unlogged_tables(schema, CN, CAT)
@@ -489,7 +522,10 @@ class TestCheckUnloggedTables:
 
 
 class TestCheckLargeObjects:
+    """Tests for check large objects."""
+
     def test_oid_column(self) -> None:
+        """Verify oid column."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -503,6 +539,7 @@ class TestCheckLargeObjects:
         assert findings[0].severity == Severity.WARNING
 
     def test_no_oid_columns(self) -> None:
+        """Verify no oid columns."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -521,7 +558,10 @@ class TestCheckLargeObjects:
 
 
 class TestCheckColumnDefaults:
+    """Tests for check column defaults."""
+
     def test_volatile_now(self) -> None:
+        """Verify volatile now."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -535,6 +575,7 @@ class TestCheckColumnDefaults:
         assert findings[0].severity == Severity.CONSIDER
 
     def test_nextval_skipped(self) -> None:
+        """Verify nextval skipped."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -551,6 +592,7 @@ class TestCheckColumnDefaults:
         assert len(findings) == 0
 
     def test_non_volatile_skipped(self) -> None:
+        """Verify non volatile skipped."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -569,7 +611,10 @@ class TestCheckColumnDefaults:
 
 
 class TestCheckNumericColumns:
+    """Tests for check numeric columns."""
+
     def test_nullable_counter(self) -> None:
+        """Verify nullable counter."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -583,6 +628,7 @@ class TestCheckNumericColumns:
         assert findings[0].severity == Severity.WARNING
 
     def test_not_null_counter(self) -> None:
+        """Verify not null counter."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -596,6 +642,7 @@ class TestCheckNumericColumns:
         assert findings[0].severity == Severity.CONSIDER
 
     def test_non_suspect_name_ignored(self) -> None:
+        """Verify non suspect name ignored."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -614,7 +661,10 @@ class TestCheckNumericColumns:
 
 
 class TestCheckMultipleUniqueIndexes:
+    """Tests for check multiple unique indexes."""
+
     def test_multiple_unique(self) -> None:
+        """Verify multiple unique."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -639,6 +689,7 @@ class TestCheckMultipleUniqueIndexes:
         assert findings[0].severity == Severity.CONSIDER
 
     def test_single_unique_ok(self) -> None:
+        """Verify single unique ok."""
         schema = ParsedSchema()
         schema.constraints.append(
             ConstraintDef(
@@ -659,7 +710,10 @@ class TestCheckMultipleUniqueIndexes:
 
 
 class TestCheckEnumTypes:
+    """Tests for check enum types."""
+
     def test_enum_found(self) -> None:
+        """Verify enum found."""
         schema = ParsedSchema()
         schema.enum_types.append(
             EnumTypeDef(
@@ -673,6 +727,7 @@ class TestCheckEnumTypes:
         assert findings[0].severity == Severity.CONSIDER
 
     def test_no_enums(self) -> None:
+        """Verify no enums."""
         schema = ParsedSchema()
         findings = check_enum_types(schema, CN, CAT)
         assert len(findings) == 0
@@ -684,7 +739,10 @@ class TestCheckEnumTypes:
 
 
 class TestCheckGeneratedColumns:
+    """Tests for check generated columns."""
+
     def test_generated_column(self) -> None:
+        """Verify generated column."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -700,6 +758,7 @@ class TestCheckGeneratedColumns:
         assert findings[0].severity == Severity.CONSIDER
 
     def test_no_generated(self) -> None:
+        """Verify no generated."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -718,7 +777,10 @@ class TestCheckGeneratedColumns:
 
 
 class TestCheckRules:
+    """Tests for check rules."""
+
     def test_instead_rule_is_warning(self) -> None:
+        """Verify instead rule is warning."""
         schema = ParsedSchema()
         schema.rules.append(
             RuleDef(
@@ -734,6 +796,7 @@ class TestCheckRules:
         assert findings[0].severity == Severity.WARNING
 
     def test_non_instead_rule_is_consider(self) -> None:
+        """Verify non instead rule is consider."""
         schema = ParsedSchema()
         schema.rules.append(
             RuleDef(
@@ -755,7 +818,10 @@ class TestCheckRules:
 
 
 class TestCheckInheritance:
+    """Tests for check inheritance."""
+
     def test_inheritance_found(self) -> None:
+        """Verify inheritance found."""
         schema = ParsedSchema()
         schema.tables.append(
             TableDef(
@@ -769,6 +835,7 @@ class TestCheckInheritance:
         assert findings[0].severity == Severity.WARNING
 
     def test_no_inheritance(self) -> None:
+        """Verify no inheritance."""
         schema = ParsedSchema()
         schema.tables.append(TableDef(schema_name="public", table_name="standalone"))
         findings = check_inheritance(schema, CN, CAT)
@@ -781,7 +848,10 @@ class TestCheckInheritance:
 
 
 class TestCheckInstalledExtensions:
+    """Tests for check installed extensions."""
+
     def test_known_warning_extension(self) -> None:
+        """Verify known warning extension."""
         schema = ParsedSchema()
         schema.extensions.append(ExtensionDef(name="timescaledb"))
         findings = check_installed_extensions(schema, CN, "extensions")
@@ -789,6 +859,7 @@ class TestCheckInstalledExtensions:
         assert len(warnings) == 1
 
     def test_known_info_extension(self) -> None:
+        """Verify known info extension."""
         schema = ParsedSchema()
         schema.extensions.append(ExtensionDef(name="pg_trgm"))
         findings = check_installed_extensions(schema, CN, "extensions")
@@ -796,6 +867,7 @@ class TestCheckInstalledExtensions:
         assert len(info) == 1
 
     def test_summary_always_present(self) -> None:
+        """Verify summary always present."""
         schema = ParsedSchema()
         schema.extensions.append(ExtensionDef(name="plpgsql"))
         findings = check_installed_extensions(schema, CN, "extensions")
@@ -803,6 +875,7 @@ class TestCheckInstalledExtensions:
         assert len(consider) == 1
 
     def test_no_extensions(self) -> None:
+        """Verify no extensions."""
         schema = ParsedSchema()
         findings = check_installed_extensions(schema, CN, "extensions")
         assert len(findings) == 0
@@ -814,7 +887,10 @@ class TestCheckInstalledExtensions:
 
 
 class TestCheckSequenceAudit:
+    """Tests for check sequence audit."""
+
     def test_sequences_found(self) -> None:
+        """Verify sequences found."""
         schema = ParsedSchema()
         schema.sequences.append(
             SequenceDef(
@@ -831,6 +907,7 @@ class TestCheckSequenceAudit:
         assert "owned by" in findings[0].detail
 
     def test_unowned_sequence(self) -> None:
+        """Verify unowned sequence."""
         schema = ParsedSchema()
         schema.sequences.append(
             SequenceDef(
@@ -842,6 +919,7 @@ class TestCheckSequenceAudit:
         assert "not owned" in findings[0].detail
 
     def test_no_sequences(self) -> None:
+        """Verify no sequences."""
         schema = ParsedSchema()
         findings = check_sequence_audit(schema, CN, "sequences")
         assert len(findings) == 0
@@ -853,7 +931,10 @@ class TestCheckSequenceAudit:
 
 
 class TestCheckSequenceDataTypes:
+    """Tests for check sequence data types."""
+
     def test_integer_sequence_warned(self) -> None:
+        """Verify integer sequence warned."""
         schema = ParsedSchema()
         schema.sequences.append(
             SequenceDef(
@@ -867,6 +948,7 @@ class TestCheckSequenceDataTypes:
         assert findings[0].severity == Severity.WARNING
 
     def test_smallint_sequence_warned(self) -> None:
+        """Verify smallint sequence warned."""
         schema = ParsedSchema()
         schema.sequences.append(
             SequenceDef(
@@ -879,6 +961,7 @@ class TestCheckSequenceDataTypes:
         assert len(findings) == 1
 
     def test_bigint_sequence_ok(self) -> None:
+        """Verify bigint sequence ok."""
         schema = ParsedSchema()
         schema.sequences.append(
             SequenceDef(
@@ -897,19 +980,24 @@ class TestCheckSequenceDataTypes:
 
 
 class TestCheckPgVersion:
+    """Tests for check pg version."""
+
     def test_unsupported_version(self) -> None:
+        """Verify unsupported version."""
         schema = ParsedSchema(pg_version="14.8")
         findings = check_pg_version(schema, CN, "config")
         assert len(findings) == 1
         assert findings[0].severity == Severity.CRITICAL
 
     def test_supported_version(self) -> None:
+        """Verify supported version."""
         schema = ParsedSchema(pg_version="17.0")
         findings = check_pg_version(schema, CN, "config")
         assert len(findings) == 1
         assert findings[0].severity == Severity.INFO
 
     def test_unknown_version(self) -> None:
+        """Verify unknown version."""
         schema = ParsedSchema(pg_version="")
         findings = check_pg_version(schema, CN, "config")
         assert len(findings) == 1
@@ -922,7 +1010,10 @@ class TestCheckPgVersion:
 
 
 class TestRunAnalyze:
+    """Tests for run analyze."""
+
     def test_report_structure(self, tmp_path: Path) -> None:
+        """Verify report structure."""
         f = tmp_path / "dump.sql"
         f.write_text("-- Dumped from database version 17.0\n", encoding="utf-8")
         report = run_analyze(
@@ -935,6 +1026,7 @@ class TestRunAnalyze:
         assert report.port == 0
 
     def test_active_and_skipped_counts(self, tmp_path: Path) -> None:
+        """Verify active and skipped counts."""
         f = tmp_path / "dump.sql"
         f.write_text("-- Dumped from database version 17.0\n", encoding="utf-8")
         report = run_analyze(ParsedSchema(pg_version="17.0"), file_path=str(f))
@@ -944,6 +1036,7 @@ class TestRunAnalyze:
         assert len(skipped) == 37
 
     def test_category_filtering(self, tmp_path: Path) -> None:
+        """Verify category filtering."""
         f = tmp_path / "dump.sql"
         f.write_text("", encoding="utf-8")
         report = run_analyze(
@@ -957,6 +1050,7 @@ class TestRunAnalyze:
         assert active[0].check_name == "pg_version"
 
     def test_skipped_checks_have_reason(self, tmp_path: Path) -> None:
+        """Verify skipped checks have reason."""
         f = tmp_path / "dump.sql"
         f.write_text("", encoding="utf-8")
         report = run_analyze(ParsedSchema(), file_path=str(f))

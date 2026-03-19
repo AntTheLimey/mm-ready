@@ -19,11 +19,13 @@ class TestCheckConfig:
     """Tests for CheckConfig dataclass."""
 
     def test_defaults(self) -> None:
+        """Verify defaults."""
         cfg = CheckConfig()
         assert cfg.exclude == set()
         assert cfg.include_only is None
 
     def test_exclude_set(self) -> None:
+        """Verify exclude set."""
         cfg = CheckConfig(exclude={"check_a", "check_b"})
         assert "check_a" in cfg.exclude
         assert "check_c" not in cfg.exclude
@@ -33,11 +35,13 @@ class TestReportConfig:
     """Tests for ReportConfig dataclass."""
 
     def test_defaults(self) -> None:
+        """Verify defaults."""
         cfg = ReportConfig()
         assert cfg.todo_list is True
         assert cfg.todo_include_consider is False
 
     def test_custom_values(self) -> None:
+        """Verify custom values."""
         cfg = ReportConfig(todo_list=False, todo_include_consider=True)
         assert cfg.todo_list is False
         assert cfg.todo_include_consider is True
@@ -47,6 +51,7 @@ class TestConfig:
     """Tests for Config dataclass."""
 
     def test_defaults(self) -> None:
+        """Verify defaults."""
         cfg = Config()
         assert cfg.global_checks.exclude == set()
         assert cfg.global_checks.include_only is None
@@ -54,11 +59,13 @@ class TestConfig:
         assert cfg.report.todo_list is True
 
     def test_get_check_config_global_only(self) -> None:
+        """Verify get check config global only."""
         cfg = Config(global_checks=CheckConfig(exclude={"check_a"}))
         result = cfg.get_check_config("scan")
         assert "check_a" in result.exclude
 
     def test_get_check_config_merges_exclude(self) -> None:
+        """Verify get check config merges exclude."""
         cfg = Config(
             global_checks=CheckConfig(exclude={"global_check"}),
             mode_checks={"scan": CheckConfig(exclude={"scan_check"})},
@@ -68,6 +75,7 @@ class TestConfig:
         assert "scan_check" in result.exclude
 
     def test_get_check_config_mode_include_only_overrides(self) -> None:
+        """Verify get check config mode include only overrides."""
         cfg = Config(
             global_checks=CheckConfig(include_only={"global_a"}),
             mode_checks={"audit": CheckConfig(include_only={"audit_a"})},
@@ -80,11 +88,13 @@ class TestLoadConfig:
     """Tests for load_config function."""
 
     def test_returns_default_when_no_file(self) -> None:
+        """Verify returns default when no file."""
         cfg = load_config(None, auto_discover=False)
         assert isinstance(cfg, Config)
         assert cfg.global_checks.exclude == set()
 
     def test_loads_yaml_file(self) -> None:
+        """Verify loads yaml file."""
         yaml_content = """
 checks:
   exclude:
@@ -99,6 +109,7 @@ checks:
         assert "check_b" in cfg.global_checks.exclude
 
     def test_loads_include_only(self) -> None:
+        """Verify loads include only."""
         yaml_content = """
 checks:
   include_only:
@@ -112,6 +123,7 @@ checks:
         assert cfg.global_checks.include_only == {"primary_keys", "foreign_keys"}
 
     def test_loads_mode_specific_config(self) -> None:
+        """Verify loads mode specific config."""
         yaml_content = """
 scan:
   checks:
@@ -130,6 +142,7 @@ audit:
         assert "audit_specific_check" in cfg.mode_checks["audit"].exclude
 
     def test_loads_report_config(self) -> None:
+        """Verify loads report config."""
         yaml_content = """
 report:
   todo_list: false
@@ -143,10 +156,12 @@ report:
         assert cfg.report.todo_include_consider is True
 
     def test_file_not_found_raises(self) -> None:
+        """Verify file not found raises."""
         with pytest.raises(FileNotFoundError):
             load_config("/nonexistent/path.yaml")
 
     def test_empty_yaml_returns_defaults(self) -> None:
+        """Verify empty yaml returns defaults."""
         with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
             f.write("")
             f.flush()
@@ -158,27 +173,32 @@ class TestMergeCliWithConfig:
     """Tests for merge_cli_with_config function."""
 
     def test_cli_exclude_adds_to_config(self) -> None:
+        """Verify cli exclude adds to config."""
         config = Config(global_checks=CheckConfig(exclude={"config_check"}))
         check_cfg, _ = merge_cli_with_config(config, "scan", cli_exclude={"cli_check"})
         assert "config_check" in check_cfg.exclude
         assert "cli_check" in check_cfg.exclude
 
     def test_cli_include_only_overrides_config(self) -> None:
+        """Verify cli include only overrides config."""
         config = Config(global_checks=CheckConfig(include_only={"config_check"}))
         check_cfg, _ = merge_cli_with_config(config, "scan", cli_include_only={"cli_only_check"})
         assert check_cfg.include_only == {"cli_only_check"}
 
     def test_cli_no_todo_overrides_config(self) -> None:
+        """Verify cli no todo overrides config."""
         config = Config(report=ReportConfig(todo_list=True))
         _, report_cfg = merge_cli_with_config(config, "scan", cli_no_todo=True)
         assert report_cfg.todo_list is False
 
     def test_cli_todo_include_consider_overrides_config(self) -> None:
+        """Verify cli todo include consider overrides config."""
         config = Config(report=ReportConfig(todo_include_consider=False))
         _, report_cfg = merge_cli_with_config(config, "scan", cli_todo_include_consider=True)
         assert report_cfg.todo_include_consider is True
 
     def test_mode_specific_exclude_merged(self) -> None:
+        """Verify mode specific exclude merged."""
         config = Config(
             global_checks=CheckConfig(exclude={"global"}),
             mode_checks={"scan": CheckConfig(exclude={"scan_mode"})},

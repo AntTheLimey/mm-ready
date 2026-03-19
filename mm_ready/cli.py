@@ -19,6 +19,7 @@ _FORMAT_EXT = {"json": ".json", "markdown": ".md", "html": ".html"}
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Perform build parser."""
     parser = argparse.ArgumentParser(
         prog="mm-ready",
         description="Scan a PostgreSQL database for Spock 5 multi-master readiness.",
@@ -130,8 +131,7 @@ def _add_connection_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_output_args(parser: argparse.ArgumentParser) -> None:
-    """
-    Add output-related CLI arguments to the given argument parser.
+    """Add output-related CLI arguments to the given argument parser.
 
     This adds an "output" argument group with:
     - --format / -f: report format choice among "json", "markdown", and "html" (default: "html").
@@ -186,8 +186,7 @@ def _add_check_filter_args(parser: argparse.ArgumentParser) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """
-    Entry point for the CLI: parse arguments, select a command, and dispatch to the corresponding handler.
+    """Entry point for the CLI: parse arguments, select a command, and dispatch to the corresponding handler.
 
     Parses argv (or sys.argv[1:] when argv is None), rewrites the arguments to default to the "scan" command when the first token is not a recognized subcommand or a top-level help/version flag, and invokes the appropriate command handler (_cmd_list_checks, _cmd_scan, _cmd_audit, _cmd_analyze, or _cmd_monitor). If no arguments are provided or no command is selected after parsing, prints help and exits with status code 1.
 
@@ -290,8 +289,7 @@ def _cmd_audit(args: argparse.Namespace) -> None:
 
 
 def _run_mode(args: argparse.Namespace, mode: str) -> None:
-    """
-    Establishes a database connection, runs a scan in the specified mode, renders the resulting report, and writes the output.
+    """Establishes a database connection, runs a scan in the specified mode, renders the resulting report, and writes the output.
 
     Parameters:
         args: argparse.Namespace with connection and output options. Expected attributes:
@@ -372,8 +370,7 @@ def _run_mode(args: argparse.Namespace, mode: str) -> None:
 
 
 def _cmd_monitor(args: argparse.Namespace) -> None:
-    """
-    Run the "monitor" CLI command: connect to the database, perform monitoring, and write the rendered report.
+    """Run the "monitor" CLI command: connect to the database, perform monitoring, and write the rendered report.
 
     Attempts to establish a database connection using values from `args`; on connection failure prints a user-friendly error and exits. On success, runs the monitor observer to collect a report, closes the connection, renders the report in the requested format, and writes the output using the CLI output rules.
 

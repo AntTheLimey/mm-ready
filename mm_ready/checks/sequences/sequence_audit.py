@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class SequenceAuditCheck(BaseCheck):
+    """Check: All sequences, types, and ownership — need snowflake migration plan."""
+
     name = "sequence_audit"
     category = "sequences"
     description = "All sequences, types, and ownership — need snowflake migration plan"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Audit all non-system sequences in the connected PostgreSQL database and produce findings describing each sequence's type, start/increment values, cycle behavior, and ownership, along with migration guidance for multi-master setups.
+        """Audit all non-system sequences in the connected PostgreSQL database and produce findings describing each sequence's type, start/increment values, cycle behavior, and ownership, along with migration guidance for multi-master setups.
 
         Parameters:
             conn: A DB-API compatible connection used to execute the sequence catalog query.

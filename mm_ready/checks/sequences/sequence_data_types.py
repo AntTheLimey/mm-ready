@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class SequenceDataTypesCheck(BaseCheck):
+    """Check: Sequence data types — smallint/integer may overflow faster in multi-master."""
+
     name = "sequence_data_types"
     category = "sequences"
     description = "Sequence data types — smallint/integer may overflow faster in multi-master"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Detect sequences using small integer types that may overflow in multi-master setups.
+        """Detect sequences using small integer types that may overflow in multi-master setups.
 
         Scans database sequences (excluding system schemas) and produces a Finding for each sequence defined with `smallint` or `integer` advising to upgrade to `bigint`.
 

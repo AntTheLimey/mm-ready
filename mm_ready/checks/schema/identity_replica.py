@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class UpdateDeleteNoPkCheck(BaseCheck):
+    """Check: Tables without primary keys that have UPDATE/DELETE activity — "         "these operations are silently dropped by Spock."""
+
     name = "tables_update_delete_no_pk"
     category = "schema"
     description = (
@@ -17,8 +19,7 @@ class UpdateDeleteNoPkCheck(BaseCheck):
     )
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Identify tables that lack a primary key and generate Findings based on recent DML activity.
+        """Identify tables that lack a primary key and generate Findings based on recent DML activity.
 
         Queries the database statistics/catalogs to find user tables without a primary key and with recorded INSERT/UPDATE/DELETE activity. For each matching table:
         - Produces a CRITICAL Finding when there are UPDATE or DELETE operations (indicating changes that would be lost by Spock's default_insert_only behavior).

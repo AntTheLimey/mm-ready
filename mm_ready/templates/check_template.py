@@ -46,6 +46,8 @@ from mm_ready.models import Finding, Severity
 
 
 class MyCustomCheck(BaseCheck):
+    """Check: One-line description of what this check detects."""
+
     # --- Check metadata (required) -----------------------------------------
     name = "my_custom_check"  # unique snake_case identifier — rename when you copy
     category = "schema"  # must match the subdirectory you place this file in
@@ -54,8 +56,7 @@ class MyCustomCheck(BaseCheck):
 
     def run(self, conn: connection) -> list[Finding]:
         # 1. Query the database -----------------------------------------------
-        """
-        Scan non-system PostgreSQL tables and produce a Finding for each discovered table.
+        """Scan non-system PostgreSQL tables and produce a Finding for each discovered table.
 
         Parameters:
             conn: A DB-API compatible PostgreSQL connection used to execute a read-only query.

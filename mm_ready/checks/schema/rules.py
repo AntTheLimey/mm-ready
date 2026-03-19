@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class RulesCheck(BaseCheck):
+    """Check: Rules on tables — can cause unexpected behaviour with logical replication."""
+
     name = "rules"
     category = "schema"
     description = "Rules on tables — can cause unexpected behaviour with logical replication"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Detects rules defined on regular tables that may interfere with logical replication and reports findings for each rule.
+        """Detects rules defined on regular tables that may interfere with logical replication and reports findings for each rule.
 
         Each Finding describes the rule (fully-qualified table and rule name), the affected event (SELECT/UPDATE/INSERT/DELETE when mappable), a severity (WARNING when the rule is an INSTEAD rule, CONSIDER otherwise), a human-readable title and detailed explanation of replication implications, a remediation suggestion, and metadata containing the event and `is_instead` flag.
 

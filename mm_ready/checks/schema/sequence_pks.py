@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class SequencePrimaryKeysCheck(BaseCheck):
+    """Check: Primary keys using standard sequences — must migrate to pgEdge snowflake."""
+
     name = "sequence_pks"
     category = "schema"
     description = "Primary keys using standard sequences — must migrate to pgEdge snowflake"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Identify primary key columns that are backed by standard sequences or identity columns and produce Findings recommending migration to pgEdge snowflake.
+        """Identify primary key columns that are backed by standard sequences or identity columns and produce Findings recommending migration to pgEdge snowflake.
 
         Returns:
             list[Finding]: Findings for each detected primary key column. Each Finding has severity `CRITICAL` and includes the fully qualified table name as `object_name`, a descriptive `title` and `detail`, a `remediation` message, and `metadata` containing `column` and `sequence`.

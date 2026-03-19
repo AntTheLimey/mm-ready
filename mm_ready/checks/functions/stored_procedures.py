@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class StoredProceduresCheck(BaseCheck):
+    """Check: Audit stored procedures/functions for write operations and DDL."""
+
     name = "stored_procedures"
     category = "functions"
     description = "Audit stored procedures/functions for write operations and DDL"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Audit user-defined functions and procedures for potential write operations and non-replicated side effects.
+        """Audit user-defined functions and procedures for potential write operations and non-replicated side effects.
 
         Connects to the provided database connection, inspects user-defined functions/procedures in non-system schemas, and scans their source for patterns that indicate write operations or DDL (for example: INSERT, UPDATE, CREATE, DROP, EXECUTE). For each routine that contains such patterns, produces a Finding describing the routine, the detected write patterns, and remediation guidance; if any routines are present, also returns a summary informational Finding with the total count.
 

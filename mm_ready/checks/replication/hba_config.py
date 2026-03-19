@@ -9,14 +9,15 @@ from mm_ready.models import Finding, Severity
 
 
 class HbaConfigCheck(BaseCheck):
+    """Check: pg_hba.conf must allow replication connections between nodes."""
+
     name = "hba_config"
     category = "replication"
     description = "pg_hba.conf must allow replication connections between nodes"
 
     def run(self, conn: connection) -> list[Finding]:
         # pg_hba_file_rules is available in PG >= 15
-        """
-        Check pg_hba.conf for replication entries by querying pg_hba_file_rules.
+        """Check pg_hba.conf for replication entries by querying pg_hba_file_rules.
 
         Queries the server's pg_hba_file_rules (PostgreSQL 15+) to locate rules that grant access to the special `replication` database and returns Findings describing the result. On query failure the returned list contains a single CONSIDER Finding indicating the view could not be read; if no replication rules are found a WARNING Finding is returned; if one or more replication rules are found a CONSIDER Finding is returned with `metadata['entry_count']` set to the number of replication entries.
 

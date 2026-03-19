@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class ForeignKeysCheck(BaseCheck):
+    """Check: Foreign key relationships — replication ordering and cross-node considerations."""
+
     name = "foreign_keys"
     category = "schema"
     description = "Foreign key relationships — replication ordering and cross-node considerations"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check database foreign key constraints for replication-ordering concerns and report CASCADE actions.
+        """Check database foreign key constraints for replication-ordering concerns and report CASCADE actions.
 
         Returns:
             list[Finding]: A list of Findings where each foreign key using ON DELETE/ON UPDATE CASCADE is reported as a WARNING Finding, followed by a CONSIDER summary Finding containing the total foreign key count and number of cascade FKs. Returns an empty list if no foreign keys are found.

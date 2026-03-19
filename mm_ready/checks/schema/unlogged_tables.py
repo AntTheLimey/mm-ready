@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class UnloggedTablesCheck(BaseCheck):
+    """Check: UNLOGGED tables — not written to WAL and cannot be replicated."""
+
     name = "unlogged_tables"
     category = "schema"
     description = "UNLOGGED tables — not written to WAL and cannot be replicated"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Identify UNLOGGED tables (tables not written to the write-ahead log) outside standard system schemas and produce a Finding for each.
+        """Identify UNLOGGED tables (tables not written to the write-ahead log) outside standard system schemas and produce a Finding for each.
 
         Parameters:
             conn: A DB connection object that provides a cursor() context manager for executing queries.

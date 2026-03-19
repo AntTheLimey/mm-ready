@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class ExclusionConstraintsCheck(BaseCheck):
+    """Check: Exclusion constraints — not enforceable across Spock nodes."""
+
     name = "exclusion_constraints"
     category = "schema"
     description = "Exclusion constraints — not enforceable across Spock nodes"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Finds exclusion constraints in non-system schemas and produces a Finding for each describing potential multi-node replication risks.
+        """Finds exclusion constraints in non-system schemas and produces a Finding for each describing potential multi-node replication risks.
 
         Each Finding represents an exclusion constraint (pg_constraint.contype = 'x') found outside the system schemas ('pg_catalog', 'information_schema', 'spock', 'pg_toast') and explains that exclusion constraints are evaluated locally on each node, which can lead to replication conflicts or data inconsistencies in multi-master topologies.
 

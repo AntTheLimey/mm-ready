@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class PgStatStatementsCheck(BaseCheck):
+    """Check: pg_stat_statements availability for SQL pattern observation."""
+
     name = "pg_stat_statements_check"
     category = "extensions"
     description = "pg_stat_statements availability for SQL pattern observation"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check for the pg_stat_statements extension and report its availability and queryability.
+        """Check for the pg_stat_statements extension and report its availability and queryability.
 
         If pg_stat_statements is installed and queryable, returns an INFO finding with the extension version and the number of tracked statements. If it is installed but cannot be queried, returns a WARNING finding explaining the access issue. If it is not installed, returns a CONSIDER finding describing limited analysis and steps to install.
 

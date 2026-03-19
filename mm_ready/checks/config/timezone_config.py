@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class TimezoneConfigCheck(BaseCheck):
+    """Check: Timezone settings — UTC recommended for consistent commit timestamps."""
+
     name = "timezone_config"
     category = "config"
     description = "Timezone settings — UTC recommended for consistent commit timestamps"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check the server's timezone and log_timezone settings and produce findings recommending UTC when appropriate.
+        """Check the server's timezone and log_timezone settings and produce findings recommending UTC when appropriate.
 
         Parameters:
                 conn: A DB connection object providing a cursor() context manager used to execute "SHOW timezone;" and "SHOW log_timezone;".

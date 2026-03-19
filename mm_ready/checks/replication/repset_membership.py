@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class RepsetMembershipCheck(BaseCheck):
+    """Check: Verify all user tables are in a Spock replication set."""
+
     name = "repset_membership"
     category = "replication"
     description = "Verify all user tables are in a Spock replication set"
@@ -16,8 +18,7 @@ class RepsetMembershipCheck(BaseCheck):
 
     def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema exists
-        """
-        Check whether user tables are members of any Spock replication set and report findings.
+        """Check whether user tables are members of any Spock replication set and report findings.
 
         If the Spock schema is missing, returns a single INFO finding indicating the check was skipped.
         If the query against spock.repset_table fails, returns a single WARNING finding describing the error.

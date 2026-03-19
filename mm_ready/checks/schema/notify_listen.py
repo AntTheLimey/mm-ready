@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class NotifyListenCheck(BaseCheck):
+    """Check: LISTEN/NOTIFY usage — notifications are not replicated by Spock."""
+
     name = "notify_listen"
     category = "schema"
     description = "LISTEN/NOTIFY usage — notifications are not replicated by Spock"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Detects usage of NOTIFY or pg_notify in database functions and recent statements and reports findings about their replication implications.
+        """Detects usage of NOTIFY or pg_notify in database functions and recent statements and reports findings about their replication implications.
 
         Parameters:
             conn: A DB-API connection to the inspected PostgreSQL database; used to query pg_proc/pg_namespace and pg_stat_statements.

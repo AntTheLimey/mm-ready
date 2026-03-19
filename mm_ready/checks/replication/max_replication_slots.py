@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class MaxReplicationSlotsCheck(BaseCheck):
+    """Check: Sufficient replication slots for Spock node connections."""
+
     name = "max_replication_slots"
     category = "replication"
     description = "Sufficient replication slots for Spock node connections"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Determine whether PostgreSQL's max_replication_slots provides sufficient headroom for Spock node connections.
+        """Determine whether PostgreSQL's max_replication_slots provides sufficient headroom for Spock node connections.
 
         Queries the server for the configured max_replication_slots and the number currently in use; if the configured value is less than 10, returns a warning Finding describing the shortfall and recommended remediation.
 

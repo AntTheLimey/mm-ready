@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class DdlStatementsCheck(BaseCheck):
+    """Check: DDL statements — must use Spock DDL replication or manual coordination."""
+
     name = "ddl_statements"
     category = "sql_patterns"
     description = "DDL statements — must use Spock DDL replication or manual coordination"
@@ -41,8 +43,7 @@ class DdlStatementsCheck(BaseCheck):
     ]
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check pg_stat_statements for queries that match known DDL patterns and return findings describing any matches.
+        """Check pg_stat_statements for queries that match known DDL patterns and return findings describing any matches.
 
         Queries pg_stat_statements for up to 50 distinct statements that match the module's DDL_PATTERNS and, if matches are found, returns a single CONSIDER-level Finding that summarizes the number of matches, lists the top patterns with call counts and snippets, and includes remediation guidance. If pg_stat_statements cannot be accessed, returns a single INFO-level Finding indicating it is unavailable.
 

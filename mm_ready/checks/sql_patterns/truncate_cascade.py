@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class TruncateCascadeCheck(BaseCheck):
+    """Check: TRUNCATE ... CASCADE and RESTART IDENTITY — replication behaviour caveats."""
+
     name = "truncate_cascade"
     category = "sql_patterns"
     description = "TRUNCATE ... CASCADE and RESTART IDENTITY — replication behaviour caveats"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Run checks against the provided PostgreSQL connection to detect TRUNCATE ... CASCADE and TRUNCATE ... RESTART IDENTITY usage recorded in pg_stat_statements.
+        """Run checks against the provided PostgreSQL connection to detect TRUNCATE ... CASCADE and TRUNCATE ... RESTART IDENTITY usage recorded in pg_stat_statements.
 
         Parameters:
                 conn: A live DB connection used to query `pg_stat_statements`.

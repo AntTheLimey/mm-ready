@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class MissingFkIndexesCheck(BaseCheck):
+    """Check: Foreign key columns without indexes — slow cascades and lock contention."""
+
     name = "missing_fk_indexes"
     category = "schema"
     description = "Foreign key columns without indexes — slow cascades and lock contention"
@@ -16,8 +18,7 @@ class MissingFkIndexesCheck(BaseCheck):
     def run(self, conn: connection) -> list[Finding]:
         # Find FK columns on the referencing (child) side that lack a matching index.
         # This is the standard "missing FK index" query adapted for Spock context.
-        """
-        Locate foreign key constraints whose referencing (child) columns do not have supporting indexes and produce Finding objects describing each missing-index case.
+        """Locate foreign key constraints whose referencing (child) columns do not have supporting indexes and produce Finding objects describing each missing-index case.
 
         Parameters:
                 conn: A DBAPI-compatible connection to the PostgreSQL database used to query system catalogs.

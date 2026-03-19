@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class IdleTransactionTimeoutCheck(BaseCheck):
+    """Check: Idle-in-transaction timeout — long idle transactions block VACUUM and cause bloat."""
+
     name = "idle_transaction_timeout"
     category = "config"
     description = (
@@ -16,8 +18,7 @@ class IdleTransactionTimeoutCheck(BaseCheck):
     )
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check PostgreSQL idle timeout settings and report findings when either timeout is disabled.
+        """Check PostgreSQL idle timeout settings and report findings when either timeout is disabled.
 
         Queries the server for `idle_in_transaction_session_timeout` and, if available, `idle_session_timeout`. If either parameter is explicitly set to "0" (disabled), a corresponding Finding is produced describing the risk and remediation.
 

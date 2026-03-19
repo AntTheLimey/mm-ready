@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class ParallelApplyCheck(BaseCheck):
+    """Check: Parallel apply workers configuration for Spock performance."""
+
     name = "parallel_apply"
     category = "config"
     description = "Parallel apply workers configuration for Spock performance"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Validate Spock parallel-apply related PostgreSQL configuration and produce findings.
+        """Validate Spock parallel-apply related PostgreSQL configuration and produce findings.
 
         Queries the database for `max_worker_processes`, `max_parallel_workers`, `max_logical_replication_workers`, and `max_sync_workers_per_subscription`, generates Findings for values that are below recommended thresholds, and always includes a summary Finding containing the observed parameter values.
 

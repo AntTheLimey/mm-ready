@@ -12,6 +12,8 @@ from psycopg2.extensions import connection
 
 @dataclass
 class StatementSnapshot:
+    """A point-in-time snapshot of a single pg_stat_statements entry."""
+
     query: str
     calls: int
     total_exec_time: float
@@ -62,8 +64,7 @@ def take_snapshot(conn: connection) -> dict[str, StatementSnapshot]:
 
 
 def collect_over_duration(conn: connection, duration: int, verbose: bool = False) -> StatsDelta:
-    """
-    Collect snapshots of pg_stat_statements separated by a time window and compute their delta.
+    """Collect snapshots of pg_stat_statements separated by a time window and compute their delta.
 
     Takes an initial snapshot, waits for the specified duration, takes a final snapshot, and returns a StatsDelta summarizing queries newly observed during the window and queries whose statistics increased. The delta's changed_queries list is sorted in descending order by delta_calls.
 

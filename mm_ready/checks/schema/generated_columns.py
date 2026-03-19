@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class GeneratedColumnsCheck(BaseCheck):
+    """Check: Generated/stored columns — replication behavior differences."""
+
     name = "generated_columns"
     category = "schema"
     description = "Generated/stored columns — replication behavior differences"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Identify generated (stored or virtual) columns in the connected PostgreSQL database and produce Findings for each.
+        """Identify generated (stored or virtual) columns in the connected PostgreSQL database and produce Findings for each.
 
         Queries PostgreSQL system catalogs to locate columns declared as generated and returns a Finding per generated column describing its type, generation expression, and a remediation suggestion.
 

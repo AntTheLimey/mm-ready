@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class EnumTypesCheck(BaseCheck):
+    """Check: ENUM types — DDL changes to enums require multi-node coordination."""
+
     name = "enum_types"
     category = "schema"
     description = "ENUM types — DDL changes to enums require multi-node coordination"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Identify ENUM types in the database and produce findings that warn that ENUM DDL changes require coordinated application across nodes.
+        """Identify ENUM types in the database and produce findings that warn that ENUM DDL changes require coordinated application across nodes.
 
         Parameters:
             conn: A DB-API compatible connection object used to execute a query and fetch ENUM type definitions.

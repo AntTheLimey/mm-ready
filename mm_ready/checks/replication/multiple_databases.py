@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class MultipleDatabasesCheck(BaseCheck):
+    """Check: More than one user database in the instance — Spock supports one DB per instance."""
+
     name = "multiple_databases"
     category = "replication"
     description = "More than one user database in the instance — Spock supports one DB per instance"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check for multiple user databases in the PostgreSQL instance.
+        """Check for multiple user databases in the PostgreSQL instance.
 
         Parameters:
             conn: A PEP-249 compatible database connection to the target PostgreSQL instance.

@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class ConcurrentIndexesCheck(BaseCheck):
+    """Check: CREATE INDEX CONCURRENTLY — must be created manually on each node."""
+
     name = "concurrent_indexes"
     category = "sql_patterns"
     description = "CREATE INDEX CONCURRENTLY — must be created manually on each node"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.
+        """Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.
 
         Parameters:
             conn: A database connection object with a context-managing `.cursor()` method used to query `pg_stat_statements`.

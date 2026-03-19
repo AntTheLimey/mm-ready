@@ -9,14 +9,15 @@ from mm_ready.models import Finding, Severity
 
 
 class SharedPreloadCheck(BaseCheck):
+    """Check: shared_preload_libraries must include 'spock' for Spock operation."""
+
     name = "shared_preload_libraries"
     category = "config"
     description = "shared_preload_libraries must include 'spock' for Spock operation"
     mode = "audit"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check that the PostgreSQL configuration parameter `shared_preload_libraries` includes the `spock` library and produce findings if it does not.
+        """Check that the PostgreSQL configuration parameter `shared_preload_libraries` includes the `spock` library and produce findings if it does not.
 
         Queries the server for `shared_preload_libraries`, parses the comma-separated value into a list, and returns a finding when `spock` is absent. The finding contains severity, explanatory detail, remediation instructions, and the current libraries in metadata.
 

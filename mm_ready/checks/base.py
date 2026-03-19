@@ -44,9 +44,11 @@ class BaseCheck(abc.ABC):
         ...
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Set default name from class name if not provided."""
         super().__init_subclass__(**kwargs)
         if not cls.name:
             cls.name = cls.__name__
 
     def __repr__(self) -> str:
+        """Return string representation of the check."""
         return f"<{self.__class__.__name__} [{self.category}] {self.name} ({self.mode})>"

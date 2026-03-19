@@ -9,14 +9,15 @@ from mm_ready.models import Finding, Severity
 
 
 class LargeObjectsCheck(BaseCheck):
+    """Check: Large object (LOB) usage — logical decoding does not support them."""
+
     name = "large_objects"
     category = "schema"
     description = "Large object (LOB) usage — logical decoding does not support them"
 
     def run(self, conn: connection) -> list[Finding]:
         # Check if any large objects exist
-        """
-        Detect large-object usage and OID-typed columns that may reference large objects and produce findings about replication issues.
+        """Detect large-object usage and OID-typed columns that may reference large objects and produce findings about replication issues.
 
         Parameters:
             conn: A DB connection with a cursor() context manager used to run queries.

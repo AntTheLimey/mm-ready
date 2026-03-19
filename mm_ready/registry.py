@@ -16,8 +16,7 @@ def discover_checks(
     exclude: set[str] | None = None,
     include_only: set[str] | None = None,
 ) -> list[BaseCheck]:
-    """
-    Discover and instantiate all BaseCheck subclasses under the mm_ready.checks package, optionally filtering by category, mode, and check name.
+    """Discover and instantiate all BaseCheck subclasses under the mm_ready.checks package, optionally filtering by category, mode, and check name.
 
     Parameters:
         categories (list[str] | None): If provided, only include checks whose `category` is in this list.
@@ -63,8 +62,7 @@ def discover_checks(
 
 
 def _import_submodules(package_name: str, package_dir: Path) -> None:
-    """
-    Recursively import all submodules in a package directory, ignoring import errors.
+    """Recursively import all submodules in a package directory, ignoring import errors.
 
     Imports every module found under the given package directory using the package name as the import prefix. Any exception raised while importing an individual submodule is suppressed so discovery continues.
 
@@ -81,8 +79,7 @@ def _import_submodules(package_name: str, package_dir: Path) -> None:
 
 
 def _all_subclasses(cls: type[BaseCheck]) -> list[type[BaseCheck]]:
-    """
-    Collect all subclasses of a class recursively.
+    """Collect all subclasses of a class recursively.
 
     Performs a depth-first traversal of the subclass hierarchy and returns every direct and indirect subclass of `cls` (does not include `cls` itself). The traversal order is depth-first: each discovered subclass is listed before its own subclasses.
 

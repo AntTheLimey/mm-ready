@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class DatabaseEncodingCheck(BaseCheck):
+    """Check: Database encoding — all Spock nodes must use the same encoding."""
+
     name = "database_encoding"
     category = "replication"
     description = "Database encoding — all Spock nodes must use the same encoding"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check the current database's encoding and produce Findings describing its compatibility for Spock replication.
+        """Check the current database's encoding and produce Findings describing its compatibility for Spock replication.
 
         Queries the current database to determine its encoding, collation, and ctype, and returns one or more Finding objects:
         - If the encoding is not UTF-8, returns a Finding with severity `Severity.CONSIDER` recommending all Spock nodes use the same encoding (UTF-8 is recommended).

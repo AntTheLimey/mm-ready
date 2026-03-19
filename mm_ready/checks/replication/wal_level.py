@@ -9,13 +9,14 @@ from mm_ready.models import Finding, Severity
 
 
 class WalLevelCheck(BaseCheck):
+    """Check: wal_level must be 'logical' for Spock replication."""
+
     name = "wal_level"
     category = "replication"
     description = "wal_level must be 'logical' for Spock replication"
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Check the PostgreSQL server's wal_level and produce a Finding if it is not set to 'logical'.
+        """Check the PostgreSQL server's wal_level and produce a Finding if it is not set to 'logical'.
 
         Queries the server with "SHOW wal_level;" and, if the value is not "logical", returns a single `Finding` with severity CRITICAL that includes the current value, explanatory detail, remediation steps, and metadata.
 

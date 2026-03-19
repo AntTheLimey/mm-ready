@@ -61,15 +61,25 @@ select = [
     "B",    # flake8-bugbear (common bugs)
     "SIM",  # flake8-simplify
     "RUF",  # ruff-specific rules
+    "D",    # pydocstyle (docstring conventions)
 ]
 ignore = [
     "E501",    # line too long (handled by formatter)
     "SIM108",  # ternary operator (not always clearer)
     "RUF012",  # ClassVar annotations (noisy for BaseCheck subclass patterns)
+    "D100",    # missing docstring in public module (covered by interrogate threshold)
+    "D104",    # missing docstring in public package (__init__.py files)
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.isort]
 known-first-party = ["mm_ready"]
+
+[tool.interrogate]
+fail-under = 80
+verbose = 1
 
 [tool.pyright]
 pythonVersion = "3.10"

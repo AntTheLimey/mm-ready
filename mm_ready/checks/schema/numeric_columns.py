@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class NumericColumnsCheck(BaseCheck):
+    """Check: Numeric columns that may be Delta-Apply candidates (counters, balances, etc.)."""
+
     name = "numeric_columns"
     category = "schema"
     description = "Numeric columns that may be Delta-Apply candidates (counters, balances, etc.)"
@@ -34,8 +36,7 @@ class NumericColumnsCheck(BaseCheck):
     ]
 
     def run(self, conn: connection) -> list[Finding]:
-        """
-        Scan the database catalog for numeric columns whose names suggest they are counters or accumulators, and produce findings about their suitability for Delta-Apply.
+        """Scan the database catalog for numeric columns whose names suggest they are counters or accumulators, and produce findings about their suitability for Delta-Apply.
 
         Parameters:
             conn: A DB-API connection used to query the database catalog for table and column metadata.

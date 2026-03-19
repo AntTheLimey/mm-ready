@@ -9,6 +9,8 @@ from mm_ready.models import Finding, Severity
 
 
 class ExceptionLogCheck(BaseCheck):
+    """Check: Review Spock exception log for replication apply errors."""
+
     name = "exception_log"
     category = "replication"
     description = "Review Spock exception log for replication apply errors"
@@ -16,8 +18,7 @@ class ExceptionLogCheck(BaseCheck):
 
     def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema and exception tables exist
-        """
-        Inspect the spock.exception_log table and produce findings describing replication apply errors.
+        """Inspect the spock.exception_log table and produce findings describing replication apply errors.
 
         Queries whether spock.exception_log exists; if absent returns an INFO finding. If present, summarizes up to 50 grouped exception rows and returns an aggregate Finding with the total error count plus one Finding per origin/table/error group describing counts, a snippet of the error message, and last occurrence.
 
