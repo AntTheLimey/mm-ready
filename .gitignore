@@ -20,6 +20,15 @@ tmp/
 PLAN.md
 todo.md
 
+# Internal design specs
+docs/superpowers/
+
+# Ruff cache
+.ruff_cache/
+
+# Demo script (content moved to docs/tutorial.md)
+DEMO_SCRIPT.md
+
 # macOS
 .DS_Store
 
