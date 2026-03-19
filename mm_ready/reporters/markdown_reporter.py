@@ -20,7 +20,7 @@ def render(report: ScanReport) -> str:
     Returns:
         str: The complete report as a Markdown-formatted string.
     """
-    lines = []
+    lines: list[str] = []
 
     # Header
     lines.append("# MM-Ready: Spock 5 Readiness Report")

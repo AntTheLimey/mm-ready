@@ -39,6 +39,8 @@ GUIDELINES:
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -50,7 +52,7 @@ class MyCustomCheck(BaseCheck):
     description = "One-line description of what this check detects"
     mode = "scan"  # "scan", "audit", or "both"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # 1. Query the database -----------------------------------------------
         """
         Scan non-system PostgreSQL tables and produce a Finding for each discovered table.
@@ -72,7 +74,7 @@ class MyCustomCheck(BaseCheck):
             rows = cur.fetchall()
 
         # 2. Analyse results and build findings --------------------------------
-        findings = []
+        findings: list[Finding] = []
         for schema, table in rows:
             fqn = f"{schema}.{table}"
 

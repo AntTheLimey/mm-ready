@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class SequenceAuditCheck(BaseCheck):
     category = "sequences"
     description = "All sequences, types, and ownership — need snowflake migration plan"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Audit all non-system sequences in the connected PostgreSQL database and produce findings describing each sequence's type, start/increment values, cycle behavior, and ownership, along with migration guidance for multi-master setups.
 
@@ -56,7 +58,7 @@ class SequenceAuditCheck(BaseCheck):
         if not rows:
             return []
 
-        findings = []
+        findings: list[Finding] = []
         for row in rows:
             (
                 schema_name,

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class StoredProceduresCheck(BaseCheck):
     category = "functions"
     description = "Audit stored procedures/functions for write operations and DDL"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Audit user-defined functions and procedures for potential write operations and non-replicated side effects.
 
@@ -45,7 +47,7 @@ class StoredProceduresCheck(BaseCheck):
         kind_labels = {"f": "function", "p": "procedure", "a": "aggregate", "w": "window"}
         vol_labels = {"i": "IMMUTABLE", "s": "STABLE", "v": "VOLATILE"}
 
-        findings = []
+        findings: list[Finding] = []
         write_patterns = [
             "INSERT",
             "UPDATE",

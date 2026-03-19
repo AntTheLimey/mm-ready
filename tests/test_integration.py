@@ -12,7 +12,12 @@ Tests are skipped automatically if the database is not reachable.
 
 from __future__ import annotations
 
+from collections.abc import Generator
+
 import pytest
+from psycopg2.extensions import connection
+
+from mm_ready.models import ScanReport
 
 # Try to connect; skip entire module if unavailable
 try:
@@ -37,7 +42,7 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.fixture(scope="module")
-def db_conn():
+def db_conn() -> Generator[connection, None, None]:
     """
     Provide a module-scoped test database connection for integration tests.
 
@@ -61,7 +66,7 @@ def db_conn():
 
 
 @pytest.fixture(scope="module")
-def scan_report(db_conn):
+def scan_report(db_conn: connection) -> ScanReport:
     """
     Run a full database scan using the provided connection and return the scan report.
 
@@ -77,25 +82,25 @@ def scan_report(db_conn):
 
 
 class TestFullScan:
-    def test_check_count(self, scan_report):
+    def test_check_count(self, scan_report: ScanReport) -> None:
         assert scan_report.checks_total == 48
 
-    def test_no_errors(self, scan_report):
+    def test_no_errors(self, scan_report: ScanReport) -> None:
         errors = [r for r in scan_report.results if r.error]
         assert len(errors) == 0, f"Checks with errors: {[(r.check_name, r.error) for r in errors]}"
 
-    def test_has_findings(self, scan_report):
+    def test_has_findings(self, scan_report: ScanReport) -> None:
         assert len(scan_report.findings) > 0
 
-    def test_pg_version_populated(self, scan_report):
+    def test_pg_version_populated(self, scan_report: ScanReport) -> None:
         assert scan_report.pg_version != ""
 
-    def test_scan_mode(self, scan_report):
+    def test_scan_mode(self, scan_report: ScanReport) -> None:
         assert scan_report.scan_mode == "scan"
 
 
 class TestReporterOutput:
-    def test_json_renders(self, scan_report):
+    def test_json_renders(self, scan_report: ScanReport) -> None:
         import json
 
         from mm_ready.reporters.json_reporter import render
@@ -104,13 +109,13 @@ class TestReporterOutput:
         data = json.loads(output)
         assert data["summary"]["total_checks"] == 48
 
-    def test_markdown_renders(self, scan_report):
+    def test_markdown_renders(self, scan_report: ScanReport) -> None:
         from mm_ready.reporters.markdown_reporter import render
 
         output = render(scan_report)
         assert len(output) > 100
 
-    def test_html_renders(self, scan_report):
+    def test_html_renders(self, scan_report: ScanReport) -> None:
         from mm_ready.reporters.html_reporter import render
 
         output = render(scan_report)

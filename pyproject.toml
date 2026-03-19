@@ -73,6 +73,5 @@ known-first-party = ["mm_ready"]
 
 [tool.pyright]
 pythonVersion = "3.10"
-typeCheckingMode = "basic"
-include = ["mm_ready"]
-exclude = ["tests"]
+typeCheckingMode = "strict"
+include = ["mm_ready", "tests"]

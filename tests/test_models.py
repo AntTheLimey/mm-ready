@@ -12,25 +12,25 @@ from mm_ready.models import CheckResult, Finding, ScanReport, Severity
 
 
 class TestSeverityOrdering:
-    def test_critical_less_than_warning(self):
+    def test_critical_less_than_warning(self) -> None:
         assert Severity.CRITICAL < Severity.WARNING
 
-    def test_warning_less_than_consider(self):
+    def test_warning_less_than_consider(self) -> None:
         assert Severity.WARNING < Severity.CONSIDER
 
-    def test_consider_less_than_info(self):
+    def test_consider_less_than_info(self) -> None:
         assert Severity.CONSIDER < Severity.INFO
 
-    def test_critical_less_than_info(self):
+    def test_critical_less_than_info(self) -> None:
         assert Severity.CRITICAL < Severity.INFO
 
-    def test_same_severity_not_less(self):
+    def test_same_severity_not_less(self) -> None:
         assert not (Severity.WARNING < Severity.WARNING)
 
-    def test_info_not_less_than_critical(self):
+    def test_info_not_less_than_critical(self) -> None:
         assert not (Severity.INFO < Severity.CRITICAL)
 
-    def test_sorted_order(self):
+    def test_sorted_order(self) -> None:
         severities = [Severity.INFO, Severity.CRITICAL, Severity.CONSIDER, Severity.WARNING]
         assert sorted(severities) == [
             Severity.CRITICAL,
@@ -44,7 +44,7 @@ class TestSeverityOrdering:
 
 
 class TestFinding:
-    def test_defaults(self):
+    def test_defaults(self) -> None:
         f = Finding(
             severity=Severity.WARNING,
             check_name="test",
@@ -56,7 +56,7 @@ class TestFinding:
         assert f.remediation == ""
         assert f.metadata == {}
 
-    def test_metadata_independent(self):
+    def test_metadata_independent(self) -> None:
         """Each Finding gets its own metadata dict."""
         f1 = make_finding()
         f2 = make_finding()
@@ -68,7 +68,7 @@ class TestFinding:
 
 
 class TestScanReportEmpty:
-    def test_empty_counts(self, empty_report):
+    def test_empty_counts(self, empty_report: ScanReport) -> None:
         assert empty_report.critical_count == 0
         assert empty_report.warning_count == 0
         assert empty_report.consider_count == 0
@@ -79,33 +79,33 @@ class TestScanReportEmpty:
 
 
 class TestScanReportCounts:
-    def test_critical_count(self, sample_report):
+    def test_critical_count(self, sample_report: ScanReport) -> None:
         assert sample_report.critical_count == 1
 
-    def test_warning_count(self, sample_report):
+    def test_warning_count(self, sample_report: ScanReport) -> None:
         assert sample_report.warning_count == 1
 
-    def test_consider_count(self, sample_report):
+    def test_consider_count(self, sample_report: ScanReport) -> None:
         assert sample_report.consider_count == 1
 
-    def test_info_count(self, sample_report):
+    def test_info_count(self, sample_report: ScanReport) -> None:
         assert sample_report.info_count == 1
 
-    def test_checks_total(self, sample_report):
+    def test_checks_total(self, sample_report: ScanReport) -> None:
         # 7 total results minus 1 skipped = 6 that actually ran
         assert sample_report.checks_total == 6
 
-    def test_checks_skipped(self, sample_report):
+    def test_checks_skipped(self, sample_report: ScanReport) -> None:
         assert sample_report.checks_skipped == 1
 
-    def test_checks_passed(self, sample_report):
+    def test_checks_passed(self, sample_report: ScanReport) -> None:
         # Only exclusion_constraints has no findings, no error, not skipped
         assert sample_report.checks_passed == 1
 
-    def test_findings_flattened(self, sample_report):
+    def test_findings_flattened(self, sample_report: ScanReport) -> None:
         assert len(sample_report.findings) == 4
 
-    def test_checks_passed_excludes_errored(self):
+    def test_checks_passed_excludes_errored(self) -> None:
         report = ScanReport(
             database="db",
             host="h",
@@ -122,7 +122,7 @@ class TestScanReportCounts:
         )
         assert report.checks_passed == 0
 
-    def test_checks_passed_excludes_skipped(self):
+    def test_checks_passed_excludes_skipped(self) -> None:
         report = ScanReport(
             database="db",
             host="h",

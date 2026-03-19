@@ -5,10 +5,13 @@ from __future__ import annotations
 import sys
 from datetime import datetime, timezone
 
+from psycopg2.extensions import connection
+
 from mm_ready.connection import get_pg_version
 from mm_ready.models import CheckResult, Finding, ScanReport, Severity
 from mm_ready.monitor.log_parser import LogAnalysis, parse_log_file
 from mm_ready.monitor.pgstat_collector import (
+    StatsDelta,
     collect_over_duration,
 )
 from mm_ready.monitor.pgstat_collector import (
@@ -18,7 +21,7 @@ from mm_ready.registry import discover_checks
 
 
 def run_monitor(
-    conn,
+    conn: connection,
     host: str,
     port: int,
     dbname: str,
@@ -121,7 +124,7 @@ def run_monitor(
     return report
 
 
-def _build_pgstat_result(delta) -> CheckResult:
+def _build_pgstat_result(delta: StatsDelta) -> CheckResult:
     """
     Builds a CheckResult describing SQL activity observed in a pg_stat_statements delta.
 

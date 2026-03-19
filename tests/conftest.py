@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 import pytest
 
@@ -15,7 +16,7 @@ def make_finding(
     category: str = "schema",
     title: str = "Test finding",
     detail: str = "Test detail",
-    **kwargs,
+    **kwargs: Any,
 ) -> Finding:
     """Factory for creating Finding instances with sensible defaults."""
     return Finding(

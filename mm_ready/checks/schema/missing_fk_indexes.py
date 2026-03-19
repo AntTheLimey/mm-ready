@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class MissingFkIndexesCheck(BaseCheck):
     category = "schema"
     description = "Foreign key columns without indexes — slow cascades and lock contention"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Find FK columns on the referencing (child) side that lack a matching index.
         # This is the standard "missing FK index" query adapted for Spock context.
         """
@@ -51,7 +53,7 @@ class MissingFkIndexesCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, con_name, fk_cols in rows:
             fqn = f"{schema_name}.{table_name}"
             col_list = ", ".join(fk_cols)

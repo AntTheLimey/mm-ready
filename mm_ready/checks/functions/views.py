@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class ViewsCheck(BaseCheck):
     category = "functions"
     description = "Views and materialized views — refresh coordination in multi-master"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Materialized views
         """
         Audit database views and materialized views and produce findings about materialized-view refresh coordination and the presence of regular views.
@@ -42,9 +44,10 @@ class ViewsCheck(BaseCheck):
             cur.execute(mat_query)
             mat_rows = cur.fetchall()
             cur.execute(view_query)
-            view_count = cur.fetchone()[0]
+            row = cur.fetchone()
+            view_count = int(row[0]) if row else 0
 
-        findings = []
+        findings: list[Finding] = []
 
         for schema_name, view_name, size in mat_rows:
             fqn = f"{schema_name}.{view_name}"

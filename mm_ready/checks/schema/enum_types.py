@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class EnumTypesCheck(BaseCheck):
     category = "schema"
     description = "ENUM types — DDL changes to enums require multi-node coordination"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Identify ENUM types in the database and produce findings that warn that ENUM DDL changes require coordinated application across nodes.
 
@@ -37,7 +39,7 @@ class EnumTypesCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, type_name, labels in rows:
             fqn = f"{schema_name}.{type_name}"
             findings.append(

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import abc
+from typing import Any
+
+from psycopg2.extensions import connection
 
 from mm_ready.models import Finding
 
@@ -29,7 +32,7 @@ class BaseCheck(abc.ABC):
     mode: str = "scan"
 
     @abc.abstractmethod
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """Execute the check against the database connection.
 
         Args:
@@ -40,10 +43,10 @@ class BaseCheck(abc.ABC):
         """
         ...
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         if not cls.name:
             cls.name = cls.__name__
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} [{self.category}] {self.name} ({self.mode})>"

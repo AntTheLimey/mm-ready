@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class TablespaceUsageCheck(BaseCheck):
     category = "schema"
     description = "Non-default tablespace usage — tablespaces must exist on all nodes"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Finds database objects that use non-default (local) tablespaces and returns a Finding for each tablespace with the objects that use it.
 
@@ -48,7 +50,7 @@ class TablespaceUsageCheck(BaseCheck):
             kind = kind_labels.get(relkind, relkind)
             tablespaces.setdefault(ts_name, []).append(f"{fqn} ({kind})")
 
-        findings = []
+        findings: list[Finding] = []
         for ts_name, objects in tablespaces.items():
             findings.append(
                 Finding(

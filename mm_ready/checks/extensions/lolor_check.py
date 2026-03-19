@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class LolorCheck(BaseCheck):
     category = "extensions"
     description = "LOLOR extension — required for replicating large objects"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Assess whether the database uses large objects and verify that the LOLOR extension is installed and correctly configured for large-object replication.
 
@@ -23,12 +25,13 @@ class LolorCheck(BaseCheck):
             - WARNING findings if LOLOR is not installed or `lolor.node` is not configured properly,
             - INFO finding when LOLOR is installed and `lolor.node` is set.
         """
-        findings = []
+        findings: list[Finding] = []
 
         # Check if large objects exist or OID columns are present
         with conn.cursor() as cur:
             cur.execute("SELECT count(*) FROM pg_catalog.pg_largeobject_metadata;")
-            lob_count = cur.fetchone()[0]
+            row = cur.fetchone()
+            lob_count = int(row[0]) if row else 0
 
             cur.execute("""
                 SELECT count(*)
@@ -41,7 +44,8 @@ class LolorCheck(BaseCheck):
                   AND n.nspname NOT IN ('pg_catalog', 'information_schema', 'spock', 'pg_toast')
                   AND a.atttypid = 'oid'::regtype;
             """)
-            oid_col_count = cur.fetchone()[0]
+            row = cur.fetchone()
+            oid_col_count = int(row[0]) if row else 0
 
         has_lo_usage = lob_count > 0 or oid_col_count > 0
         if not has_lo_usage:
@@ -87,7 +91,8 @@ class LolorCheck(BaseCheck):
         try:
             with conn.cursor() as cur:
                 cur.execute("SELECT current_setting('lolor.node');")
-                node_val = cur.fetchone()[0]
+                row = cur.fetchone()
+                node_val = str(row[0]) if row else None
         except Exception:
             node_val = None
 

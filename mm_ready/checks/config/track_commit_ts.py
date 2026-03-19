@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class TrackCommitTimestampCheck(BaseCheck):
     category = "config"
     description = "track_commit_timestamp must be on for Spock conflict resolution"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check PostgreSQL's track_commit_timestamp setting and report a Finding if it is not enabled.
 
@@ -23,9 +25,10 @@ class TrackCommitTimestampCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute("SHOW track_commit_timestamp;")
-            val = cur.fetchone()[0]
+            row = cur.fetchone()
+            val = str(row[0]) if row else ""
 
-        findings = []
+        findings: list[Finding] = []
         if val != "on":
             findings.append(
                 Finding(

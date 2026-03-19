@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class TempTableQueriesCheck(BaseCheck):
     category = "sql_patterns"
     description = "CREATE TEMP TABLE in SQL — session-local, not replicated"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Run the temp-table detection check against pg_stat_statements using the provided DB connection.
 
@@ -38,7 +40,7 @@ class TempTableQueriesCheck(BaseCheck):
         except Exception:
             return []
 
-        findings = []
+        findings: list[Finding] = []
         if rows:
             findings.append(
                 Finding(

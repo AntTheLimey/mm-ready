@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class PartitionedTablesCheck(BaseCheck):
     category = "schema"
     description = "Partitioned tables — review partition strategy for Spock compatibility"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Identify partitioned tables and produce findings about their partition strategy and partition counts to assess Spock compatibility.
 
@@ -46,7 +48,7 @@ class PartitionedTablesCheck(BaseCheck):
 
         strategy_labels = {"r": "RANGE", "l": "LIST", "h": "HASH"}
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, strategy, part_count in rows:
             fqn = f"{schema_name}.{table_name}"
             strat_label = strategy_labels.get(strategy, strategy)

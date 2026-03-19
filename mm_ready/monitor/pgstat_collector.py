@@ -5,6 +5,9 @@ from __future__ import annotations
 import sys
 import time
 from dataclasses import dataclass, field
+from typing import Any
+
+from psycopg2.extensions import connection
 
 
 @dataclass
@@ -20,12 +23,12 @@ class StatementSnapshot:
 class StatsDelta:
     """Difference between two snapshots — represents activity during observation."""
 
-    new_queries: list[StatementSnapshot] = field(default_factory=list)
-    changed_queries: list[dict] = field(default_factory=list)  # {query, delta_calls, delta_time}
+    new_queries: list[StatementSnapshot] = field(default_factory=lambda: list[StatementSnapshot]())
+    changed_queries: list[dict[str, Any]] = field(default_factory=lambda: list[dict[str, Any]]())
     duration_seconds: float = 0.0
 
 
-def is_available(conn) -> bool:
+def is_available(conn: connection) -> bool:
     """Check if pg_stat_statements is queryable."""
     try:
         with conn.cursor() as cur:
@@ -35,7 +38,7 @@ def is_available(conn) -> bool:
         return False
 
 
-def take_snapshot(conn) -> dict[str, StatementSnapshot]:
+def take_snapshot(conn: connection) -> dict[str, StatementSnapshot]:
     """Take a snapshot of pg_stat_statements, keyed by queryid or query text."""
     with conn.cursor() as cur:
         cur.execute("""
@@ -45,7 +48,7 @@ def take_snapshot(conn) -> dict[str, StatementSnapshot]:
         """)
         rows = cur.fetchall()
 
-    snapshots = {}
+    snapshots: dict[str, StatementSnapshot] = {}
     for queryid, query, calls, total_time, row_count in rows:
         key = str(queryid) if queryid else query[:200]
         snapshots[key] = StatementSnapshot(
@@ -58,7 +61,7 @@ def take_snapshot(conn) -> dict[str, StatementSnapshot]:
     return snapshots
 
 
-def collect_over_duration(conn, duration: int, verbose: bool = False) -> StatsDelta:
+def collect_over_duration(conn: connection, duration: int, verbose: bool = False) -> StatsDelta:
     """
     Collect snapshots of pg_stat_statements separated by a time window and compute their delta.
 

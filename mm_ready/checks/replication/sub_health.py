@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 import psycopg2
+from psycopg2.extensions import connection
 
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
@@ -18,7 +19,7 @@ class SubscriptionHealthCheck(BaseCheck):
     description = "Check health of Spock subscriptions"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema exists
         """
         Assess Spock subscription and replication-slot health for the connected database node.
@@ -41,7 +42,8 @@ class SubscriptionHealthCheck(BaseCheck):
                         SELECT 1 FROM pg_namespace WHERE nspname = 'spock'
                     );
                 """)
-                has_spock = cur.fetchone()[0]
+                row = cur.fetchone()
+                has_spock = bool(row[0]) if row else False
         except Exception:
             has_spock = False
 
@@ -96,7 +98,7 @@ class SubscriptionHealthCheck(BaseCheck):
                 )
             ]
 
-        findings = []
+        findings: list[Finding] = []
         for sub_name, sub_enabled, slot_name, _repsets, _fwd_origins in rows:
             if not sub_enabled:
                 findings.append(

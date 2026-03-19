@@ -18,12 +18,12 @@ class LogStatement:
 @dataclass
 class LogAnalysis:
     total_statements: int = 0
-    ddl_statements: list[LogStatement] = field(default_factory=list)
-    truncate_cascade: list[LogStatement] = field(default_factory=list)
-    create_temp_table: list[LogStatement] = field(default_factory=list)
-    advisory_locks: list[LogStatement] = field(default_factory=list)
-    concurrent_indexes: list[LogStatement] = field(default_factory=list)
-    other_notable: list[LogStatement] = field(default_factory=list)
+    ddl_statements: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    truncate_cascade: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    create_temp_table: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    advisory_locks: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    concurrent_indexes: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    other_notable: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
 
     @property
     def has_findings(self) -> bool:
@@ -124,7 +124,7 @@ def parse_log_file(log_path: str) -> LogAnalysis:
     return analysis
 
 
-def _classify_statement(analysis: LogAnalysis, stmt: str, ts: str, line: int):
+def _classify_statement(analysis: LogAnalysis, stmt: str, ts: str, line: int) -> None:
     """Classify a SQL statement into relevant categories."""
     entry = LogStatement(line_number=line, timestamp=ts, statement=stmt[:500])
 

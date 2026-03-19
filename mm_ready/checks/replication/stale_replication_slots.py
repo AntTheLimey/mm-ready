@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -12,7 +14,7 @@ class StaleReplicationSlotsCheck(BaseCheck):
     description = "Inactive replication slots — retaining WAL and risk filling disk"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Detects inactive PostgreSQL replication slots that are retaining WAL and returns findings for each.
 
@@ -41,7 +43,7 @@ class StaleReplicationSlotsCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for slot_name, slot_type, active, restart_lsn, flush_lsn, wal_bytes in rows:
             if active:
                 continue

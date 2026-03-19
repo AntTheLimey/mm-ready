@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -31,7 +33,7 @@ class NumericColumnsCheck(BaseCheck):
         "inventory",
     ]
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Scan the database catalog for numeric columns whose names suggest they are counters or accumulators, and produce findings about their suitability for Delta-Apply.
 
@@ -65,7 +67,7 @@ class NumericColumnsCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, col_name, data_type, is_not_null in rows:
             col_lower = col_name.lower()
             matched = any(p in col_lower for p in self.SUSPECT_PATTERNS)

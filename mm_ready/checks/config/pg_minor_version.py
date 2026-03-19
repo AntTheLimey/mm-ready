@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -12,7 +14,7 @@ class PgMinorVersionCheck(BaseCheck):
     description = "PostgreSQL minor version — all cluster nodes should match"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Query the connected PostgreSQL server and return a Finding that reports its minor version and full version string.
 
@@ -24,7 +26,9 @@ class PgMinorVersionCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute("SELECT version(), current_setting('server_version');")
-            full_version, server_version = cur.fetchone()
+            row = cur.fetchone()
+            full_version = str(row[0]) if row else ""
+            server_version = str(row[1]) if row else ""
 
         return [
             Finding(

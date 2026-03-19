@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class DatabaseEncodingCheck(BaseCheck):
     category = "replication"
     description = "Database encoding — all Spock nodes must use the same encoding"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check the current database's encoding and produce Findings describing its compatibility for Spock replication.
 
@@ -43,7 +45,7 @@ class DatabaseEncodingCheck(BaseCheck):
 
         db_name, encoding, collation, ctype = row
 
-        findings = []
+        findings: list[Finding] = []
         # Spock source requires same encoding on provider and subscriber.
         # Not UTF-8 specifically — just consistency. Flag non-UTF8 as INFO
         # since UTF-8 is by far the most portable choice.

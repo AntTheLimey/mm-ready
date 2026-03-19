@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class MultipleDatabasesCheck(BaseCheck):
     category = "replication"
     description = "More than one user database in the instance — Spock supports one DB per instance"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check for multiple user databases in the PostgreSQL instance.
 
@@ -34,7 +36,7 @@ class MultipleDatabasesCheck(BaseCheck):
 
         db_names = [r[0] for r in rows]
 
-        findings = []
+        findings: list[Finding] = []
         if len(db_names) > 1:
             findings.append(
                 Finding(

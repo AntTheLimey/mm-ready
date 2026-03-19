@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -38,7 +40,7 @@ class DdlStatementsCheck(BaseCheck):
         "DROP SEQUENCE",
     ]
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check pg_stat_statements for queries that match known DDL patterns and return findings describing any matches.
 
@@ -77,7 +79,7 @@ class DdlStatementsCheck(BaseCheck):
                 )
             ]
 
-        findings = []
+        findings: list[Finding] = []
         if rows:
             findings.append(
                 Finding(

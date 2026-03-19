@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class LargeObjectsCheck(BaseCheck):
     category = "schema"
     description = "Large object (LOB) usage — logical decoding does not support them"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if any large objects exist
         """
         Detect large-object usage and OID-typed columns that may reference large objects and produce findings about replication issues.
@@ -25,9 +27,10 @@ class LargeObjectsCheck(BaseCheck):
         query = "SELECT count(*) FROM pg_catalog.pg_largeobject_metadata;"
         with conn.cursor() as cur:
             cur.execute(query)
-            lob_count = cur.fetchone()[0]
+            row = cur.fetchone()
+            lob_count = int(row[0]) if row else 0
 
-        findings = []
+        findings: list[Finding] = []
         if lob_count > 0:
             findings.append(
                 Finding(

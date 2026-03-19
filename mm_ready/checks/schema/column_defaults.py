@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -27,7 +29,7 @@ class ColumnDefaultsCheck(BaseCheck):
         "pg_current_xact_id()",
     ]
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Scan the connected PostgreSQL database for columns that have volatile default expressions and return findings for each match.
 
@@ -56,7 +58,7 @@ class ColumnDefaultsCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, col_name, default_expr in rows:
             if not default_expr:
                 continue

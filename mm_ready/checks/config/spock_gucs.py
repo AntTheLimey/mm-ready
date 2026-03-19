@@ -2,8 +2,19 @@
 
 from __future__ import annotations
 
+from typing import TypedDict
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
+
+
+class _GucSpec(TypedDict):
+    name: str
+    recommended: str
+    severity: Severity
+    detail: str
 
 
 class SpockGucsCheck(BaseCheck):
@@ -13,7 +24,7 @@ class SpockGucsCheck(BaseCheck):
     mode = "audit"
 
     # Key Spock GUCs to check, with expected/recommended values
-    GUCS = [
+    GUCS: list[_GucSpec] = [
         {
             "name": "spock.conflict_resolution",
             "recommended": "last_update_wins",
@@ -67,7 +78,7 @@ class SpockGucsCheck(BaseCheck):
         },
     ]
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check configured Spock GUCs and produce a Finding for each setting.
 
@@ -79,43 +90,49 @@ class SpockGucsCheck(BaseCheck):
         Returns:
             list[Finding]: A list of Finding objects, one per configured GUC.
         """
-        findings = []
+        findings: list[Finding] = []
 
         for guc in self.GUCS:
+            guc_name = guc["name"]
+            guc_recommended = guc["recommended"]
+            guc_severity = guc["severity"]
+            guc_detail = guc["detail"]
+
             try:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT current_setting(%s);", (guc["name"],))
-                    value = cur.fetchone()[0]
+                    cur.execute("SELECT current_setting(%s);", (guc_name,))
+                    row = cur.fetchone()
+                    value = str(row[0]) if row else None
             except Exception:
                 findings.append(
                     Finding(
                         severity=Severity.INFO,
                         check_name=self.name,
                         category=self.category,
-                        title=f"GUC '{guc['name']}' not available",
+                        title=f"GUC '{guc_name}' not available",
                         detail=(
-                            f"Could not read '{guc['name']}'. Spock may not be "
+                            f"Could not read '{guc_name}'. Spock may not be "
                             "loaded in shared_preload_libraries."
                         ),
-                        object_name=guc["name"],
+                        object_name=guc_name,
                     )
                 )
                 continue
 
-            if value != guc["recommended"]:
+            if value != guc_recommended:
                 findings.append(
                     Finding(
-                        severity=guc["severity"],
+                        severity=guc_severity,
                         check_name=self.name,
                         category=self.category,
-                        title=f"{guc['name']} = '{value}' (recommended: '{guc['recommended']}')",
-                        detail=f"{guc['detail']}\n\nCurrent value: '{value}'.",
-                        object_name=guc["name"],
+                        title=f"{guc_name} = '{value}' (recommended: '{guc_recommended}')",
+                        detail=f"{guc_detail}\n\nCurrent value: '{value}'.",
+                        object_name=guc_name,
                         remediation=(
                             f"Consider setting:\n"
-                            f"  ALTER SYSTEM SET {guc['name']} = '{guc['recommended']}';"
+                            f"  ALTER SYSTEM SET {guc_name} = '{guc_recommended}';"
                         ),
-                        metadata={"current": value, "recommended": guc["recommended"]},
+                        metadata={"current": value, "recommended": guc_recommended},
                     )
                 )
             else:
@@ -124,9 +141,9 @@ class SpockGucsCheck(BaseCheck):
                         severity=Severity.INFO,
                         check_name=self.name,
                         category=self.category,
-                        title=f"{guc['name']} = '{value}' (OK)",
-                        detail=guc["detail"],
-                        object_name=guc["name"],
+                        title=f"{guc_name} = '{value}' (OK)",
+                        detail=guc_detail,
+                        object_name=guc_name,
                         metadata={"current": value},
                     )
                 )

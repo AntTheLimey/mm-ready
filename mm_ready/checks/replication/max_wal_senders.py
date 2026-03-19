@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class MaxWalSendersCheck(BaseCheck):
     category = "replication"
     description = "Sufficient max_wal_senders for Spock logical replication"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check that max_wal_senders is sufficiently large for Spock logical replication.
 
@@ -27,9 +29,11 @@ class MaxWalSendersCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute(query)
-            max_senders, active_senders = cur.fetchone()
+            row = cur.fetchone()
+            max_senders = int(row[0]) if row else 0
+            active_senders = int(row[1]) if row else 0
 
-        findings = []
+        findings: list[Finding] = []
 
         if max_senders < 10:
             findings.append(

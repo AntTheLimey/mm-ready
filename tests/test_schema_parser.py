@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import textwrap
+from pathlib import Path
 
 from mm_ready.schema_parser import (
     ConstraintDef,
@@ -17,7 +18,7 @@ from mm_ready.schema_parser import (
 # ---------------------------------------------------------------------------
 
 
-def _parse(tmp_path, sql: str) -> ParsedSchema:
+def _parse(tmp_path: Path, sql: str) -> ParsedSchema:
     """
     Parse a SQL dump string by writing it into a temporary dump.sql file and returning the parsed schema.
 
@@ -39,7 +40,7 @@ def _parse(tmp_path, sql: str) -> ParsedSchema:
 
 
 class TestPgVersion:
-    def test_extracts_version(self, tmp_path):
+    def test_extracts_version(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -49,7 +50,7 @@ class TestPgVersion:
         )
         assert schema.pg_version == "14.8"
 
-    def test_no_version_header(self, tmp_path):
+    def test_no_version_header(self, tmp_path: Path) -> None:
         schema = _parse(tmp_path, "SELECT 1;")
         assert schema.pg_version == ""
 
@@ -60,7 +61,7 @@ class TestPgVersion:
 
 
 class TestCreateTable:
-    def test_basic_table(self, tmp_path):
+    def test_basic_table(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -82,7 +83,7 @@ class TestCreateTable:
         assert tbl.columns[1].not_null is False
         assert tbl.columns[2].default_expr is not None
 
-    def test_unlogged_table(self, tmp_path):
+    def test_unlogged_table(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -94,7 +95,7 @@ class TestCreateTable:
         )
         assert schema.tables[0].unlogged is True
 
-    def test_inherits(self, tmp_path):
+    def test_inherits(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -106,7 +107,7 @@ class TestCreateTable:
         assert len(schema.tables[0].inherits) == 1
         assert "public.parent" in schema.tables[0].inherits
 
-    def test_partition_by(self, tmp_path):
+    def test_partition_by(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -119,7 +120,7 @@ class TestCreateTable:
         assert schema.tables[0].partition_by is not None
         assert "RANGE" in schema.tables[0].partition_by.upper()
 
-    def test_excludes_pg_catalog(self, tmp_path):
+    def test_excludes_pg_catalog(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -130,7 +131,7 @@ class TestCreateTable:
         )
         assert len(schema.tables) == 0
 
-    def test_identity_column_inline(self, tmp_path):
+    def test_identity_column_inline(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -144,7 +145,7 @@ class TestCreateTable:
         assert col.identity is not None
         assert "BY DEFAULT" in col.identity
 
-    def test_generated_column(self, tmp_path):
+    def test_generated_column(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -166,7 +167,7 @@ class TestCreateTable:
 
 
 class TestConstraints:
-    def test_primary_key(self, tmp_path):
+    def test_primary_key(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -180,7 +181,7 @@ class TestConstraints:
         assert con.columns == ["id"]
         assert con.table_name == "users"
 
-    def test_unique_constraint(self, tmp_path):
+    def test_unique_constraint(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -192,7 +193,7 @@ class TestConstraints:
         assert con.constraint_type == "UNIQUE"
         assert con.columns == ["email"]
 
-    def test_foreign_key(self, tmp_path):
+    def test_foreign_key(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -207,7 +208,7 @@ class TestConstraints:
         assert con.ref_table == "users"
         assert con.on_delete == "CASCADE"
 
-    def test_foreign_key_on_update(self, tmp_path):
+    def test_foreign_key_on_update(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -220,7 +221,7 @@ class TestConstraints:
         assert con.on_update == "CASCADE"
         assert con.on_delete == "SET NULL"
 
-    def test_deferrable_constraint(self, tmp_path):
+    def test_deferrable_constraint(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -232,7 +233,7 @@ class TestConstraints:
         assert con.deferrable is True
         assert con.initially_deferred is True
 
-    def test_exclude_constraint(self, tmp_path):
+    def test_exclude_constraint(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -243,7 +244,7 @@ class TestConstraints:
         con = schema.constraints[0]
         assert con.constraint_type == "EXCLUDE"
 
-    def test_inline_primary_key(self, tmp_path):
+    def test_inline_primary_key(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -265,7 +266,7 @@ class TestConstraints:
 
 
 class TestIndexes:
-    def test_basic_index(self, tmp_path):
+    def test_basic_index(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -279,7 +280,7 @@ class TestIndexes:
         assert idx.is_unique is False
         assert idx.index_method == "btree"
 
-    def test_unique_index(self, tmp_path):
+    def test_unique_index(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -288,7 +289,7 @@ class TestIndexes:
         )
         assert schema.indexes[0].is_unique is True
 
-    def test_index_columns(self, tmp_path):
+    def test_index_columns(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -304,7 +305,7 @@ class TestIndexes:
 
 
 class TestSequences:
-    def test_basic_sequence(self, tmp_path):
+    def test_basic_sequence(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -324,7 +325,7 @@ class TestSequences:
         assert seq.start_value == 1
         assert seq.increment == 1
 
-    def test_sequence_owned_by(self, tmp_path):
+    def test_sequence_owned_by(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -343,7 +344,7 @@ class TestSequences:
 
 
 class TestAlterSetDefault:
-    def test_nextval_default(self, tmp_path):
+    def test_nextval_default(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -365,7 +366,7 @@ class TestAlterSetDefault:
 
 
 class TestAlterAddIdentity:
-    def test_identity_always(self, tmp_path):
+    def test_identity_always(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -379,7 +380,7 @@ class TestAlterAddIdentity:
         col = schema.tables[0].columns[0]
         assert col.identity == "ALWAYS"
 
-    def test_identity_by_default(self, tmp_path):
+    def test_identity_by_default(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -393,7 +394,7 @@ class TestAlterAddIdentity:
         col = schema.tables[0].columns[0]
         assert col.identity == "BY DEFAULT"
 
-    def test_identity_bare_no_keyword(self, tmp_path):
+    def test_identity_bare_no_keyword(self, tmp_path: Path) -> None:
         """pg_dump sometimes emits bare ADD GENERATED AS IDENTITY without ALWAYS/BY DEFAULT."""
         schema = _parse(
             tmp_path,
@@ -410,7 +411,7 @@ class TestAlterAddIdentity:
         col = schema.tables[0].columns[0]
         assert col.identity == "ALWAYS"
 
-    def test_identity_bare_multiline(self, tmp_path):
+    def test_identity_bare_multiline(self, tmp_path: Path) -> None:
         """Bare identity with sequence options spread across multiple lines."""
         schema = _parse(
             tmp_path,
@@ -439,7 +440,7 @@ class TestAlterAddIdentity:
 
 
 class TestExtensions:
-    def test_create_extension(self, tmp_path):
+    def test_create_extension(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -450,7 +451,7 @@ class TestExtensions:
         assert schema.extensions[0].name == "pg_trgm"
         assert schema.extensions[0].schema_name == "public"
 
-    def test_extension_no_schema(self, tmp_path):
+    def test_extension_no_schema(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -466,7 +467,7 @@ class TestExtensions:
 
 
 class TestEnumTypes:
-    def test_enum_type(self, tmp_path):
+    def test_enum_type(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -489,7 +490,7 @@ class TestEnumTypes:
 
 
 class TestRules:
-    def test_instead_rule(self, tmp_path):
+    def test_instead_rule(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -510,7 +511,7 @@ class TestRules:
 
 
 class TestSearchPath:
-    def test_search_path_sets_default_schema(self, tmp_path):
+    def test_search_path_sets_default_schema(self, tmp_path: Path) -> None:
         schema = _parse(
             tmp_path,
             """\
@@ -529,14 +530,14 @@ class TestSearchPath:
 
 
 class TestParsedSchemaHelpers:
-    def test_get_table(self):
+    def test_get_table(self) -> None:
         schema = ParsedSchema()
         t = TableDef(schema_name="public", table_name="users")
         schema.tables.append(t)
         assert schema.get_table("public", "users") is t
         assert schema.get_table("public", "nope") is None
 
-    def test_get_constraints_for_table(self):
+    def test_get_constraints_for_table(self) -> None:
         schema = ParsedSchema()
         pk = ConstraintDef(
             name="pk",
@@ -564,7 +565,7 @@ class TestParsedSchemaHelpers:
         assert len(schema.get_constraints_for_table("public", "users", "PRIMARY KEY")) == 1
         assert len(schema.get_constraints_for_table("public", "orders")) == 1
 
-    def test_get_indexes_for_table(self):
+    def test_get_indexes_for_table(self) -> None:
         schema = ParsedSchema()
         idx = IndexDef(name="idx1", table_schema="public", table_name="users")
         schema.indexes.append(idx)

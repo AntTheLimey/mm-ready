@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class HbaConfigCheck(BaseCheck):
     category = "replication"
     description = "pg_hba.conf must allow replication connections between nodes"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # pg_hba_file_rules is available in PG >= 15
         """
         Check pg_hba.conf for replication entries by querying pg_hba_file_rules.
@@ -30,7 +32,7 @@ class HbaConfigCheck(BaseCheck):
             FROM pg_catalog.pg_hba_file_rules
             ORDER BY line_number;
         """
-        findings = []
+        findings: list[Finding] = []
         try:
             with conn.cursor() as cur:
                 cur.execute(query)

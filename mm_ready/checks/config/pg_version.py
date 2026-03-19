@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -15,7 +17,7 @@ class PgVersionCheck(BaseCheck):
     # (PG 18 added in Spock 5.0.3; confirmed via src/compat/ directories)
     SUPPORTED_MAJORS = {15, 16, 17, 18}
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check PostgreSQL server major version for compatibility with Spock 5.
 
@@ -31,11 +33,13 @@ class PgVersionCheck(BaseCheck):
         query = "SELECT version(), current_setting('server_version_num')::int;"
         with conn.cursor() as cur:
             cur.execute(query)
-            version_str, version_num = cur.fetchone()
+            row = cur.fetchone()
+            version_str = str(row[0]) if row else ""
+            version_num = int(row[1]) if row else 0
 
         major = version_num // 10000
 
-        findings = []
+        findings: list[Finding] = []
         if major not in self.SUPPORTED_MAJORS:
             findings.append(
                 Finding(

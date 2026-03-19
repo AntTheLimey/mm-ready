@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class ForeignKeysCheck(BaseCheck):
     category = "schema"
     description = "Foreign key relationships — replication ordering and cross-node considerations"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check database foreign key constraints for replication-ordering concerns and report CASCADE actions.
 
@@ -52,9 +54,16 @@ class ForeignKeysCheck(BaseCheck):
         }
 
         # Group by table for a summary finding
-        findings = []
-        cascade_fks = []
-        for schema_name, table_name, con_name, ref_schema, ref_table, del_act, upd_act in rows:
+        findings: list[Finding] = []
+        cascade_fks: list[tuple[str, str, str, str, str]] = []
+        for row in rows:
+            schema_name: str = str(row[0])
+            table_name: str = str(row[1])
+            con_name: str = str(row[2])
+            ref_schema: str = str(row[3])
+            ref_table: str = str(row[4])
+            del_act: str = str(row[5])
+            upd_act: str = str(row[6])
             fqn = f"{schema_name}.{table_name}"
             ref_fqn = f"{ref_schema}.{ref_table}"
             del_label = action_labels.get(del_act, del_act)

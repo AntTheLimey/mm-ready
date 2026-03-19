@@ -34,8 +34,8 @@ def discover_checks(
 
     _import_submodules("mm_ready.checks", checks_dir)
 
-    instances = []
-    seen = set()
+    instances: list[BaseCheck] = []
+    seen: set[type[BaseCheck]] = set()
     for cls in _all_subclasses(BaseCheck):
         if cls in seen or not cls.name:
             continue
@@ -62,7 +62,7 @@ def discover_checks(
     return instances
 
 
-def _import_submodules(package_name: str, package_dir: Path):
+def _import_submodules(package_name: str, package_dir: Path) -> None:
     """
     Recursively import all submodules in a package directory, ignoring import errors.
 
@@ -80,19 +80,19 @@ def _import_submodules(package_name: str, package_dir: Path):
             importlib.import_module(modname)
 
 
-def _all_subclasses(cls):
+def _all_subclasses(cls: type[BaseCheck]) -> list[type[BaseCheck]]:
     """
     Collect all subclasses of a class recursively.
 
     Performs a depth-first traversal of the subclass hierarchy and returns every direct and indirect subclass of `cls` (does not include `cls` itself). The traversal order is depth-first: each discovered subclass is listed before its own subclasses.
 
     Parameters:
-        cls (type): The base class whose subclasses will be discovered.
+        cls: The base class whose subclasses will be discovered.
 
     Returns:
-        list[type]: A list of subclass types found for `cls`, in depth-first order.
+        A list of subclass types found for `cls`, in depth-first order.
     """
-    result = []
+    result: list[type[BaseCheck]] = []
     for sub in cls.__subclasses__():
         result.append(sub)
         result.extend(_all_subclasses(sub))

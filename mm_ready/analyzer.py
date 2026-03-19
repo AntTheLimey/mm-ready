@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from mm_ready.models import CheckResult, Finding, ScanReport, Severity
-from mm_ready.schema_parser import ParsedSchema
+from mm_ready.schema_parser import ConstraintDef, ParsedSchema
 
 # Type alias for static check functions used by the analyzer
 _CheckFunc = Callable[[ParsedSchema, str, str], list[Finding]]
@@ -472,7 +472,7 @@ def check_foreign_keys(schema: ParsedSchema, check_name: str, category: str) -> 
     findings: list[Finding] = []
     fk_constraints = [c for c in schema.constraints if c.constraint_type == "FOREIGN KEY"]
 
-    cascade_fks = []
+    cascade_fks: list[ConstraintDef] = []
     for fk in fk_constraints:
         fqn = f"{fk.table_schema}.{fk.table_name}"
         ref_fqn = f"{fk.ref_schema}.{fk.ref_table}" if fk.ref_table else "unknown"

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class ParallelApplyCheck(BaseCheck):
     category = "config"
     description = "Parallel apply workers configuration for Spock performance"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Validate Spock parallel-apply related PostgreSQL configuration and produce findings.
 
@@ -23,7 +25,7 @@ class ParallelApplyCheck(BaseCheck):
         Returns:
             list[Finding]: A list of Finding objects describing any configuration issues and a summary entry with all queried parameter values.
         """
-        params = {}
+        params: dict[str, str | None] = {}
         with conn.cursor() as cur:
             for param in [
                 "max_worker_processes",
@@ -33,11 +35,12 @@ class ParallelApplyCheck(BaseCheck):
             ]:
                 try:
                     cur.execute(f"SHOW {param};")
-                    params[param] = cur.fetchone()[0]
+                    row = cur.fetchone()
+                    params[param] = str(row[0]) if row else ""
                 except Exception:
                     params[param] = None
 
-        findings = []
+        findings: list[Finding] = []
 
         # max_logical_replication_workers
         lr_workers = params.get("max_logical_replication_workers")
@@ -91,7 +94,7 @@ class ParallelApplyCheck(BaseCheck):
                 detail="\n".join(f"  {k} = {v}" for k, v in params.items()),
                 object_name="(config)",
                 remediation="Review values for your expected cluster size and workload.",
-                metadata=params,
+                metadata={k: v for k, v in params.items()},
             )
         )
         return findings

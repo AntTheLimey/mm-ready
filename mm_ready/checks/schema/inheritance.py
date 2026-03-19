@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class InheritanceCheck(BaseCheck):
     category = "schema"
     description = "Table inheritance (non-partition) — not well supported in logical replication"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Identify non-partition table inheritance relationships in the database and produce findings for each child table.
 
@@ -40,7 +42,7 @@ class InheritanceCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for parent_schema, parent_table, child_schema, child_table in rows:
             parent_fqn = f"{parent_schema}.{parent_table}"
             child_fqn = f"{child_schema}.{child_table}"

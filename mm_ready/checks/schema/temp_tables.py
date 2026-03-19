@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class TempTablesCheck(BaseCheck):
     category = "schema"
     description = "TEMPORARY tables — session-local, never replicated"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Temp tables are session-scoped and won't appear in pg_class for other sessions.
         # We check for functions/procedures that CREATE TEMP TABLE instead.
         """
@@ -40,7 +42,7 @@ class TempTablesCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, func_name in rows:
             fqn = f"{schema_name}.{func_name}"
             findings.append(

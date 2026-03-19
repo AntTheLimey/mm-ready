@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class SnowflakeExtensionCheck(BaseCheck):
     category = "extensions"
     description = "Check availability of pgEdge snowflake extension for unique ID generation"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if installed
         """
         Check pgEdge Snowflake extension installation, availability, and the configured snowflake.node on the connected PostgreSQL server.
@@ -42,13 +44,14 @@ class SnowflakeExtensionCheck(BaseCheck):
             """)
             available = cur.fetchone()
 
-        findings = []
+        findings: list[Finding] = []
         if installed:
             # Check if snowflake.node is configured
             try:
                 with conn.cursor() as cur:
                     cur.execute("SELECT current_setting('snowflake.node');")
-                    node_val = cur.fetchone()[0]
+                    row = cur.fetchone()
+                    node_val = str(row[0]) if row else None
             except Exception:
                 node_val = None
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import enum
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
 
 class Severity(enum.Enum):
@@ -13,7 +14,9 @@ class Severity(enum.Enum):
     CONSIDER = "CONSIDER"
     INFO = "INFO"
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Severity):
+            return NotImplemented
         order = {Severity.CRITICAL: 0, Severity.WARNING: 1, Severity.CONSIDER: 2, Severity.INFO: 3}
         return order[self] < order[other]
 
@@ -27,7 +30,7 @@ class Finding:
     detail: str
     object_name: str = ""
     remediation: str = ""
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=lambda: dict[str, Any]())
 
 
 @dataclass
@@ -35,7 +38,7 @@ class CheckResult:
     check_name: str
     category: str
     description: str
-    findings: list[Finding] = field(default_factory=list)
+    findings: list[Finding] = field(default_factory=lambda: list[Finding]())
     error: str | None = None
     skipped: bool = False
     skip_reason: str = ""
@@ -47,14 +50,14 @@ class ScanReport:
     host: str
     port: int
     timestamp: datetime
-    results: list[CheckResult] = field(default_factory=list)
+    results: list[CheckResult] = field(default_factory=lambda: list[CheckResult]())
     pg_version: str = ""
     spock_target: str = "5.0"
     scan_mode: str = "scan"
 
     @property
     def findings(self) -> list[Finding]:
-        all_findings = []
+        all_findings: list[Finding] = []
         for r in self.results:
             all_findings.extend(r.findings)
         return all_findings

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class SequenceDataTypesCheck(BaseCheck):
     category = "sequences"
     description = "Sequence data types — smallint/integer may overflow faster in multi-master"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Detect sequences using small integer types that may overflow in multi-master setups.
 
@@ -38,7 +40,7 @@ class SequenceDataTypesCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, seq_name, data_type, max_value, _start_value, increment in rows:
             fqn = f"{schema_name}.{seq_name}"
 

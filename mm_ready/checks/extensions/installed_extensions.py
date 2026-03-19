@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -31,7 +33,7 @@ class InstalledExtensionsCheck(BaseCheck):
         "citus": "Citus has its own distributed architecture. Incompatible with Spock.",
     }
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Audit installed PostgreSQL extensions and produce findings for known Spock compatibility issues.
 
@@ -53,8 +55,8 @@ class InstalledExtensionsCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
-        ext_list = []
+        findings: list[Finding] = []
+        ext_list: list[str] = []
         for extname, extversion, schema_name in rows:
             ext_list.append(f"{extname} ({extversion})")
 

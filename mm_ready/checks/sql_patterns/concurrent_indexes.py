@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class ConcurrentIndexesCheck(BaseCheck):
     category = "sql_patterns"
     description = "CREATE INDEX CONCURRENTLY — must be created manually on each node"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.
 
@@ -33,7 +35,7 @@ class ConcurrentIndexesCheck(BaseCheck):
         except Exception:
             return []
 
-        findings = []
+        findings: list[Finding] = []
         if rows:
             findings.append(
                 Finding(

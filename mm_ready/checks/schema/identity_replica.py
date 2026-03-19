@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -14,7 +16,7 @@ class UpdateDeleteNoPkCheck(BaseCheck):
         "these operations are silently dropped by Spock"
     )
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Identify tables that lack a primary key and generate Findings based on recent DML activity.
 
@@ -53,7 +55,7 @@ class UpdateDeleteNoPkCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, updates, deletes, inserts in rows:
             fqn = f"{schema_name}.{table_name}"
 

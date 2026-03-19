@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class EventTriggersCheck(BaseCheck):
     category = "schema"
     description = "Event triggers — fire on DDL events, may interact with Spock DDL replication"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Inspect PostgreSQL event triggers and report findings about their enabled modes with respect to DDL replication.
 
@@ -42,7 +44,7 @@ class EventTriggersCheck(BaseCheck):
             "A": "always",
         }
 
-        findings = []
+        findings: list[Finding] = []
         for trigger_name, event, enabled in rows:
             if enabled == "D":
                 continue  # Skip disabled triggers

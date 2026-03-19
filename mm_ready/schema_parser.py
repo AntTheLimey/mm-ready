@@ -27,11 +27,11 @@ class ConstraintDef:
     constraint_type: str  # PRIMARY KEY, UNIQUE, FOREIGN KEY, EXCLUDE, CHECK
     table_schema: str
     table_name: str
-    columns: list[str] = field(default_factory=list)
+    columns: list[str] = field(default_factory=lambda: list[str]())
     # FK-specific
     ref_schema: str = ""
     ref_table: str = ""
-    ref_columns: list[str] = field(default_factory=list)
+    ref_columns: list[str] = field(default_factory=lambda: list[str]())
     on_delete: str = "NO ACTION"
     on_update: str = "NO ACTION"
     # Deferrable
@@ -44,7 +44,7 @@ class IndexDef:
     name: str
     table_schema: str
     table_name: str
-    columns: list[str] = field(default_factory=list)
+    columns: list[str] = field(default_factory=lambda: list[str]())
     is_unique: bool = False
     index_method: str = "btree"
 
@@ -67,9 +67,9 @@ class SequenceDef:
 class TableDef:
     schema_name: str
     table_name: str
-    columns: list[ColumnDef] = field(default_factory=list)
+    columns: list[ColumnDef] = field(default_factory=lambda: list[ColumnDef]())
     unlogged: bool = False
-    inherits: list[str] = field(default_factory=list)
+    inherits: list[str] = field(default_factory=lambda: list[str]())
     partition_by: str | None = None
 
 
@@ -83,7 +83,7 @@ class ExtensionDef:
 class EnumTypeDef:
     schema_name: str
     type_name: str
-    labels: list[str] = field(default_factory=list)
+    labels: list[str] = field(default_factory=lambda: list[str]())
 
 
 @dataclass
@@ -100,13 +100,13 @@ class ParsedSchema:
     """Complete in-memory representation of a pg_dump schema."""
 
     pg_version: str = ""
-    tables: list[TableDef] = field(default_factory=list)
-    constraints: list[ConstraintDef] = field(default_factory=list)
-    indexes: list[IndexDef] = field(default_factory=list)
-    sequences: list[SequenceDef] = field(default_factory=list)
-    extensions: list[ExtensionDef] = field(default_factory=list)
-    enum_types: list[EnumTypeDef] = field(default_factory=list)
-    rules: list[RuleDef] = field(default_factory=list)
+    tables: list[TableDef] = field(default_factory=lambda: list[TableDef]())
+    constraints: list[ConstraintDef] = field(default_factory=lambda: list[ConstraintDef]())
+    indexes: list[IndexDef] = field(default_factory=lambda: list[IndexDef]())
+    sequences: list[SequenceDef] = field(default_factory=lambda: list[SequenceDef]())
+    extensions: list[ExtensionDef] = field(default_factory=lambda: list[ExtensionDef]())
+    enum_types: list[EnumTypeDef] = field(default_factory=lambda: list[EnumTypeDef]())
+    rules: list[RuleDef] = field(default_factory=lambda: list[RuleDef]())
 
     def get_table(self, schema: str, name: str) -> TableDef | None:
         for t in self.tables:
@@ -726,7 +726,7 @@ def _parse_table_body(body: str, tbl: TableDef, search_path: str, schema: Parsed
 
 def _split_body_parts(body: str) -> list[str]:
     """Split CREATE TABLE body on top-level commas."""
-    parts = []
+    parts: list[str] = []
     depth = 0
     current: list[str] = []
 

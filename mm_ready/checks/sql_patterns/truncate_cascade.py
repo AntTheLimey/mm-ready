@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class TruncateCascadeCheck(BaseCheck):
     category = "sql_patterns"
     description = "TRUNCATE ... CASCADE and RESTART IDENTITY — replication behaviour caveats"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Run checks against the provided PostgreSQL connection to detect TRUNCATE ... CASCADE and TRUNCATE ... RESTART IDENTITY usage recorded in pg_stat_statements.
 
@@ -21,7 +23,7 @@ class TruncateCascadeCheck(BaseCheck):
         Returns:
                 list[Finding]: A list of Findings describing detected TRUNCATE CASCADE or TRUNCATE RESTART IDENTITY statements. If `pg_stat_statements` is unavailable or an error occurs while querying it, returns a single INFO Finding indicating the check could not be performed.
         """
-        findings = []
+        findings: list[Finding] = []
 
         # Check if pg_stat_statements is available
         try:

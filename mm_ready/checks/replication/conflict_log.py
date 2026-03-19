@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -12,7 +14,7 @@ class ConflictLogCheck(BaseCheck):
     description = "Review Spock conflict log for recent replication conflicts"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema and conflict history table exist
         """
         Inspect Spock's conflict history and produce Findings describing any recent replication conflicts.
@@ -39,7 +41,8 @@ class ConflictLogCheck(BaseCheck):
                           AND tablename = 'conflict_history'
                     );
                 """)
-                has_table = cur.fetchone()[0]
+                row = cur.fetchone()
+                has_table = bool(row[0]) if row else False
         except Exception:
             has_table = False
 
@@ -100,7 +103,7 @@ class ConflictLogCheck(BaseCheck):
                 )
             ]
 
-        findings = []
+        findings: list[Finding] = []
         total_conflicts = sum(r[3] for r in rows)
 
         findings.append(

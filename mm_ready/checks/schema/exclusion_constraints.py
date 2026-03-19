@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class ExclusionConstraintsCheck(BaseCheck):
     category = "schema"
     description = "Exclusion constraints — not enforceable across Spock nodes"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Finds exclusion constraints in non-system schemas and produces a Finding for each describing potential multi-node replication risks.
 
@@ -39,7 +41,7 @@ class ExclusionConstraintsCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, constraint_name in rows:
             fqn = f"{schema_name}.{table_name}"
             findings.append(

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -12,7 +14,7 @@ class ExceptionLogCheck(BaseCheck):
     description = "Review Spock exception log for replication apply errors"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema and exception tables exist
         """
         Inspect the spock.exception_log table and produce findings describing replication apply errors.
@@ -35,7 +37,8 @@ class ExceptionLogCheck(BaseCheck):
                           AND tablename = 'exception_log'
                     );
                 """)
-                has_table = cur.fetchone()[0]
+                row = cur.fetchone()
+                has_table = bool(row[0]) if row else False
         except Exception:
             has_table = False
 
@@ -96,7 +99,7 @@ class ExceptionLogCheck(BaseCheck):
                 )
             ]
 
-        findings = []
+        findings: list[Finding] = []
         total_errors = sum(r[3] for r in rows)
 
         findings.append(

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class MaxWorkerProcessesCheck(BaseCheck):
     category = "replication"
     description = "Sufficient worker processes for Spock background workers"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check whether max_worker_processes is large enough for Spock background workers.
 
@@ -23,9 +25,10 @@ class MaxWorkerProcessesCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute("SHOW max_worker_processes;")
-            max_workers = int(cur.fetchone()[0])
+            row = cur.fetchone()
+            max_workers = int(row[0]) if row else 0
 
-        findings = []
+        findings: list[Finding] = []
         # Spock needs several bgworkers: supervisor, writer, manager per sub, etc.
         if max_workers < 16:
             findings.append(

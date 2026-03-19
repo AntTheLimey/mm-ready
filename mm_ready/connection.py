@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 
 import psycopg2
-import psycopg2.extras
 
 
 def connect(
@@ -68,8 +67,9 @@ def connect(
     return conn
 
 
-def get_pg_version(conn) -> str:
+def get_pg_version(conn: psycopg2.extensions.connection) -> str:
     """Return the PostgreSQL server version string."""
     with conn.cursor() as cur:
         cur.execute("SELECT version()")
-        return cur.fetchone()[0]
+        row = cur.fetchone()
+        return str(row[0]) if row else ""

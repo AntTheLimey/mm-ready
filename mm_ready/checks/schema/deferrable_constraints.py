@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class DeferrableConstraintsCheck(BaseCheck):
     category = "schema"
     description = "Deferrable unique/PK constraints — silently skipped by Spock conflict resolution"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Detect deferrable UNIQUE and PRIMARY KEY constraints in the database and return findings describing them.
 
@@ -45,7 +47,7 @@ class DeferrableConstraintsCheck(BaseCheck):
 
         type_labels = {"p": "PRIMARY KEY", "u": "UNIQUE"}
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, con_name, con_type, _is_deferrable, is_deferred in rows:
             fqn = f"{schema_name}.{table_name}"
             con_label = type_labels.get(con_type, con_type)

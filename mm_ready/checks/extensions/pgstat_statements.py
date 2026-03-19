@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
@@ -11,7 +13,7 @@ class PgStatStatementsCheck(BaseCheck):
     category = "extensions"
     description = "pg_stat_statements availability for SQL pattern observation"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         """
         Check for the pg_stat_statements extension and report its availability and queryability.
 
@@ -29,13 +31,14 @@ class PgStatStatementsCheck(BaseCheck):
             """)
             installed = cur.fetchone()
 
-        findings = []
+        findings: list[Finding] = []
         if installed:
             # Check if we can actually query it
             try:
                 with conn.cursor() as cur:
                     cur.execute("SELECT count(*) FROM pg_stat_statements;")
-                    stmt_count = cur.fetchone()[0]
+                    row = cur.fetchone()
+                    stmt_count = int(row[0]) if row else 0
                 findings.append(
                     Finding(
                         severity=Severity.INFO,
