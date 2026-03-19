@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+
+reviews:
+  # Reduce verbosity
+  poem: false
+  high_level_summary: false
+  collapse_walkthrough: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  review_status: false
+
+  # Disable noisy context
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false
+  assess_linked_issues: false
+
+  # Keep reviews enabled
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+
+  # Pre-merge checks
+  pre_merge_checks:
+    docstrings:
+      mode: warning
+      threshold: 80
+
+  # Enable relevant tools
+  tools:
+    ruff:
+      enabled: true
+    gitleaks:
+      enabled: true
+    yamllint:
+      enabled: true
+    markdownlint:
+      enabled: true
