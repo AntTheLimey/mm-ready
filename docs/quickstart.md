@@ -4,11 +4,19 @@ Get mm-ready running against your database in under 5 minutes.
 
 ## 1. Install
 
+### From GitHub
+
 ```bash
-git clone <repo-url>
+pip install git+https://github.com/AntTheLimey/MM_Ready.git
+```
+
+### Development Install
+
+```bash
+git clone https://github.com/AntTheLimey/MM_Ready.git
 cd MM_Ready
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 Verify the installation:

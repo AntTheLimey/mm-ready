@@ -1,4 +1,5 @@
 # mm-ready
+[![CI](https://github.com/AntTheLimey/MM_Ready/actions/workflows/ci.yml/badge.svg)](https://github.com/AntTheLimey/MM_Ready/actions/workflows/ci.yml)
 
 A database scanner that assesses PostgreSQL readiness for
 [pgEdge Spock 5](https://www.pgedge.com/) multi-master replication.
@@ -25,12 +26,26 @@ before (or after) deploying Spock.
 - **Source-code-verified** — check logic is verified against the Spock C source
   code, not just documentation
 
-## Quick Install
+## Installation
+
+### From GitHub
 
 ```bash
-git clone <repo-url> && cd MM_Ready
+pip install git+https://github.com/AntTheLimey/MM_Ready.git
+```
+
+Pin to a specific version:
+
+```bash
+pip install git+https://github.com/AntTheLimey/MM_Ready.git@v0.1.2
+```
+
+### Development Install
+
+```bash
+git clone https://github.com/AntTheLimey/MM_Ready.git && cd MM_Ready
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 Requires **Python 3.10+** and **psycopg2** (installed automatically via
@@ -409,6 +424,28 @@ No registration required. The check is discovered automatically at runtime.
 - Target database: PostgreSQL 15, 16, 17, or 18
 - Read-only access to `pg_catalog`, `pg_stat_statements` (optional), and
   `pg_hba_file_rules` (optional)
+
+## Contributing
+
+Bug reports and pull requests are welcome on
+[GitHub](https://github.com/AntTheLimey/MM_Ready/issues).
+
+To set up a development environment:
+
+```bash
+git clone https://github.com/AntTheLimey/MM_Ready.git && cd MM_Ready
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pre-commit install
+```
+
+Run the test suite before submitting:
+
+```bash
+pytest tests/ -v
+ruff check mm_ready/ tests/
+pyright mm_ready/ tests/
+```
 
 ## License
 

@@ -65,6 +65,7 @@ nav:
   - About mm-ready:
       - Overview: index.md
       - Quickstart: quickstart.md
+      - Tutorial: tutorial.md
   - Checks Reference:
       - All Checks: checks-reference.md
   - Architecture:

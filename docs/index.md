@@ -9,11 +9,12 @@ before (or after) deploying Spock.
 
 ## Features
 
-- **56 automated checks** across 8 categories — schema, replication, config,
-  extensions, SQL patterns, functions, sequences, and more
-- **Two operational modes:**
+- **56 automated checks** across 7 categories — schema, replication, config,
+  extensions, SQL patterns, functions, and sequences
+- **Three operational modes:**
     - `scan` — pre-Spock readiness assessment (vanilla PostgreSQL, no Spock needed)
     - `audit` — post-Spock health check (database with Spock already running)
+    - `analyze` — offline schema dump analysis (no database connection required)
 - **Three output formats:** HTML, Markdown, JSON
 - **Timestamped reports** — output filenames include a timestamp so previous
   scans are never overwritten
@@ -25,13 +26,16 @@ before (or after) deploying Spock.
 ## Quick Install
 
 ```bash
-git clone <repo-url> && cd MM_Ready
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+pip install git+https://github.com/AntTheLimey/MM_Ready.git
 ```
 
-Requires **Python 3.10+** and **psycopg2** (installed automatically via
-`psycopg2-binary`).
+Or for development:
+
+```bash
+git clone https://github.com/AntTheLimey/MM_Ready.git && cd MM_Ready
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
 ## Usage
 
