@@ -1,5 +1,5 @@
 # mm-ready
-[![CI](https://github.com/AntTheLimey/MM_Ready/actions/workflows/ci.yml/badge.svg)](https://github.com/AntTheLimey/MM_Ready/actions/workflows/ci.yml)
+[![CI](https://github.com/pgEdge/mm-ready/actions/workflows/ci.yml/badge.svg)](https://github.com/pgEdge/mm-ready/actions/workflows/ci.yml)
 
 A database scanner that assesses PostgreSQL readiness for
 [pgEdge Spock 5](https://www.pgedge.com/) multi-master replication.
@@ -31,19 +31,19 @@ before (or after) deploying Spock.
 ### From GitHub
 
 ```bash
-pip install git+https://github.com/AntTheLimey/MM_Ready.git
+pip install git+https://github.com/pgEdge/mm-ready.git
 ```
 
 Pin to a specific version:
 
 ```bash
-pip install git+https://github.com/AntTheLimey/MM_Ready.git@v0.1.2
+pip install git+https://github.com/pgEdge/mm-ready.git@v0.1.2
 ```
 
 ### Development Install
 
 ```bash
-git clone https://github.com/AntTheLimey/MM_Ready.git && cd MM_Ready
+git clone https://github.com/pgEdge/mm-ready.git && cd mm-ready
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```
@@ -428,12 +428,12 @@ No registration required. The check is discovered automatically at runtime.
 ## Contributing
 
 Bug reports and pull requests are welcome on
-[GitHub](https://github.com/AntTheLimey/MM_Ready/issues).
+[GitHub](https://github.com/pgEdge/mm-ready/issues).
 
 To set up a development environment:
 
 ```bash
-git clone https://github.com/AntTheLimey/MM_Ready.git && cd MM_Ready
+git clone https://github.com/pgEdge/mm-ready.git && cd mm-ready
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pre-commit install

@@ -26,13 +26,13 @@ before (or after) deploying Spock.
 ## Quick Install
 
 ```bash
-pip install git+https://github.com/AntTheLimey/MM_Ready.git
+pip install git+https://github.com/pgEdge/mm-ready.git
 ```
 
 Or for development:
 
 ```bash
-git clone https://github.com/AntTheLimey/MM_Ready.git && cd MM_Ready
+git clone https://github.com/pgEdge/mm-ready.git && cd mm-ready
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```

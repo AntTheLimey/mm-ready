@@ -31,9 +31,9 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/AntTheLimey/MM_Ready"
-Documentation = "https://github.com/AntTheLimey/MM_Ready/tree/main/docs"
-"Issue Tracker" = "https://github.com/AntTheLimey/MM_Ready/issues"
+Repository = "https://github.com/pgEdge/mm-ready"
+Documentation = "https://github.com/pgEdge/mm-ready/tree/main/docs"
+"Issue Tracker" = "https://github.com/pgEdge/mm-ready/issues"
 
 [project.scripts]
 mm-ready = "mm_ready.cli:main"

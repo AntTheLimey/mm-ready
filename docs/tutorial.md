@@ -7,7 +7,7 @@ mm-ready finds and how to read the reports.
 ## Prerequisites
 
 - Docker Desktop running
-- mm-ready installed (`pip install git+https://github.com/AntTheLimey/MM_Ready.git`)
+- mm-ready installed (`pip install git+https://github.com/pgEdge/mm-ready.git`)
 
 ## Set Up a Test Database
 
@@ -159,5 +159,5 @@ docker exec mmready-test psql -U postgres -d mmready \
 **mm-ready command not found:**
 
 ```bash
-pip install git+https://github.com/AntTheLimey/MM_Ready.git
+pip install git+https://github.com/pgEdge/mm-ready.git
 ```
