@@ -5,7 +5,7 @@ from __future__ import annotations
 import html
 
 from mm_ready.config import ReportConfig
-from mm_ready.models import ScanReport, Severity
+from mm_ready.models import Finding, ScanReport, Severity
 
 _CSS = """
 /* ── Reset & base ─────────────────────────────────────────────── */
@@ -281,8 +281,7 @@ def _render_detail(text: str) -> str:
 
 
 def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
-    """
-    Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
+    """Render a ScanReport into a complete standalone HTML document with sidebar navigation and main content.
 
     Parameters:
         report (ScanReport): Scan report containing findings, results, counts, and metadata used to populate the document.
@@ -307,12 +306,12 @@ def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
         include_consider_in_todo = report_cfg.todo_include_consider
 
     # ── Build severity → category → findings structure ──
-    sev_cat_map: dict[Severity, dict[str, list]] = {}
+    sev_cat_map: dict[Severity, dict[str, list[Finding]]] = {}
     for severity in [Severity.CRITICAL, Severity.WARNING, Severity.CONSIDER, Severity.INFO]:
         sev_findings = [f for f in all_findings if f.severity == severity]
         if not sev_findings:
             continue
-        cat_map: dict[str, list] = {}
+        cat_map: dict[str, list[Finding]] = {}
         for f in sev_findings:
             cat_map.setdefault(f.category, []).append(f)
         sev_cat_map[severity] = dict(sorted(cat_map.items()))
@@ -320,7 +319,7 @@ def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
     errors = [r for r in report.results if r.error]
 
     # Collect To Do items: CRITICAL, WARNING, and optionally CONSIDER findings with remediation
-    todo_items = []
+    todo_items: list[Finding] = []
     if show_todo:
         todo_severities = [Severity.CRITICAL, Severity.WARNING]
         if include_consider_in_todo:
@@ -331,7 +330,7 @@ def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
                     todo_items.append(f)
 
     # ── Build sidebar HTML ──
-    sidebar_lines = []
+    sidebar_lines: list[str] = []
     sidebar_lines.append('<div class="sidebar">')
     sidebar_lines.append('<div class="sidebar-header">')
     sidebar_lines.append("<strong>MM-Ready Report</strong><br>")
@@ -381,7 +380,7 @@ def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
     sidebar_lines.append("</div>")
 
     # ── Build main content ──
-    main = []
+    main: list[str] = []
     main.append('<div class="main">')
 
     # Header
@@ -495,7 +494,7 @@ def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
         else:
             css_class = "todo-summary todo-summary-green"
 
-        parts = []
+        parts: list[str] = []
         if crit_todos:
             parts.append(f"{len(crit_todos)} critical")
         if warn_todos:
@@ -541,7 +540,7 @@ def render(report: ScanReport, report_cfg: ReportConfig | None = None) -> str:
     main.append("</div>")
 
     # ── Assemble document ──
-    doc = []
+    doc: list[str] = []
     doc.append("<!DOCTYPE html>")
     doc.append('<html lang="en">')
     doc.append("<head>")

@@ -1,17 +1,23 @@
 """Check for UNLOGGED tables — not replicated by Spock."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class UnloggedTablesCheck(BaseCheck):
+    """Check: UNLOGGED tables — not written to WAL and cannot be replicated."""
+
     name = "unlogged_tables"
     category = "schema"
     description = "UNLOGGED tables — not written to WAL and cannot be replicated"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify UNLOGGED tables (tables not written to the write-ahead log) outside standard system schemas and produce a Finding for each.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify UNLOGGED tables (tables not written to the write-ahead log) outside standard system schemas and produce a Finding for each.
 
         Parameters:
             conn: A DB connection object that provides a cursor() context manager for executing queries.
@@ -34,7 +40,7 @@ class UnloggedTablesCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name in rows:
             fqn = f"{schema_name}.{table_name}"
             findings.append(

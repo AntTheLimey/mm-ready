@@ -1,17 +1,23 @@
 """Check for generated (computed/stored) columns."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class GeneratedColumnsCheck(BaseCheck):
+    """Check: Generated/stored columns — replication behavior differences."""
+
     name = "generated_columns"
     category = "schema"
     description = "Generated/stored columns — replication behavior differences"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify generated (stored or virtual) columns in the connected PostgreSQL database and produce Findings for each.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify generated (stored or virtual) columns in the connected PostgreSQL database and produce Findings for each.
 
         Queries PostgreSQL system catalogs to locate columns declared as generated and returns a Finding per generated column describing its type, generation expression, and a remediation suggestion.
 
@@ -43,7 +49,7 @@ class GeneratedColumnsCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, col_name, gen_type, expression in rows:
             fqn = f"{schema_name}.{table_name}"
             gen_label = "STORED" if gen_type == "s" else "VIRTUAL"

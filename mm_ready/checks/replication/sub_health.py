@@ -1,8 +1,11 @@
 """Audit check: verify Spock subscription health."""
 
+from __future__ import annotations
+
 import logging
 
 import psycopg2
+from psycopg2.extensions import connection
 
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
@@ -11,15 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 class SubscriptionHealthCheck(BaseCheck):
+    """Check: Check health of Spock subscriptions."""
+
     name = "subscription_health"
     category = "replication"
     description = "Check health of Spock subscriptions"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema exists
-        """
-        Assess Spock subscription and replication-slot health for the connected database node.
+        """Assess Spock subscription and replication-slot health for the connected database node.
 
         This method checks for the presence of the `spock` schema, enumerates entries in `spock.subscription`, and inspects the corresponding replication slots to produce findings about disabled subscriptions, inactive replication slots, query failures, or informational states (no spock schema or no subscriptions).
 
@@ -39,7 +43,8 @@ class SubscriptionHealthCheck(BaseCheck):
                         SELECT 1 FROM pg_namespace WHERE nspname = 'spock'
                     );
                 """)
-                has_spock = cur.fetchone()[0]
+                row = cur.fetchone()
+                has_spock = bool(row[0]) if row else False
         except Exception:
             has_spock = False
 
@@ -94,7 +99,7 @@ class SubscriptionHealthCheck(BaseCheck):
                 )
             ]
 
-        findings = []
+        findings: list[Finding] = []
         for sub_name, sub_enabled, slot_name, _repsets, _fwd_origins in rows:
             if not sub_enabled:
                 findings.append(

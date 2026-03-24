@@ -1,20 +1,26 @@
 """Check for tables without PKs that have UPDATE/DELETE activity."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class UpdateDeleteNoPkCheck(BaseCheck):
+    """Check: Tables without primary keys that have UPDATE/DELETE activity — "         "these operations are silently dropped by Spock."""
+
     name = "tables_update_delete_no_pk"
     category = "schema"
     description = (
         "Tables without primary keys that have UPDATE/DELETE activity — "
         "these operations are silently dropped by Spock"
     )
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify tables that lack a primary key and generate Findings based on recent DML activity.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify tables that lack a primary key and generate Findings based on recent DML activity.
 
         Queries the database statistics/catalogs to find user tables without a primary key and with recorded INSERT/UPDATE/DELETE activity. For each matching table:
         - Produces a CRITICAL Finding when there are UPDATE or DELETE operations (indicating changes that would be lost by Spock's default_insert_only behavior).
@@ -51,7 +57,7 @@ class UpdateDeleteNoPkCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, updates, deletes, inserts in rows:
             fqn = f"{schema_name}.{table_name}"
 

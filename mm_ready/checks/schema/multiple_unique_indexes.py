@@ -1,17 +1,23 @@
 """Check for tables with multiple unique indexes — conflict resolution implications."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class MultipleUniqueIndexesCheck(BaseCheck):
+    """Check: Tables with multiple unique indexes — affects Spock conflict resolution."""
+
     name = "multiple_unique_indexes"
     category = "schema"
     description = "Tables with multiple unique indexes — affects Spock conflict resolution"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify tables that have more than one unique index and generate Findings describing potential Spock conflict-resolution implications.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify tables that have more than one unique index and generate Findings describing potential Spock conflict-resolution implications.
 
         Parameters:
             conn: A DB-API compatible connection providing a cursor() context manager on which the query is executed.
@@ -40,7 +46,7 @@ class MultipleUniqueIndexesCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, idx_count, index_names in rows:
             fqn = f"{schema_name}.{table_name}"
             # Check which indexes are deferrable (Spock skips those)

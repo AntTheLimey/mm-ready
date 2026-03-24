@@ -1,19 +1,24 @@
 """Audit check: verify replication set membership for all user tables."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class RepsetMembershipCheck(BaseCheck):
+    """Check: Verify all user tables are in a Spock replication set."""
+
     name = "repset_membership"
     category = "replication"
     description = "Verify all user tables are in a Spock replication set"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema exists
-        """
-        Check whether user tables are members of any Spock replication set and report findings.
+        """Check whether user tables are members of any Spock replication set and report findings.
 
         If the Spock schema is missing, returns a single INFO finding indicating the check was skipped.
         If the query against spock.repset_table fails, returns a single WARNING finding describing the error.
@@ -32,7 +37,8 @@ class RepsetMembershipCheck(BaseCheck):
                         SELECT 1 FROM pg_namespace WHERE nspname = 'spock'
                     );
                 """)
-                has_spock = cur.fetchone()[0]
+                row = cur.fetchone()
+                has_spock = bool(row[0]) if row else False
         except Exception:
             has_spock = False
 
@@ -80,7 +86,7 @@ class RepsetMembershipCheck(BaseCheck):
                 )
             ]
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name in rows:
             fqn = f"{schema_name}.{table_name}"
             findings.append(

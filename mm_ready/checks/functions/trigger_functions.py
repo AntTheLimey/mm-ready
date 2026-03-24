@@ -1,17 +1,23 @@
 """Check triggers that may conflict with replication."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class TriggerFunctionsCheck(BaseCheck):
+    """Check: Triggers — ENABLE REPLICA and ENABLE ALWAYS both fire during Spock apply."""
+
     name = "trigger_functions"
     category = "functions"
     description = "Triggers — ENABLE REPLICA and ENABLE ALWAYS both fire during Spock apply"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify triggers that may conflict with replication and produce a Finding for each discovered trigger.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify triggers that may conflict with replication and produce a Finding for each discovered trigger.
 
         Queries PostgreSQL system catalogs for non-internal triggers (excluding pg_catalog, information_schema, spock, pg_toast) and evaluates each trigger's enabled mode to determine potential replication-related concerns.
 
@@ -57,7 +63,7 @@ class TriggerFunctionsCheck(BaseCheck):
             "A": "ALWAYS (fires in all sessions)",
         }
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, trig_name, timing, event, func_name, enabled in rows:
             fqn = f"{schema_name}.{table_name}"
             enabled_label = enabled_labels.get(enabled, enabled)

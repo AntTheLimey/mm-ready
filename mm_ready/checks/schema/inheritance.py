@@ -1,17 +1,23 @@
 """Check for table inheritance — poorly supported in logical replication."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class InheritanceCheck(BaseCheck):
+    """Check: Table inheritance (non-partition) — not well supported in logical replication."""
+
     name = "inheritance"
     category = "schema"
     description = "Table inheritance (non-partition) — not well supported in logical replication"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify non-partition table inheritance relationships in the database and produce findings for each child table.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify non-partition table inheritance relationships in the database and produce findings for each child table.
 
         This query excludes partitioned parents and common system/catalog namespaces ('pg_catalog', 'information_schema', 'spock', 'pg_toast'). For each discovered child table that inherits from a regular (non-partition) parent, a Finding is created describing the inheritance and recommending migration to declarative partitioning or standalone tables.
 
@@ -38,7 +44,7 @@ class InheritanceCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for parent_schema, parent_table, child_schema, child_table in rows:
             parent_fqn = f"{parent_schema}.{parent_table}"
             child_fqn = f"{child_schema}.{child_table}"

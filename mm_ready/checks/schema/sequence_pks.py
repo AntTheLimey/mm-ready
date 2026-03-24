@@ -1,17 +1,23 @@
 """Check for primary keys backed by standard sequences (need snowflake migration)."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class SequencePrimaryKeysCheck(BaseCheck):
+    """Check: Primary keys using standard sequences — must migrate to pgEdge snowflake."""
+
     name = "sequence_pks"
     category = "schema"
     description = "Primary keys using standard sequences — must migrate to pgEdge snowflake"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify primary key columns that are backed by standard sequences or identity columns and produce Findings recommending migration to pgEdge snowflake.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify primary key columns that are backed by standard sequences or identity columns and produce Findings recommending migration to pgEdge snowflake.
 
         Returns:
             list[Finding]: Findings for each detected primary key column. Each Finding has severity `CRITICAL` and includes the fully qualified table name as `object_name`, a descriptive `title` and `detail`, a `remediation` message, and `metadata` containing `column` and `sequence`.
@@ -38,7 +44,7 @@ class SequencePrimaryKeysCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, col_name, seq_name in rows:
             fqn = f"{schema_name}.{table_name}"
             findings.append(

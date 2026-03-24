@@ -1,17 +1,23 @@
 """Check for LISTEN/NOTIFY usage — not replicated by logical replication."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class NotifyListenCheck(BaseCheck):
+    """Check: LISTEN/NOTIFY usage — notifications are not replicated by Spock."""
+
     name = "notify_listen"
     category = "schema"
     description = "LISTEN/NOTIFY usage — notifications are not replicated by Spock"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Detects usage of NOTIFY or pg_notify in database functions and recent statements and reports findings about their replication implications.
+    def run(self, conn: connection) -> list[Finding]:
+        """Detects usage of NOTIFY or pg_notify in database functions and recent statements and reports findings about their replication implications.
 
         Parameters:
             conn: A DB-API connection to the inspected PostgreSQL database; used to query pg_proc/pg_namespace and pg_stat_statements.
@@ -21,7 +27,7 @@ class NotifyListenCheck(BaseCheck):
                 - functions (schema.function) that contain NOTIFY/pg_notify (severity: WARNING), and
                 - queries recorded in pg_stat_statements that contain NOTIFY/pg_notify (severity: CONSIDER).
         """
-        findings = []
+        findings: list[Finding] = []
 
         # pg_listening_channels() only shows channels of the current session.
         # Instead, check for NOTIFY in functions and pg_stat_statements.

@@ -9,6 +9,8 @@ from pathlib import Path
 
 @dataclass
 class LogStatement:
+    """A single SQL statement extracted from a PostgreSQL log file."""
+
     line_number: int
     timestamp: str
     statement: str
@@ -17,18 +19,19 @@ class LogStatement:
 
 @dataclass
 class LogAnalysis:
+    """Aggregated results from parsing a PostgreSQL log file."""
+
     total_statements: int = 0
-    ddl_statements: list[LogStatement] = field(default_factory=list)
-    truncate_cascade: list[LogStatement] = field(default_factory=list)
-    create_temp_table: list[LogStatement] = field(default_factory=list)
-    advisory_locks: list[LogStatement] = field(default_factory=list)
-    concurrent_indexes: list[LogStatement] = field(default_factory=list)
-    other_notable: list[LogStatement] = field(default_factory=list)
+    ddl_statements: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    truncate_cascade: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    create_temp_table: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    advisory_locks: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    concurrent_indexes: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
+    other_notable: list[LogStatement] = field(default_factory=lambda: list[LogStatement]())
 
     @property
     def has_findings(self) -> bool:
-        """
-        Indicates whether the analysis contains any notable SQL findings.
+        """Indicates whether the analysis contains any notable SQL findings.
 
         Returns:
             True if any finding categories (DDL, truncate cascade, temp table creation, advisory locks, concurrent indexes, or other notable) contain entries, False otherwise.
@@ -66,8 +69,7 @@ _CONCURRENT_INDEX = re.compile(r"\bCREATE\s+INDEX\s+CONCURRENTLY\b", re.IGNORECA
 
 
 def parse_log_file(log_path: str) -> LogAnalysis:
-    """
-    Parse a PostgreSQL log file and extract notable SQL statements and patterns.
+    """Parse a PostgreSQL log file and extract notable SQL statements and patterns.
 
     Supports logs that include a timestamped log_line_prefix. Lines beginning with a tab are treated as continuations of the previous statement and are appended to it.
 
@@ -124,7 +126,7 @@ def parse_log_file(log_path: str) -> LogAnalysis:
     return analysis
 
 
-def _classify_statement(analysis: LogAnalysis, stmt: str, ts: str, line: int):
+def _classify_statement(analysis: LogAnalysis, stmt: str, ts: str, line: int) -> None:
     """Classify a SQL statement into relevant categories."""
     entry = LogStatement(line_number=line, timestamp=ts, statement=stmt[:500])
 

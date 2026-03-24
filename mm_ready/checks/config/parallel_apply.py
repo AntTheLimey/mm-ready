@@ -1,17 +1,23 @@
 """Check parallel apply worker configuration."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class ParallelApplyCheck(BaseCheck):
+    """Check: Parallel apply workers configuration for Spock performance."""
+
     name = "parallel_apply"
     category = "config"
     description = "Parallel apply workers configuration for Spock performance"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Validate Spock parallel-apply related PostgreSQL configuration and produce findings.
+    def run(self, conn: connection) -> list[Finding]:
+        """Validate Spock parallel-apply related PostgreSQL configuration and produce findings.
 
         Queries the database for `max_worker_processes`, `max_parallel_workers`, `max_logical_replication_workers`, and `max_sync_workers_per_subscription`, generates Findings for values that are below recommended thresholds, and always includes a summary Finding containing the observed parameter values.
 
@@ -21,7 +27,7 @@ class ParallelApplyCheck(BaseCheck):
         Returns:
             list[Finding]: A list of Finding objects describing any configuration issues and a summary entry with all queried parameter values.
         """
-        params = {}
+        params: dict[str, str | None] = {}
         with conn.cursor() as cur:
             for param in [
                 "max_worker_processes",
@@ -31,11 +37,12 @@ class ParallelApplyCheck(BaseCheck):
             ]:
                 try:
                     cur.execute(f"SHOW {param};")
-                    params[param] = cur.fetchone()[0]
+                    row = cur.fetchone()
+                    params[param] = str(row[0]) if row else ""
                 except Exception:
                     params[param] = None
 
-        findings = []
+        findings: list[Finding] = []
 
         # max_logical_replication_workers
         lr_workers = params.get("max_logical_replication_workers")
@@ -89,7 +96,7 @@ class ParallelApplyCheck(BaseCheck):
                 detail="\n".join(f"  {k} = {v}" for k, v in params.items()),
                 object_name="(config)",
                 remediation="Review values for your expected cluster size and workload.",
-                metadata=params,
+                metadata={k: v for k, v in params.items()},
             )
         )
         return findings

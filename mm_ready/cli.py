@@ -19,6 +19,7 @@ _FORMAT_EXT = {"json": ".json", "markdown": ".md", "html": ".html"}
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Perform build parser."""
     parser = argparse.ArgumentParser(
         prog="mm-ready",
         description="Scan a PostgreSQL database for Spock 5 multi-master readiness.",
@@ -111,7 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _add_connection_args(parser: argparse.ArgumentParser):
+def _add_connection_args(parser: argparse.ArgumentParser) -> None:
     grp = parser.add_argument_group("connection")
     grp.add_argument("--dsn", help="PostgreSQL connection URI (postgres://...)")
     grp.add_argument("--host", "-H", default=None, help="Database host")
@@ -129,9 +130,8 @@ def _add_connection_args(parser: argparse.ArgumentParser):
     grp.add_argument("--sslrootcert", default=None, help="Path to root CA certificate")
 
 
-def _add_output_args(parser: argparse.ArgumentParser):
-    """
-    Add output-related CLI arguments to the given argument parser.
+def _add_output_args(parser: argparse.ArgumentParser) -> None:
+    """Add output-related CLI arguments to the given argument parser.
 
     This adds an "output" argument group with:
     - --format / -f: report format choice among "json", "markdown", and "html" (default: "html").
@@ -185,9 +185,8 @@ def _add_check_filter_args(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def main(argv: list[str] | None = None):
-    """
-    Entry point for the CLI: parse arguments, select a command, and dispatch to the corresponding handler.
+def main(argv: list[str] | None = None) -> None:
+    """Entry point for the CLI: parse arguments, select a command, and dispatch to the corresponding handler.
 
     Parses argv (or sys.argv[1:] when argv is None), rewrites the arguments to default to the "scan" command when the first token is not a recognized subcommand or a top-level help/version flag, and invokes the appropriate command handler (_cmd_list_checks, _cmd_scan, _cmd_audit, _cmd_analyze, or _cmd_monitor). If no arguments are provided or no command is selected after parsing, prints help and exits with status code 1.
 
@@ -227,7 +226,7 @@ def main(argv: list[str] | None = None):
         _cmd_monitor(args)
 
 
-def _cmd_analyze(args):
+def _cmd_analyze(args: argparse.Namespace) -> None:
     from mm_ready.analyzer import run_analyze
     from mm_ready.schema_parser import parse_dump
 
@@ -254,7 +253,7 @@ def _cmd_analyze(args):
     _write_output(output, args, mode="analyze", dbname=report.database)
 
 
-def _cmd_list_checks(args):
+def _cmd_list_checks(args: argparse.Namespace) -> None:
     from mm_ready.registry import discover_checks
 
     categories = args.categories.split(",") if args.categories else None
@@ -272,26 +271,25 @@ def _cmd_list_checks(args):
         print("No checks found.")
         return
 
-    current_cat = None
+    current_cat: str | None = None
     for check in checks:
-        if check.category != current_cat:
+        if check.category != current_cat:  # pyright: ignore[reportUnnecessaryComparison]
             current_cat = check.category
             print(f"\n[{current_cat}]")
         mode_tag = f"[{check.mode}]" if check.mode != "scan" else ""
         print(f"  {check.name:30s} {mode_tag:8s} {check.description}")
 
 
-def _cmd_scan(args):
+def _cmd_scan(args: argparse.Namespace) -> None:
     _run_mode(args, mode="scan")
 
 
-def _cmd_audit(args):
+def _cmd_audit(args: argparse.Namespace) -> None:
     _run_mode(args, mode="audit")
 
 
-def _run_mode(args, mode: str):
-    """
-    Establishes a database connection, runs a scan in the specified mode, renders the resulting report, and writes the output.
+def _run_mode(args: argparse.Namespace, mode: str) -> None:
+    """Establishes a database connection, runs a scan in the specified mode, renders the resulting report, and writes the output.
 
     Parameters:
         args: argparse.Namespace with connection and output options. Expected attributes:
@@ -371,9 +369,8 @@ def _run_mode(args, mode: str):
     _write_output(output, args, mode=mode, dbname=report.database)
 
 
-def _cmd_monitor(args):
-    """
-    Run the "monitor" CLI command: connect to the database, perform monitoring, and write the rendered report.
+def _cmd_monitor(args: argparse.Namespace) -> None:
+    """Run the "monitor" CLI command: connect to the database, perform monitoring, and write the rendered report.
 
     Attempts to establish a database connection using values from `args`; on connection failure prints a user-friendly error and exits. On success, runs the monitor observer to collect a report, closes the connection, renders the report in the requested format, and writes the output using the CLI output rules.
 
@@ -438,7 +435,9 @@ def _cmd_monitor(args):
     _write_output(output, args, mode="monitor", dbname=report.database)
 
 
-def _write_output(output: str, args, mode: str = "scan", dbname: str = ""):
+def _write_output(
+    output: str, args: argparse.Namespace, mode: str = "scan", dbname: str = ""
+) -> None:
     """Write report to file (with timestamped name) or stdout."""
     if args.output:
         path = _make_output_path(args.output, args.format, dbname)

@@ -1,17 +1,23 @@
 """Audit stored procedures for potential replication issues."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class StoredProceduresCheck(BaseCheck):
+    """Check: Audit stored procedures/functions for write operations and DDL."""
+
     name = "stored_procedures"
     category = "functions"
     description = "Audit stored procedures/functions for write operations and DDL"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Audit user-defined functions and procedures for potential write operations and non-replicated side effects.
+    def run(self, conn: connection) -> list[Finding]:
+        """Audit user-defined functions and procedures for potential write operations and non-replicated side effects.
 
         Connects to the provided database connection, inspects user-defined functions/procedures in non-system schemas, and scans their source for patterns that indicate write operations or DDL (for example: INSERT, UPDATE, CREATE, DROP, EXECUTE). For each routine that contains such patterns, produces a Finding describing the routine, the detected write patterns, and remediation guidance; if any routines are present, also returns a summary informational Finding with the total count.
 
@@ -43,7 +49,7 @@ class StoredProceduresCheck(BaseCheck):
         kind_labels = {"f": "function", "p": "procedure", "a": "aggregate", "w": "window"}
         vol_labels = {"i": "IMMUTABLE", "s": "STABLE", "v": "VOLATILE"}
 
-        findings = []
+        findings: list[Finding] = []
         write_patterns = [
             "INSERT",
             "UPDATE",

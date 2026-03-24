@@ -1,17 +1,23 @@
 """Check max_replication_slots is sufficient for Spock."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class MaxReplicationSlotsCheck(BaseCheck):
+    """Check: Sufficient replication slots for Spock node connections."""
+
     name = "max_replication_slots"
     category = "replication"
     description = "Sufficient replication slots for Spock node connections"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Determine whether PostgreSQL's max_replication_slots provides sufficient headroom for Spock node connections.
+    def run(self, conn: connection) -> list[Finding]:
+        """Determine whether PostgreSQL's max_replication_slots provides sufficient headroom for Spock node connections.
 
         Queries the server for the configured max_replication_slots and the number currently in use; if the configured value is less than 10, returns a warning Finding describing the shortfall and recommended remediation.
 
@@ -23,12 +29,14 @@ class MaxReplicationSlotsCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute("SHOW max_replication_slots;")
-            max_slots = int(cur.fetchone()[0])
+            row = cur.fetchone()
+            max_slots = int(row[0]) if row else 0
 
             cur.execute("SELECT count(*) FROM pg_catalog.pg_replication_slots;")
-            used_slots = cur.fetchone()[0]
+            row = cur.fetchone()
+            used_slots = int(row[0]) if row else 0
 
-        findings = []
+        findings: list[Finding] = []
         # Spock needs at least 1 slot per peer node. Recommend headroom.
         if max_slots < 10:
             findings.append(

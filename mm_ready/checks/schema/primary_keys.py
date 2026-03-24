@@ -1,17 +1,23 @@
 """Check for tables missing primary keys."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class PrimaryKeysCheck(BaseCheck):
+    """Check: Tables without primary keys — affects Spock replication behaviour."""
+
     name = "primary_keys"
     category = "schema"
     description = "Tables without primary keys — affects Spock replication behaviour"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Identify all regular tables that lack a primary key and return a Finding for each.
+    def run(self, conn: connection) -> list[Finding]:
+        """Identify all regular tables that lack a primary key and return a Finding for each.
 
         Parameters:
             conn: A DB-API compatible connection to the PostgreSQL instance used to query system catalogs.
@@ -39,7 +45,7 @@ class PrimaryKeysCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name in rows:
             fqn = f"{schema_name}.{table_name}"
             findings.append(

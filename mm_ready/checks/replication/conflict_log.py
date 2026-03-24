@@ -1,19 +1,24 @@
 """Audit check: review Spock conflict log for recent conflicts."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class ConflictLogCheck(BaseCheck):
+    """Check: Review Spock conflict log for recent replication conflicts."""
+
     name = "conflict_log"
     category = "replication"
     description = "Review Spock conflict log for recent replication conflicts"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Check if spock schema and conflict history table exist
-        """
-        Inspect Spock's conflict history and produce Findings describing any recent replication conflicts.
+        """Inspect Spock's conflict history and produce Findings describing any recent replication conflicts.
 
         This method checks for the existence of the spock.conflict_history table, and if present aggregates conflicts by table, conflict type, and resolution (limited to 50 rows). Possible single-entry Findings returned describe a missing table, a query error, or an empty conflict table. When conflicts are found the method returns an aggregate Finding with the total conflict count followed by one Finding per aggregated row with per-table conflict details and metadata.
 
@@ -37,7 +42,8 @@ class ConflictLogCheck(BaseCheck):
                           AND tablename = 'conflict_history'
                     );
                 """)
-                has_table = cur.fetchone()[0]
+                row = cur.fetchone()
+                has_table = bool(row[0]) if row else False
         except Exception:
             has_table = False
 
@@ -98,7 +104,7 @@ class ConflictLogCheck(BaseCheck):
                 )
             ]
 
-        findings = []
+        findings: list[Finding] = []
         total_conflicts = sum(r[3] for r in rows)
 
         findings.append(

@@ -1,17 +1,23 @@
 """Check that wal_level is set to 'logical'."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class WalLevelCheck(BaseCheck):
+    """Check: wal_level must be 'logical' for Spock replication."""
+
     name = "wal_level"
     category = "replication"
     description = "wal_level must be 'logical' for Spock replication"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Check the PostgreSQL server's wal_level and produce a Finding if it is not set to 'logical'.
+    def run(self, conn: connection) -> list[Finding]:
+        """Check the PostgreSQL server's wal_level and produce a Finding if it is not set to 'logical'.
 
         Queries the server with "SHOW wal_level;" and, if the value is not "logical", returns a single `Finding` with severity CRITICAL that includes the current value, explanatory detail, remediation steps, and metadata.
 
@@ -20,9 +26,10 @@ class WalLevelCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute("SHOW wal_level;")
-            wal_level = cur.fetchone()[0]
+            row = cur.fetchone()
+            wal_level = str(row[0]) if row else ""
 
-        findings = []
+        findings: list[Finding] = []
         if wal_level != "logical":
             findings.append(
                 Finding(

@@ -1,18 +1,23 @@
 """Audit check: report PostgreSQL minor version for cross-node consistency."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class PgMinorVersionCheck(BaseCheck):
+    """Check: PostgreSQL minor version — all cluster nodes should match."""
+
     name = "pg_minor_version"
     category = "config"
     description = "PostgreSQL minor version — all cluster nodes should match"
     mode = "audit"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Query the connected PostgreSQL server and return a Finding that reports its minor version and full version string.
+    def run(self, conn: connection) -> list[Finding]:
+        """Query the connected PostgreSQL server and return a Finding that reports its minor version and full version string.
 
         Parameters:
             conn: A live database connection used to query the server version.
@@ -22,7 +27,9 @@ class PgMinorVersionCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute("SELECT version(), current_setting('server_version');")
-            full_version, server_version = cur.fetchone()
+            row = cur.fetchone()
+            full_version = str(row[0]) if row else ""
+            server_version = str(row[1]) if row else ""
 
         return [
             Finding(

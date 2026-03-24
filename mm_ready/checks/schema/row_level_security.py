@@ -1,17 +1,23 @@
 """Check for row-level security policies — apply worker context implications."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class RowLevelSecurityCheck(BaseCheck):
+    """Check: Row-level security policies — apply worker runs as superuser, bypasses RLS."""
+
     name = "row_level_security"
     category = "schema"
     description = "Row-level security policies — apply worker runs as superuser, bypasses RLS"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Detect tables that have row-level security (RLS) enabled and produce findings describing each table's RLS configuration.
+    def run(self, conn: connection) -> list[Finding]:
+        """Detect tables that have row-level security (RLS) enabled and produce findings describing each table's RLS configuration.
 
         For each non-system table with RLS enabled, creates a Finding with the table's fully qualified name, whether RLS is forced, the number of policies, a warning-level message about the Spock apply worker bypassing RLS, and a remediation suggestion.
 
@@ -38,7 +44,7 @@ class RowLevelSecurityCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, _rls_enabled, rls_forced, policy_count in rows:
             fqn = f"{schema_name}.{table_name}"
             findings.append(

@@ -1,17 +1,23 @@
 """Check max_wal_senders configuration for Spock replication."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class MaxWalSendersCheck(BaseCheck):
+    """Check: Sufficient max_wal_senders for Spock logical replication."""
+
     name = "max_wal_senders"
     category = "replication"
     description = "Sufficient max_wal_senders for Spock logical replication"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Check that max_wal_senders is sufficiently large for Spock logical replication.
+    def run(self, conn: connection) -> list[Finding]:
+        """Check that max_wal_senders is sufficiently large for Spock logical replication.
 
         When the server setting `max_wal_senders` is less than 10, returns a WARNING Finding that describes the current `max_wal_senders` value, the number of active WAL senders, recommended minimum (10), remediation steps, and metadata (`current` and `active`). Returns an empty list when the setting meets or exceeds 10.
 
@@ -25,9 +31,11 @@ class MaxWalSendersCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute(query)
-            max_senders, active_senders = cur.fetchone()
+            row = cur.fetchone()
+            max_senders = int(row[0]) if row else 0
+            active_senders = int(row[1]) if row else 0
 
-        findings = []
+        findings: list[Finding] = []
 
         if max_senders < 10:
             findings.append(

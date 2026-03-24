@@ -1,17 +1,23 @@
 """Check for deferrable unique/PK constraints — Spock skips them for conflict resolution."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class DeferrableConstraintsCheck(BaseCheck):
+    """Check: Deferrable unique/PK constraints — silently skipped by Spock conflict resolution."""
+
     name = "deferrable_constraints"
     category = "schema"
     description = "Deferrable unique/PK constraints — silently skipped by Spock conflict resolution"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Detect deferrable UNIQUE and PRIMARY KEY constraints in the database and return findings describing them.
+    def run(self, conn: connection) -> list[Finding]:
+        """Detect deferrable UNIQUE and PRIMARY KEY constraints in the database and return findings describing them.
 
         Scans PostgreSQL catalogs for constraints that are DEFERRABLE (excluding system schemas) and produces a Finding for each match that describes the constraint, its initially deferred state, recommended remediation, and metadata. PRIMARY KEY constraints are reported with CRITICAL severity; UNIQUE constraints are reported with WARNING severity. Each Finding's metadata includes the constraint type and whether it is initially deferred, and the Finding's object_name is the fully qualified constraint identifier.
 
@@ -43,7 +49,7 @@ class DeferrableConstraintsCheck(BaseCheck):
 
         type_labels = {"p": "PRIMARY KEY", "u": "UNIQUE"}
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, con_name, con_type, _is_deferrable, is_deferred in rows:
             fqn = f"{schema_name}.{table_name}"
             con_label = type_labels.get(con_type, con_type)

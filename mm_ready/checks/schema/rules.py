@@ -1,17 +1,23 @@
 """Check for rules on tables — rules interact poorly with logical replication."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class RulesCheck(BaseCheck):
+    """Check: Rules on tables — can cause unexpected behaviour with logical replication."""
+
     name = "rules"
     category = "schema"
     description = "Rules on tables — can cause unexpected behaviour with logical replication"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Detects rules defined on regular tables that may interfere with logical replication and reports findings for each rule.
+    def run(self, conn: connection) -> list[Finding]:
+        """Detects rules defined on regular tables that may interfere with logical replication and reports findings for each rule.
 
         Each Finding describes the rule (fully-qualified table and rule name), the affected event (SELECT/UPDATE/INSERT/DELETE when mappable), a severity (WARNING when the rule is an INSTEAD rule, CONSIDER otherwise), a human-readable title and detailed explanation of replication implications, a remediation suggestion, and metadata containing the event and `is_instead` flag.
 
@@ -39,7 +45,7 @@ class RulesCheck(BaseCheck):
 
         event_labels = {"1": "SELECT", "2": "UPDATE", "3": "INSERT", "4": "DELETE"}
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, rule_name, event_type, is_instead in rows:
             fqn = f"{schema_name}.{table_name}"
             event = event_labels.get(str(event_type), str(event_type))

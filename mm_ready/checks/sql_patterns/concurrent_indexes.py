@@ -1,17 +1,23 @@
 """Check for CREATE INDEX CONCURRENTLY usage — must be done manually per node."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class ConcurrentIndexesCheck(BaseCheck):
+    """Check: CREATE INDEX CONCURRENTLY — must be created manually on each node."""
+
     name = "concurrent_indexes"
     category = "sql_patterns"
     description = "CREATE INDEX CONCURRENTLY — must be created manually on each node"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.
+    def run(self, conn: connection) -> list[Finding]:
+        """Detects usages of `CREATE INDEX CONCURRENTLY` in PostgreSQL statement history and returns findings describing any matches.
 
         Parameters:
             conn: A database connection object with a context-managing `.cursor()` method used to query `pg_stat_statements`.
@@ -31,7 +37,7 @@ class ConcurrentIndexesCheck(BaseCheck):
         except Exception:
             return []
 
-        findings = []
+        findings: list[Finding] = []
         if rows:
             findings.append(
                 Finding(

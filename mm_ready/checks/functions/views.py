@@ -1,18 +1,24 @@
 """Audit views, especially materialized views."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class ViewsCheck(BaseCheck):
+    """Check: Views and materialized views — refresh coordination in multi-master."""
+
     name = "views_audit"
     category = "functions"
     description = "Views and materialized views — refresh coordination in multi-master"
+    mode = "both"
 
-    def run(self, conn) -> list[Finding]:
+    def run(self, conn: connection) -> list[Finding]:
         # Materialized views
-        """
-        Audit database views and materialized views and produce findings about materialized-view refresh coordination and the presence of regular views.
+        """Audit database views and materialized views and produce findings about materialized-view refresh coordination and the presence of regular views.
 
         Returns:
             list[Finding]: A list of findings where each materialized view produces a WARNING finding containing its fully qualified name and human-readable size (metadata key "size"), and — if any regular views exist — a single CONSIDER finding summarizing the count of regular views (metadata key "view_count").
@@ -40,9 +46,10 @@ class ViewsCheck(BaseCheck):
             cur.execute(mat_query)
             mat_rows = cur.fetchall()
             cur.execute(view_query)
-            view_count = cur.fetchone()[0]
+            row = cur.fetchone()
+            view_count = int(row[0]) if row else 0
 
-        findings = []
+        findings: list[Finding] = []
 
         for schema_name, view_name, size in mat_rows:
             fqn = f"{schema_name}.{view_name}"

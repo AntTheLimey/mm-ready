@@ -13,6 +13,8 @@ from pathlib import Path
 
 @dataclass
 class ColumnDef:
+    """A column definition parsed from a CREATE TABLE statement."""
+
     name: str
     data_type: str
     not_null: bool = False
@@ -23,15 +25,17 @@ class ColumnDef:
 
 @dataclass
 class ConstraintDef:
+    """A constraint definition (PK, UNIQUE, FK, EXCLUDE, CHECK)."""
+
     name: str
     constraint_type: str  # PRIMARY KEY, UNIQUE, FOREIGN KEY, EXCLUDE, CHECK
     table_schema: str
     table_name: str
-    columns: list[str] = field(default_factory=list)
+    columns: list[str] = field(default_factory=lambda: list[str]())
     # FK-specific
     ref_schema: str = ""
     ref_table: str = ""
-    ref_columns: list[str] = field(default_factory=list)
+    ref_columns: list[str] = field(default_factory=lambda: list[str]())
     on_delete: str = "NO ACTION"
     on_update: str = "NO ACTION"
     # Deferrable
@@ -41,16 +45,20 @@ class ConstraintDef:
 
 @dataclass
 class IndexDef:
+    """An index definition parsed from a CREATE INDEX statement."""
+
     name: str
     table_schema: str
     table_name: str
-    columns: list[str] = field(default_factory=list)
+    columns: list[str] = field(default_factory=lambda: list[str]())
     is_unique: bool = False
     index_method: str = "btree"
 
 
 @dataclass
 class SequenceDef:
+    """A sequence definition parsed from a CREATE SEQUENCE statement."""
+
     schema_name: str
     sequence_name: str
     data_type: str = "bigint"
@@ -65,29 +73,37 @@ class SequenceDef:
 
 @dataclass
 class TableDef:
+    """A table definition parsed from a CREATE TABLE statement."""
+
     schema_name: str
     table_name: str
-    columns: list[ColumnDef] = field(default_factory=list)
+    columns: list[ColumnDef] = field(default_factory=lambda: list[ColumnDef]())
     unlogged: bool = False
-    inherits: list[str] = field(default_factory=list)
+    inherits: list[str] = field(default_factory=lambda: list[str]())
     partition_by: str | None = None
 
 
 @dataclass
 class ExtensionDef:
+    """An extension definition parsed from a CREATE EXTENSION statement."""
+
     name: str
     schema_name: str = "public"
 
 
 @dataclass
 class EnumTypeDef:
+    """An ENUM type definition parsed from a CREATE TYPE ... AS ENUM statement."""
+
     schema_name: str
     type_name: str
-    labels: list[str] = field(default_factory=list)
+    labels: list[str] = field(default_factory=lambda: list[str]())
 
 
 @dataclass
 class RuleDef:
+    """A rule definition parsed from a CREATE RULE statement."""
+
     schema_name: str
     table_name: str
     rule_name: str
@@ -100,15 +116,16 @@ class ParsedSchema:
     """Complete in-memory representation of a pg_dump schema."""
 
     pg_version: str = ""
-    tables: list[TableDef] = field(default_factory=list)
-    constraints: list[ConstraintDef] = field(default_factory=list)
-    indexes: list[IndexDef] = field(default_factory=list)
-    sequences: list[SequenceDef] = field(default_factory=list)
-    extensions: list[ExtensionDef] = field(default_factory=list)
-    enum_types: list[EnumTypeDef] = field(default_factory=list)
-    rules: list[RuleDef] = field(default_factory=list)
+    tables: list[TableDef] = field(default_factory=lambda: list[TableDef]())
+    constraints: list[ConstraintDef] = field(default_factory=lambda: list[ConstraintDef]())
+    indexes: list[IndexDef] = field(default_factory=lambda: list[IndexDef]())
+    sequences: list[SequenceDef] = field(default_factory=lambda: list[SequenceDef]())
+    extensions: list[ExtensionDef] = field(default_factory=lambda: list[ExtensionDef]())
+    enum_types: list[EnumTypeDef] = field(default_factory=lambda: list[EnumTypeDef]())
+    rules: list[RuleDef] = field(default_factory=lambda: list[RuleDef]())
 
     def get_table(self, schema: str, name: str) -> TableDef | None:
+        """Look up a table by schema and name."""
         for t in self.tables:
             if t.schema_name == schema and t.table_name == name:
                 return t
@@ -117,8 +134,7 @@ class ParsedSchema:
     def get_constraints_for_table(
         self, schema: str, name: str, con_type: str | None = None
     ) -> list[ConstraintDef]:
-        """
-        Retrieve constraints defined on a specific table.
+        """Retrieve constraints defined on a specific table.
 
         Parameters:
             schema (str): Schema name of the table.
@@ -134,8 +150,7 @@ class ParsedSchema:
         return result
 
     def get_indexes_for_table(self, schema: str, name: str) -> list[IndexDef]:
-        """
-        Retrieve index definitions for the specified table.
+        """Retrieve index definitions for the specified table.
 
         Parameters:
             schema (str): Schema name containing the table.
@@ -239,8 +254,7 @@ RE_FK_ON_UPDATE = re.compile(
 
 
 def _unquote(name: str) -> str:
-    """
-    Remove surrounding double quotes from an SQL identifier.
+    """Remove surrounding double quotes from an SQL identifier.
 
     Returns:
         str: The identifier without surrounding double quotes if both the first and last characters are double quotes; otherwise the original name.
@@ -365,8 +379,7 @@ def _parse_column(line: str) -> ColumnDef | None:
 
 
 def parse_dump(file_path: str) -> ParsedSchema:
-    """
-    Parse a pg_dump --schema-only SQL file into an in-memory ParsedSchema representation.
+    """Parse a pg_dump --schema-only SQL file into an in-memory ParsedSchema representation.
 
     The returned ParsedSchema is populated with tables, columns, constraints, indexes, sequences, extensions, enum types, rules, and the detected pg_version; search_path changes in the dump are respected when resolving unqualified identifiers.
 
@@ -388,8 +401,7 @@ def parse_dump(file_path: str) -> ParsedSchema:
 
 
 def _split_statements(text: str, schema: ParsedSchema, search_path: str) -> list[tuple[str, str]]:
-    """
-    Split SQL text into statements paired with the active search_path for each statement.
+    """Split SQL text into statements paired with the active search_path for each statement.
 
     Parses the input SQL text into a list of complete statements while preserving and returning the search_path that was in effect when each statement ended. Extracts and sets schema.pg_version when a Postgres version header comment is found, updates the current search_path when SET/pg_catalog.set_config calls are encountered, and avoids splitting inside dollar-quoted string bodies.
 
@@ -468,8 +480,7 @@ def _split_statements(text: str, schema: ParsedSchema, search_path: str) -> list
 
 
 def _process_statement(stmt: str, search_path: str, schema: ParsedSchema) -> None:
-    """
-    Populate the provided ParsedSchema by extracting schema objects from a single SQL statement.
+    """Populate the provided ParsedSchema by extracting schema objects from a single SQL statement.
 
     This function inspects the given SQL statement and, when it matches known DDL patterns, updates the ParsedSchema in-place with parsed objects such as extensions, enum types, sequences, tables (including columns and table-level constraints), constraints (including foreign-key details and deferrable flags), indexes, sequence ownership, column defaults, identity columns, and rules. Statements that target excluded schemas are ignored.
 
@@ -726,7 +737,7 @@ def _parse_table_body(body: str, tbl: TableDef, search_path: str, schema: Parsed
 
 def _split_body_parts(body: str) -> list[str]:
     """Split CREATE TABLE body on top-level commas."""
-    parts = []
+    parts: list[str] = []
     depth = 0
     current: list[str] = []
 
@@ -752,8 +763,7 @@ def _split_body_parts(body: str) -> list[str]:
 def _parse_inline_constraint(
     text: str, tbl: TableDef, search_path: str, schema: ParsedSchema
 ) -> None:
-    """
-    Parse a single inline table-level constraint from a CREATE TABLE body and add a corresponding ConstraintDef to the parsed schema.
+    """Parse a single inline table-level constraint from a CREATE TABLE body and add a corresponding ConstraintDef to the parsed schema.
 
     This recognizes PRIMARY KEY, UNIQUE, and FOREIGN KEY inline constraints, extracts the constraint name (if present), affected columns, and for UNIQUE constraints the deferrable flag; for FOREIGN KEY constraints it also extracts the referenced schema/table/columns and ON DELETE / ON UPDATE actions, then appends the constructed ConstraintDef to schema.constraints.
 
@@ -763,7 +773,6 @@ def _parse_inline_constraint(
         search_path (str): Current search path to resolve unqualified reference targets to a schema when parsing FOREIGN KEY references.
         schema (ParsedSchema): The in-memory schema model to which the created ConstraintDef will be appended.
     """
-
     # CONSTRAINT name TYPE (cols)
     con_name_m = re.match(r"CONSTRAINT\s+([\w\"]+)\s+", text, re.IGNORECASE)
     if con_name_m:

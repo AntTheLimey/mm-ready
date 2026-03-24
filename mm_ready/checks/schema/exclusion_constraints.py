@@ -1,17 +1,23 @@
 """Check for exclusion constraints — not supported by logical replication."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class ExclusionConstraintsCheck(BaseCheck):
+    """Check: Exclusion constraints — not enforceable across Spock nodes."""
+
     name = "exclusion_constraints"
     category = "schema"
     description = "Exclusion constraints — not enforceable across Spock nodes"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Finds exclusion constraints in non-system schemas and produces a Finding for each describing potential multi-node replication risks.
+    def run(self, conn: connection) -> list[Finding]:
+        """Finds exclusion constraints in non-system schemas and produces a Finding for each describing potential multi-node replication risks.
 
         Each Finding represents an exclusion constraint (pg_constraint.contype = 'x') found outside the system schemas ('pg_catalog', 'information_schema', 'spock', 'pg_toast') and explains that exclusion constraints are evaluated locally on each node, which can lead to replication conflicts or data inconsistencies in multi-master topologies.
 
@@ -37,7 +43,7 @@ class ExclusionConstraintsCheck(BaseCheck):
             cur.execute(query)
             rows = cur.fetchall()
 
-        findings = []
+        findings: list[Finding] = []
         for schema_name, table_name, constraint_name in rows:
             fqn = f"{schema_name}.{table_name}"
             findings.append(

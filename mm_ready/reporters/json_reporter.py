@@ -3,36 +3,18 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
+from mm_ready import __version__
 from mm_ready.models import ScanReport
 
 
 def render(report: ScanReport) -> str:
     """Render a ScanReport as a JSON string."""
-    data = {
-        "meta": {
-            "tool": "mm-ready",
-            "version": "0.1.0",
-            "timestamp": report.timestamp.isoformat(),
-            "database": report.database,
-            "host": report.host,
-            "port": report.port,
-            "pg_version": report.pg_version,
-            "spock_target": report.spock_target,
-        },
-        "summary": {
-            "total_checks": report.checks_total,
-            "checks_passed": report.checks_passed,
-            "critical": report.critical_count,
-            "warnings": report.warning_count,
-            "consider": report.consider_count,
-            "info": report.info_count,
-        },
-        "results": [],
-    }
+    results: list[dict[str, Any]] = []
 
     for result in report.results:
-        entry = {
+        entry: dict[str, Any] = {
             "check_name": result.check_name,
             "category": result.category,
             "description": result.description,
@@ -53,6 +35,28 @@ def render(report: ScanReport) -> str:
             }
             for f in result.findings
         ]
-        data["results"].append(entry)
+        results.append(entry)
+
+    data: dict[str, Any] = {
+        "meta": {
+            "tool": "mm-ready",
+            "version": __version__,
+            "timestamp": report.timestamp.isoformat(),
+            "database": report.database,
+            "host": report.host,
+            "port": report.port,
+            "pg_version": report.pg_version,
+            "spock_target": report.spock_target,
+        },
+        "summary": {
+            "total_checks": report.checks_total,
+            "checks_passed": report.checks_passed,
+            "critical": report.critical_count,
+            "warnings": report.warning_count,
+            "consider": report.consider_count,
+            "info": report.info_count,
+        },
+        "results": results,
+    }
 
     return json.dumps(data, indent=2, default=str)

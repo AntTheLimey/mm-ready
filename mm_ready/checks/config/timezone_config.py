@@ -1,17 +1,23 @@
 """Check timezone configuration for commit timestamp consistency across nodes."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class TimezoneConfigCheck(BaseCheck):
+    """Check: Timezone settings — UTC recommended for consistent commit timestamps."""
+
     name = "timezone_config"
     category = "config"
     description = "Timezone settings — UTC recommended for consistent commit timestamps"
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Check the server's timezone and log_timezone settings and produce findings recommending UTC when appropriate.
+    def run(self, conn: connection) -> list[Finding]:
+        """Check the server's timezone and log_timezone settings and produce findings recommending UTC when appropriate.
 
         Parameters:
                 conn: A DB connection object providing a cursor() context manager used to execute "SHOW timezone;" and "SHOW log_timezone;".
@@ -24,12 +30,14 @@ class TimezoneConfigCheck(BaseCheck):
         """
         with conn.cursor() as cur:
             cur.execute("SHOW timezone;")
-            tz = cur.fetchone()[0]
+            row = cur.fetchone()
+            tz = str(row[0]) if row else ""
 
             cur.execute("SHOW log_timezone;")
-            log_tz = cur.fetchone()[0]
+            row = cur.fetchone()
+            log_tz = str(row[0]) if row else ""
 
-        findings = []
+        findings: list[Finding] = []
 
         if tz != "UTC":
             findings.append(

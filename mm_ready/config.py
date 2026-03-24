@@ -5,13 +5,14 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, cast
 
 
 @dataclass
 class CheckConfig:
     """Configuration for which checks to include/exclude."""
 
-    exclude: set[str] = field(default_factory=set)
+    exclude: set[str] = field(default_factory=lambda: set[str]())
     include_only: set[str] | None = None  # None = no whitelist, run all minus exclude
 
 
@@ -28,7 +29,7 @@ class Config:
     """Complete configuration for mm-ready."""
 
     global_checks: CheckConfig = field(default_factory=CheckConfig)
-    mode_checks: dict[str, CheckConfig] = field(default_factory=dict)
+    mode_checks: dict[str, CheckConfig] = field(default_factory=lambda: dict[str, CheckConfig]())
     report: ReportConfig = field(default_factory=ReportConfig)
 
     def get_check_config(self, mode: str) -> CheckConfig:
@@ -99,12 +100,13 @@ def load_config(config_path: str | None = None, auto_discover: bool = True) -> C
         ) from None
 
     with open(config_path) as f:
-        data = yaml.safe_load(f) or {}
+        raw = yaml.safe_load(f)
+        data: dict[str, Any] = cast(dict[str, Any], raw) if isinstance(raw, dict) else {}
 
     return _parse_config(data)
 
 
-def _parse_config(data: dict) -> Config:
+def _parse_config(data: dict[str, Any]) -> Config:
     """Parse YAML data into Config object."""
     config = Config()
 
@@ -128,7 +130,7 @@ def _parse_config(data: dict) -> Config:
     return config
 
 
-def _parse_check_config(data: dict) -> CheckConfig:
+def _parse_check_config(data: dict[str, Any]) -> CheckConfig:
     """Parse check configuration section."""
     exclude = set(data.get("exclude", []))
 

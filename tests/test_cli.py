@@ -3,54 +3,64 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 
 from mm_ready.cli import (
-    _make_default_output_path,
-    _make_output_path,
+    _make_default_output_path,  # pyright: ignore[reportPrivateUsage]
+    _make_output_path,  # pyright: ignore[reportPrivateUsage]
     build_parser,
     main,
 )
 
 
 class TestBuildParser:
-    def test_returns_parser(self):
+    """Tests for build parser."""
+
+    def test_returns_parser(self) -> None:
+        """Verify returns parser."""
         parser = build_parser()
         assert parser is not None
 
-    def test_format_default_is_html(self):
+    def test_format_default_is_html(self) -> None:
+        """Verify format default is html."""
         parser = build_parser()
         args = parser.parse_args(["scan", "--host", "x"])
         assert args.format == "html"
 
-    def test_subcommands_exist(self):
+    def test_subcommands_exist(self) -> None:
+        """Verify subcommands exist."""
         parser = build_parser()
         for cmd in ["scan", "audit", "monitor", "list-checks"]:
             args = parser.parse_args([cmd] if cmd == "list-checks" else [cmd, "--host", "x"])
             assert args.command == cmd
 
-    def test_analyze_subcommand(self):
+    def test_analyze_subcommand(self) -> None:
+        """Verify analyze subcommand."""
         parser = build_parser()
         args = parser.parse_args(["analyze", "--file", "test.sql"])
         assert args.command == "analyze"
         assert args.file == "test.sql"
         assert args.format == "html"  # default
 
-    def test_port_default_is_none(self):
+    def test_port_default_is_none(self) -> None:
         """Port defaults to None at argparse level; 5432 applied in connection.py."""
         parser = build_parser()
         args = parser.parse_args(["scan", "--host", "x"])
         assert args.port is None
 
-    def test_monitor_duration_default(self):
+    def test_monitor_duration_default(self) -> None:
+        """Verify monitor duration default."""
         parser = build_parser()
         args = parser.parse_args(["monitor", "--host", "x"])
         assert args.duration == 3600
 
 
 class TestDefaultToScan:
-    def test_host_arg_defaults_to_scan(self):
+    """Tests for default to scan."""
+
+    def test_host_arg_defaults_to_scan(self) -> None:
         """main() prepends 'scan' when first arg isn't a known command."""
         parser = build_parser()
         # Simulate what main() does
@@ -66,12 +76,13 @@ class TestDefaultToScan:
         assert args.command == "scan"
         assert args.host == "example.com"
 
-    def test_no_args_exits(self):
+    def test_no_args_exits(self) -> None:
+        """Verify no args exits."""
         with pytest.raises(SystemExit) as exc_info:
             main([])
         assert exc_info.value.code == 1
 
-    def test_help_not_prepended(self):
+    def test_help_not_prepended(self) -> None:
         """--help should not get 'scan' prepended."""
         raw_args = ["--help"]
         known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
@@ -82,7 +93,8 @@ class TestDefaultToScan:
         )
         assert not should_prepend
 
-    def test_version_not_prepended(self):
+    def test_version_not_prepended(self) -> None:
+        """Verify version not prepended."""
         raw_args = ["--version"]
         known_commands = {"scan", "audit", "monitor", "analyze", "list-checks"}
         should_prepend = (
@@ -94,26 +106,33 @@ class TestDefaultToScan:
 
 
 class TestMakeDefaultOutputPath:
-    def test_html_format(self):
+    """Tests for make default output path."""
+
+    def test_html_format(self) -> None:
+        """Verify html format."""
         path = _make_default_output_path("html", "mydb")
         assert path.startswith("reports/mydb_")
         assert path.endswith(".html")
 
-    def test_json_format(self):
+    def test_json_format(self) -> None:
+        """Verify json format."""
         path = _make_default_output_path("json", "mydb")
         assert path.startswith("reports/mydb_")
         assert path.endswith(".json")
 
-    def test_markdown_format(self):
+    def test_markdown_format(self) -> None:
+        """Verify markdown format."""
         path = _make_default_output_path("markdown", "mydb")
         assert path.startswith("reports/mydb_")
         assert path.endswith(".md")
 
-    def test_empty_dbname_uses_fallback(self):
+    def test_empty_dbname_uses_fallback(self) -> None:
+        """Verify empty dbname uses fallback."""
         path = _make_default_output_path("html", "")
         assert "mm-ready_" in path
 
-    def test_timestamp_format(self):
+    def test_timestamp_format(self) -> None:
+        """Verify timestamp format."""
         path = _make_default_output_path("html", "db")
         # Should contain a timestamp like 20260127_143757
         match = re.search(r"\d{8}_\d{6}", path)
@@ -121,21 +140,27 @@ class TestMakeDefaultOutputPath:
 
 
 class TestMakeOutputPath:
-    def test_uses_exact_filename(self):
+    """Tests for make output path."""
+
+    def test_uses_exact_filename(self) -> None:
+        """Verify uses exact filename."""
         path = _make_output_path("report.html", "html", "db")
         assert path == "report.html"
 
-    def test_no_extension_adds_format_ext(self):
+    def test_no_extension_adds_format_ext(self) -> None:
+        """Verify no extension adds format ext."""
         path = _make_output_path("report", "json", "db")
         assert path == "report.json"
 
-    def test_directory_path(self, tmp_path):
+    def test_directory_path(self, tmp_path: Path) -> None:
+        """Verify directory path."""
         path = _make_output_path(str(tmp_path), "html", "mydb")
         assert path.startswith(str(tmp_path))
         assert "mydb_" in path
         assert path.endswith(".html")
         assert re.search(r"\d{8}_\d{6}", path)
 
-    def test_preserves_user_extension(self):
+    def test_preserves_user_extension(self) -> None:
+        """Verify preserves user extension."""
         path = _make_output_path("output.txt", "html", "db")
         assert path == "output.txt"

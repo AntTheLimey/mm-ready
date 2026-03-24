@@ -1,19 +1,25 @@
 """Check idle-in-transaction session timeout configuration."""
 
+from __future__ import annotations
+
+from psycopg2.extensions import connection
+
 from mm_ready.checks.base import BaseCheck
 from mm_ready.models import Finding, Severity
 
 
 class IdleTransactionTimeoutCheck(BaseCheck):
+    """Check: Idle-in-transaction timeout — long idle transactions block VACUUM and cause bloat."""
+
     name = "idle_transaction_timeout"
     category = "config"
     description = (
         "Idle-in-transaction timeout — long idle transactions block VACUUM and cause bloat"
     )
+    mode = "scan"
 
-    def run(self, conn) -> list[Finding]:
-        """
-        Check PostgreSQL idle timeout settings and report findings when either timeout is disabled.
+    def run(self, conn: connection) -> list[Finding]:
+        """Check PostgreSQL idle timeout settings and report findings when either timeout is disabled.
 
         Queries the server for `idle_in_transaction_session_timeout` and, if available, `idle_session_timeout`. If either parameter is explicitly set to "0" (disabled), a corresponding Finding is produced describing the risk and remediation.
 
@@ -23,16 +29,18 @@ class IdleTransactionTimeoutCheck(BaseCheck):
         Returns:
             list[Finding]: A list of Findings for timeouts that are disabled; empty if neither timeout is "0".
         """
-        findings = []
+        findings: list[Finding] = []
 
         with conn.cursor() as cur:
             cur.execute("SHOW idle_in_transaction_session_timeout;")
-            idle_tx_timeout = cur.fetchone()[0]
+            row = cur.fetchone()
+            idle_tx_timeout = str(row[0]) if row else "0"
 
             # idle_session_timeout added in PG14
             try:
                 cur.execute("SHOW idle_session_timeout;")
-                idle_session_timeout = cur.fetchone()[0]
+                row = cur.fetchone()
+                idle_session_timeout = str(row[0]) if row else None
             except Exception:
                 idle_session_timeout = None
 
